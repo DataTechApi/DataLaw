@@ -334,27 +334,27 @@ All commit content is written in **lowercase**, except for the **Task ID**. Comm
 
 **Example:**
 ```
-git commit -m "DATALAW-1 feat(etl): add datajud extraction client"
+git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 ```
 
 | Type | Description | Example |
 |---|---|---|
-| feat | New functionality | DATALAW-01 feat(auth): add login endpoint |
-| fix | Bug fix | DATALAW-01 fix(etl): fix duplicate record handling |
-| chore | Maintenance, no direct impact | DATALAW-01 chore(deps): update project dependencies |
-| docs | Documentation changes | DATALAW-01 docs(readme): update setup instructions |
-| style | Formatting only, no behavior change | DATALAW-01 style(css): fix indentation |
-| refactor | Code refactoring | DATALAW-01 refactor(pipeline): remove redundant checks |
-| perf | Performance improvements | DATALAW-01 perf(api): reduce search endpoint response time |
-| test | Adding or adjusting tests | DATALAW-01 test(etl): add unit tests for cleaning step |
-| build | Build or external dependency changes | DATALAW-01 build(docker): add Dockerfile |
-| ci | CI/CD changes | DATALAW-01 ci(workflow): update GitHub Actions workflow |
-| revert | Revert a previous commit | DATALAW-01 revert(auth): revert "feat(auth): add JWT login" |
-| hotfix | Urgent production fix | DATALAW-01 hotfix(etl): fix broken DataJud client |
+| feat | New functionality | SCRUM-01 feat(auth): add login endpoint |
+| fix | Bug fix | SCRUM-01 fix(etl): fix duplicate record handling |
+| chore | Maintenance, no direct impact | SCRUM-01 chore(deps): update project dependencies |
+| docs | Documentation changes | SCRUM-01 docs(readme): update setup instructions |
+| style | Formatting only, no behavior change | SCRUM-01 style(css): fix indentation |
+| refactor | Code refactoring | SCRUM-01 refactor(pipeline): remove redundant checks |
+| perf | Performance improvements | SCRUM-01 perf(api): reduce search endpoint response time |
+| test | Adding or adjusting tests | SCRUM-01 test(etl): add unit tests for cleaning step |
+| build | Build or external dependency changes | SCRUM-01 build(docker): add Dockerfile |
+| ci | CI/CD changes | SCRUM-01 ci(workflow): update GitHub Actions workflow |
+| revert | Revert a previous commit | SCRUM-01 revert(auth): revert "feat(auth): add JWT login" |
+| hotfix | Urgent production fix | SCRUM-01 hotfix(etl): fix broken DataJud client |
 
 **Branch naming:**
 ```
-git checkout -b DATALAW-1/create-login-screen
+git checkout -b SCRUM-1/create-login-screen
 ```
 
 **Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
