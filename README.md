@@ -344,13 +344,6 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 | :rewind: revert | Revert a previous commit | SCRUM-01 :rewind: revert(auth): revert "feat(auth): add JWT login" |
 | :ambulance: hotfix | Urgent production fix | SCRUM-01 :ambulance: hotfix(etl): fix broken DataJud client |
 
-# 🔗 Jira Smart Commit Commands
-| Command | Usage | Example |
-|---|---|---|
-| #comment | Adds a comment to the issue | SCRUM-86 #comment adjusted backlog formatting |
-| #transition | Changes the issue status (e.g., "In Progress", "Done") | SCRUM-86 #transition In Progress |
-| #time | Logs work time on the issue | SCRUM-86 #time 2h |
-
 **Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
 
 </details>
