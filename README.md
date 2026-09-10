@@ -267,8 +267,8 @@ A backlog item is considered done if:
 
 - [x] Kick-off with partner (Xertica)
 - [x] Discovery follow-up: additional stakeholder questions to refine the real business pain point
-- [ ] Sprint 1 — Planning
-- [ ] Sprint 1 — Execution
+- [x] Sprint 1 — Planning
+- [x] Sprint 1 — Execution
 - [ ] Sprint 1 — Review / Sprint 2 Planning
 - [ ] Sprint 2 — Execution
 - [ ] Sprint 2 — Review / Sprint 3 Planning
@@ -343,6 +343,13 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 | :robot: ci | CI/CD changes | SCRUM-01 :robot: ci(workflow): update GitHub Actions workflow |
 | :rewind: revert | Revert a previous commit | SCRUM-01 :rewind: revert(auth): revert "feat(auth): add JWT login" |
 | :ambulance: hotfix | Urgent production fix | SCRUM-01 :ambulance: hotfix(etl): fix broken DataJud client |
+
+# 🔗 Jira Smart Commit Commands
+| Command | Usage | Example |
+|---|---|---|
+| #comment | Adds a comment to the issue | SCRUM-86 #comment adjusted backlog formatting |
+| #transition | Changes the issue status (e.g., "In Progress", "Done") | SCRUM-86 #transition In Progress |
+| #time | Logs work time on the issue | SCRUM-86 #time 2h |
 
 **Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
 
