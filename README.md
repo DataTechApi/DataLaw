@@ -128,30 +128,23 @@ The application allows users to:
 
 <h1 id="card_file_box-product-backlog">🗂 Product Backlog</h1>
 
-| Rank | Priority | User Story | Points | Sprint |
-|---|---|---|---|---|
-| 1.1 | Highest | As the system, I want to extract decisions from the DataJud (CNJ) API for a pilot court, so that a real, usable dataset is available to build the first indicator. | 8 | 1 |
-| 1.2 | Highest | As the system, I want to clean and standardize the extracted decisions, so that inconsistent formats don't break downstream calculations. | 5 | 1 |
-| 1.3 | Highest | As a data team, I want a minimal dimensional model (Fact: Decision; Dimensions: Court, Topic, Period, Outcome), so that the first indicator can be stored and queried. | 5 | 1 |
-| 1.4 | Highest | As a Legal Ops manager, I want to see the adherence rate of a court to one pilot legal topic, so that I can validate the platform against a metric I already care about. | 8 | 1 |
-| 1.5 | High | As any user, I want to see the original source and a reliability indicator next to the pilot metric, so that I can trust the number before using it in a decision. | 3 | 1 |
-| 1.6 | High | As any user, I want a simple query interface to view the decisions behind the pilot indicator, so that I can audit how the number was calculated. | 3 | 1 |
-| 1.7 | Medium | As a team, we want the initial data model and dictionary documented, so that the project remains traceable from day one. | 3 | 1 |
-| 1.8 | Medium | As a team, we want the Jira project and traceability structure set up, so that every requirement maps to a backlog item. | 1 | 1 |
-| 2.1 | High | As the system, I want to extract decisions from State Court (TJ) APIs beyond the pilot court, so that coverage expands to the full defined scope. | 8 | 2 |
-| 2.2 | Medium | As the system, I want to extract data from open government data portals, so that processual context is enriched. | 5 | 2 |
-| 2.3 | High | As a data team, I want to expand the dimensional model with all remaining dimensions (Author, Document Type), so that OLAP analysis is fully supported. | 5 | 2 |
-| 2.4 | Highest | As the system, I want to automatically classify the legal topic of each decision via NLP, so that documents are organized without manual tagging. | 8 | 2 |
-| 2.5 | High | As the system, I want to extract legal entities from each decision via NLP, so that the outcome classification indicator has richer input. | 8 | 2 |
-| 2.6 | Highest | As the system, I want to semantically index all documents, so that search can operate by meaning rather than keyword. | 8 | 2 |
-| 2.7 | Highest | As a strategic lawyer, I want to search using natural language questions, so that I can find related precedents even with different terminology. | 5 | 2 |
-| 2.8 | Highest | As the system, I want to calculate the average case processing time by court and topic, so that Legal Ops can support settlement vs. litigation decisions. | 8 | 2 |
-| 2.9 | High | As a team, we want automated unit and integration tests covering the ETL and dimensional model, so that data integrity is protected as scope grows. | 5 | 2 |
-| 3.1 | Medium | As the system, I want to collect content from legal doctrine repositories, so that doctrinal analysis becomes possible. | 8 | 3 |
-| 3.2 | High | As the system, I want to classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent), so that success-rate indicators are accurate. | 8 | 3 |
-| 3.3 | Highest | As a judge or Legal Ops manager, I want complete OLAP-backed dashboards for adherence, processing time and volume, so that I can support strategic and financial decisions. | 8 | 3 |
-| 3.4 | Highest | As a team, we want automated functional tests at API and UI level, so that the full system is validated end to end. | 8 | 3 |
-| 3.5 | Medium | As a team, we want a CI/CD pipeline in place, so that tests and deployment are automated on every change. | 5 | 3 |
+| Rank | Priority | User Story | Points | Sprint | DOR |
+|---|---|---|---|---|---|
+| 1.1 | Highest | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 | Court and period fields defined, dataset available, filtering rules documented |
+| 1.2 | Highest | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
+| 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 | Search endpoints defined, sample dataset ready |
+| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available|
+| 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 | Data model finalized, API endpoints listed, documentation template ready |
+| 2.1 | High | As a Legal Manager, I want open data portal information to enrich the context of decisions, so that I have a more complete view when analyzing a case. | 8 | 2 | Open data sources identified, access validated, enrichment rules defined |
+| 2.2 | Medium | As a Legal Manager, I want to filter decisions also by topic, author, and document type, so that I can perform more complete analyses of a case or thesis. | 5 | 2 | Dimensions identified, schema updated, filtering logic documented |
+| 2.3 | Highest | As a Strategic Lawyer, I want each decision’s legal topic to be automatically classified and searchable by meaning, so that I don’t depend on exact keywords. | 8 | 2 | NLP model selected, classification rules defined |
+| 2.4 | Highest | As a Lawyer/Judge, I want to search by meaning and perform multidimensional queries (by court, topic, period), so that I can find related precedents and identify jurisprudence patterns. | 8 | 2 | Semantic index available, query parameters defined, test cases prepared |
+| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
+| 3.1 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 | Doctrine sources identified, access validated |
+| 3.2 | High | As the system, I need to extract legal entities (parties, courts, cited legislation), so that structured data is enriched. | 8 | 3 | NLP entity extraction model defined, training dataset ready, validation rules set |
+| 3.3 | Highest | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 | Dashboard requirements defined, OLAP model ready, visualization tool selected |
+| 3.4 | Highest | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 8 | 3 | Regression test plan defined, CI/CD pipeline available, monitoring configured |
+
 
 <br>
 
@@ -177,7 +170,7 @@ The application allows users to:
 | 1.7 | Medium | Document the initial data model and dictionary | 3 |
 | 1.8 | Medium | Set up Jira project and traceability structure | 1 |
 
-### **Definition of Ready (DoR)**
+### **Global Definition of Ready (DoR)**
 
 A backlog item is ready for the sprint if it meets the following:
 
@@ -223,7 +216,7 @@ A backlog item is considered done if:
 | 2.8 | Highest | Calculate average case processing time by court/topic | 8 |
 | 2.9 | High | Add automated unit and integration tests for ETL and dimensional model | 5 |
 
-### **Definition of Ready (DoR)**
+### **Global Definition of Ready (DoR)**
 
 * Same criteria as Sprint 1.
 * NLP tool has been technically evaluated (e.g. Pangea, cited as a market reference by the client) and a decision made or explicitly deferred.
@@ -254,7 +247,7 @@ A backlog item is considered done if:
 | 3.4 | Highest | Add automated functional tests (API and UI) | 8 |
 | 3.5 | Medium | Set up CI/CD pipeline | 5 |
 
-### **Definition of Ready (DoR)**
+### **Global Definition of Ready (DoR)**
 
 * Same criteria as previous sprints.
 * Dashboard KPIs and visualizations reviewed and approved with the Product Owner.
@@ -303,13 +296,13 @@ A backlog item is considered done if:
 </div>
 
 **Notes on tooling choices:**
-- **Python + Django** — suggested by the partner (Xertica); mature ORM, well suited for exposing APIs on top of the dimensional model.
-- **PostgreSQL** — open-source, handles analytical workloads well and supports search-related extensions.
-- **NLP** — Pangea was cited by the partner as a strong market reference during kick-off; it is the first option to be technically evaluated for topic classification and entity extraction. Final tool selection is pending validation.
-- **SonarQube** — continuous static code analysis, an explicit requirement from Fatec.
-- **Docker + GitHub Actions** — consistent environments and automated CI/CD.
-- **Jira** — maps natively to the team's workflow (Problem → Solution Proposal → Requirements → MVP → Product Backlog → DoR → Sprint Backlog → Version Control), giving full traceability from requirement to delivery.
-- **VS Code** — standardizes the development environment across the team.
+- **Python** - Mature ecosystem with robust ORMs (e.g., SQLAlchemy, Django ORM), excellent support for APIs (FastAPI, Flask), and strong libraries for data processing and NLP.
+- **PostgreSQL** - Open-source RDBMS optimized for analytical workloads, supports advanced indexing (GIN, GiST), full-text search, and extensions like PostGIS. - Store and query large volumes of legal decisions efficiently, enabling OLAP-style analysis and semantic search. 
+- **NLP (Pangea)** - Market reference cited by the partner; offers pretrained models for topic classification and entity extraction. Flexible integration with Python pipelines.
+- **SonarQube** - Continuous static code analysis, detects vulnerabilities, code smells, and enforces quality gates. Integrates with CI/CD pipelines. - Guarantee code quality and compliance with Fatec’s explicit requirement for maintainable and secure software.
+- **Docker + GitHub Actions** - Docker ensures reproducible environments; GitHub Actions automates builds, tests, and deployments. Together they enable CI/CD pipelines with minimal overhead. 
+- **Jira** - Native mapping to agile workflows, supports backlog management, sprint planning, and traceability from requirements to delivery. - Ensure full visibility of progress and alignment with the team’s workflow (Problem → Solution Proposal → Requirements → MVP → Backlog → DoR → Sprint Backlog → Version Control). 
+- **VS Code** - Lightweight IDE, cross-platform, with extensive extensions for Python, Docker, GitHub, and PostgreSQL. Highly customizable and resource-efficient.
 
 <br>
 
@@ -319,11 +312,10 @@ A backlog item is considered done if:
   <summary><b>Branching Strategy</b></summary>
 
 **Typical workflow:**
-1. Create a **feature branch** from `develop`.
-2. Develop the functionality.
-3. Rebase/update the branch against `develop` to avoid conflicts.
-4. Open a **Pull Request** to `develop`.
-5. After the required approvals, merge into `develop`.
+1. Create a **sprint branch** from `main`.
+2. Develop the functionality..
+3. Open a **Pull Request** to `main`.
+4. After the required approvals, merge into `main`.
 
 </details>
 
@@ -339,23 +331,18 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 
 | Type | Description | Example |
 |---|---|---|
-| feat | New functionality | SCRUM-01 feat(auth): add login endpoint |
-| fix | Bug fix | SCRUM-01 fix(etl): fix duplicate record handling |
-| chore | Maintenance, no direct impact | SCRUM-01 chore(deps): update project dependencies |
-| docs | Documentation changes | SCRUM-01 docs(readme): update setup instructions |
-| style | Formatting only, no behavior change | SCRUM-01 style(css): fix indentation |
-| refactor | Code refactoring | SCRUM-01 refactor(pipeline): remove redundant checks |
-| perf | Performance improvements | SCRUM-01 perf(api): reduce search endpoint response time |
-| test | Adding or adjusting tests | SCRUM-01 test(etl): add unit tests for cleaning step |
-| build | Build or external dependency changes | SCRUM-01 build(docker): add Dockerfile |
-| ci | CI/CD changes | SCRUM-01 ci(workflow): update GitHub Actions workflow |
-| revert | Revert a previous commit | SCRUM-01 revert(auth): revert "feat(auth): add JWT login" |
-| hotfix | Urgent production fix | SCRUM-01 hotfix(etl): fix broken DataJud client |
-
-**Branch naming:**
-```
-git checkout -b SCRUM-1/create-login-screen
-```
+| :sparkles: feat | New functionality | SCRUM-01 :sparkles: feat(auth): add login endpoint |
+| :bug: fix | Bug fix | SCRUM-01 :bug: fix(etl): fix duplicate record handling |
+| :wrench: chore | Maintenance, no direct impact | SCRUM-01 :wrench: chore(deps): update project dependencies |
+| :books: docs | Documentation changes | SCRUM-01 :books: docs(readme): update setup instructions |
+| :art: style | Formatting only, no behavior change | SCRUM-01 :art: style(css): fix indentation |
+| :recycle: refactor | Code refactoring | SCRUM-01 :recycle: refactor(pipeline): remove redundant checks |
+| :zap: perf | Performance improvements | SCRUM-01 :zap: perf(api): reduce search endpoint response time |
+| :test_tube: test | Adding or adjusting tests | SCRUM-01 :test_tube: test(etl): add unit tests for cleaning step |
+| :building_construction: build | Build or external dependency changes | SCRUM-01 :building_construction: build(docker): add Dockerfile |
+| :robot: ci | CI/CD changes | SCRUM-01 :robot: ci(workflow): update GitHub Actions workflow |
+| :rewind: revert | Revert a previous commit | SCRUM-01 :rewind: revert(auth): revert "feat(auth): add JWT login" |
+| :ambulance: hotfix | Urgent production fix | SCRUM-01 :ambulance: hotfix(etl): fix broken DataJud client |
 
 **Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
 
