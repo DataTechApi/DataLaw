@@ -1,0 +1,27 @@
+# Ambientes virtuais
+.venv/
+venv/
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+
+# Dados gerados pela ingestão
+data/raw/
+
+# Cache e artefatos Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Ferramentas e editores
+.ipynb_checkpoints/
+.vscode/
+.idea/
