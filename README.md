@@ -74,9 +74,49 @@ The application allows users to:
 - **Judges / Judicial Analysts** — track volume and adherence to binding precedents (STF/STJ) to manage stalled or pending case backlogs.
 
 **Scope:** STF (constitutional matters), STJ (unifying precedents) and TJ (state-level case law) — restricted exclusively to **civil law** across all three instances.
-
 <br>
 
+## **Running Locally**
+### **Prerequisites**
+
+- Git
+- [uv](https://docs.astral.sh/uv/)
+- A [DataJud](https://datajud-wiki.cnj.jus.br/api-publica/acesso/) Public API access key
+
+### Installation
+```bash
+git clone <REPOSITORY_URL>
+cd DataLaw
+uv sync
+```
+
+### API Key Configuration
+
+Create a `.env` file in the project root:
+
+```env
+DATAJUD_API_KEY=your_api_key
+```
+
+### Run the Ingestion
+
+```bash
+uv run python -m data_law.main
+```
+
+The application queries TJSP cases with a final dismissal or definitive archival movement in the past six months.
+
+Raw API responses are automatically saved to:
+
+```text
+data/raw/tjsp/
+```
+### Code Quality
+
+```bash
+uv run ruff format src tests
+uv run ruff check src tests
+```
 <h1 id="white_check_mark-requirements">✅ Requirements</h1>
 
 <details>
