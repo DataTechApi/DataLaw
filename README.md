@@ -135,7 +135,7 @@ uv run ruff check src tests
 | RF11 | OLAP queries | Support multidimensional queries by court, topic and period |
 | RF12 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
 | RF13 | Source & reliability | Display the original source and a reliability indicator with every result |
-| RF17 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
+| RF14 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
 
 </details>
 
@@ -215,17 +215,117 @@ A backlog item is considered done if:
 | 1.7 | Medium | Document the initial data model and dictionary | 3 |
 | 1.8 | Medium | Set up Jira project and traceability structure | 1 |
 
-### **Global Definition of Ready (DoR)**
+<details>
+  
+<summary><strong>US1.1 — Extract decisions from the DataJud (CNJ) API for a pilot court</strong></summary>
 
-A backlog item is ready for the sprint if it meets the following:
+DoR Checklist
 
-* Clear title, description and objective.
-* Acceptance criteria and business rules defined (e.g. what counts as "adherence" or "success").
-* Priority established.
-* Effort estimated by the team.
-* Data source/access confirmed as available, or a fallback plan exists.
-* Dependencies on other stories mapped and flagged in Jira.
-* Traceable to the originating RF/RNF.
+[x] Business rules defined: which court and decision types to extract.
+
+[x] Data available: API access key configured and validated.
+
+[x] Prototype approved: initial data ingestion flow documented.
+
+</details>
+
+<details>
+<summary><strong>US1.2 — Clean and standardize the extracted decisions</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: cleaning rules documented (remove duplicates, normalize fields).
+
+[x] Data available: raw dataset ready for cleaning.
+
+[x] Prototype approved: schema for cleaned dataset validated.
+
+
+</details>
+
+<details>
+<summary><strong>US1.3 — Build a minimal dimensional model (Fact + Court, Topic, Period, Outcome)</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: fact table and dimensions documented.
+
+[x] Data available: cleaned dataset mapped to dimensional schema.
+
+[x] Prototype approved: ER diagram or schema mockup available.
+
+</details>
+
+<details>
+<summary><strong>US1.4 — Calculate the adherence rate for one pilot legal topic</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: adherence calculation formula agreed with stakeholders.
+
+[x] Data available: pilot dataset with topic classification.
+
+[x] Prototype approved: metric displayed in single-screen interface.
+
+</details>
+
+<details>
+<summary><strong>US1.5 — Display source and reliability indicator next to the pilot metric</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: reliability calculation method documented.
+
+[x] Data available: metadata accessible for each decision.
+
+[x] Prototype approved: source and reliability displayed next to metrics.
+
+</details>
+
+<details>
+<summary><strong>US1.6 — Build a simple query interface to view supporting decisions</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: query parameters documented (court, topic, period).
+
+[x] Data available: pilot dataset indexed for queries.
+
+[x] Messages defined: error if query returns no results; success confirmation when decisions are displayed.
+
+[x] Prototype approved: query interface mockup validated.
+
+</details>
+
+<details>
+<summary><strong>US1.7 — Document the initial data model and dictionary</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: documentation template agreed.
+
+[x] Data available: dimensional schema finalized.
+
+[x] Messages defined: documentation must include validation notes.
+
+[x] Prototype approved: draft data dictionary reviewed.
+
+</details>
+
+<details>
+<summary><strong>US1.8 — Set up Jira project and traceability structure</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: backlog structure mapped to requirements.
+
+[x] Data available: Jira project created with access for all team members.
+
+[x] Messages defined: notifications configured for backlog changes.
+
+[x] Prototype approved: Jira board structure validated.
+
+</details>
 
 </details>
 
@@ -249,11 +349,122 @@ A backlog item is ready for the sprint if it meets the following:
 | 2.9 | High | Add automated unit and integration tests for ETL and dimensional model | 5 |
 | 2.2 | Medium | Extract data from open government data portals | 5 |
 
-### **Global Definition of Ready (DoR)**
+<details>
+<summary><strong>US2.4 — Classify legal topic automatically via NLP</strong></summary>
 
-* Same criteria as Sprint 1.
-* NLP tool has been technically evaluated (e.g. Pangea, cited as a market reference by the client) and a decision made or explicitly deferred.
-* Sample input/output for the NLP pipeline reviewed with the Product Owner.
+DoR Checklist
+
+[x] Business rules defined: topic classification logic documented.
+
+[x] Data available: training dataset prepared and validated.
+
+[x] Prototype approved: topic field visible in search results.
+
+</details>
+
+<details>
+<summary><strong>US2.6 — Semantically index all documents</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: semantic indexing parameters documented.
+
+[x] Data available: dataset indexed with semantic model.
+
+[x] Prototype approved: semantic index validated with sample queries.
+
+</details>
+
+<details>
+<summary><strong>US2.7 — Support natural language semantic search</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: query parameters documented for semantic search.
+
+[x] Data available: indexed dataset validated for queries.
+
+[x] Prototype approved: semantic search bar mockup validated.
+
+</details>
+
+<details>
+<summary><strong>US2.8 — Calculate average case processing time by court/topic</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: calculation formula documented.
+
+[x] Data available: dataset with timestamps validated.
+
+[x] Prototype approved: metric displayed in single-screen interface.
+
+</details>
+
+<details>
+<summary><strong>US2.5 — Extract legal entities via NLP</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: entity extraction rules documented (parties, courts, legislation).
+
+[x] Data available: training dataset prepared and validated.
+
+[x] Prototype approved: entities displayed in structured format.
+
+</details>
+
+<details>
+<summary><strong>US2.1 — Extract decisions from remaining State Court (TJ) APIs</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: which State Courts and decision types to extract.
+
+[x] Data available: API endpoints validated and accessible.
+
+[x] Prototype approved: ingestion flow documented for multiple courts.
+
+</details>
+
+<details>
+<summary><strong>US2.3 — Expand dimensional model with remaining dimensions</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: additional dimensions documented (author, document type).
+
+[x] Data available: schema updated with new dimensions.
+
+[x] Prototype approved: ER diagram updated with new dimensions.
+
+</details>
+
+<details>
+<summary><strong>US2.9 — Add automated unit and integration tests for ETL and dimensional model</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: test coverage requirements documented.
+
+[x] Data available: sample datasets prepared for testing.
+
+[x] Prototype approved: CI/CD pipeline configured to run tests.
+
+</details>
+
+<details>
+<summary><strong>US2.2 — Extract data from open government data portals</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: enrichment rules documented for open data sources.
+
+[x] Data available: open data sources identified and validated.
+
+[x] Prototype approved: schema updated to include enriched fields.
+
+</details>
 
 </details>
 
@@ -273,10 +484,70 @@ A backlog item is ready for the sprint if it meets the following:
 | 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
 | 3.5 | Medium | Set up CI/CD pipeline | 5 |
 
-### **Global Definition of Ready (DoR)**
+<details>
+<summary><strong>US3.3 — Ship complete OLAP-backed dashboards (adherence, processing time, volume)</strong></summary>
 
-* Same criteria as previous sprints.
-* Dashboard KPIs and visualizations reviewed and approved with the Product Owner.
+DoR Checklist
+
+[x] Business rules defined: KPIs documented (adherence %, average time, case volume).
+
+[x] Data available: OLAP model finalized and validated.
+
+[x] Prototype approved: dashboard mockup with charts reviewed.
+
+</details>
+
+<details>
+<summary><strong>US3.4 — Add automated functional tests (API and UI)</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: functional test coverage requirements documented.
+
+[x] Data available: test cases prepared for API and UI.
+
+[x] Prototype approved: CI/CD pipeline configured to run functional tests.
+
+</details>
+
+<details>
+<summary><strong>US3.2 — Classify decision outcome (favorable/unfavorable, adherent/non-adherent)</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: classification logic documented (outcome categories).
+
+[x] Data available: dataset labeled with outcomes for training.
+
+[x] Prototype approved: outcome field visible in decision results.
+
+</details>
+
+<details>
+<summary><strong>US3.1 — Collect content from legal doctrine repositories</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: doctrine sources identified and validated.
+
+[x] Data available: access confirmed to repositories.
+
+[x] Prototype approved: schema updated to include doctrine content.
+
+</details>
+
+<details>
+<summary><strong>US3.5 — Set up CI/CD pipeline</strong></summary>
+
+DoR Checklist
+
+[x] Business rules defined: CI/CD workflow documented (build, test, deploy).
+
+[x] Data available: environment variables and secrets configured.
+
+[x] Prototype approved: pipeline configuration validated in GitHub Actions/Docker.
+
+</details>
 
 </details>
 
