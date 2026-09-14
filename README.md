@@ -60,13 +60,11 @@ The challenge required the team to:
 DataLaw is a Business Intelligence platform applied to Law. It consolidates case law, precedents and legal doctrine into a single dimensional model, and turns them into actionable indicators of adherence, processing time and volume — answering business questions directly (e.g. <i>"Which court has the highest adherence to Topic X of General Repercussion?"</i>) rather than only returning a list of documents.
 </p>
 
-The application allows users to:
-- Ask **business questions in natural language** and receive a direct, indicator-based answer;
-- Track **adherence rate** of a court to a given topic or precedent;
-- Monitor **average case processing time** by court and topic;
-- Explore **multidimensional (OLAP) analysis** by court, topic, document type and period;
-- Perform **semantic search**, finding related precedents even when different terminology is used;
-- Always see the **original source and a reliability indicator** next to every result.
+DataLaw focuses on minimalism and clarity. Our solution delivers decision-ready metrics in one or two screens, with intuitive navigation and natural language queries.
+
+- Single-screen interface: Adherence rate, average processing time, and case volume displayed in one place.
+- Natural language queries: Users ask questions directly (e.g., “Which court has the highest adherence to Topic X?”) and receive metrics, not just documents.
+- Transparency: Every metric is accompanied by its original source and a reliability indicator.
 
 **Target users:**
 - **Legal Managers / Legal Ops / Executives** — evaluate success rates of legal theses and average processing time to support financial decisions (risk provisioning, settle vs. litigate).
@@ -124,24 +122,20 @@ uv run ruff check src tests
 
 | ID | Title | Description |
 |---|---|---|
-| RF01 | DataJud extraction | Extract decisions from the DataJud (CNJ) API |
-| RF02 | State Court extraction | Extract decisions from State Court of Justice (TJ) APIs |
-| RF03 | Open data extraction | Extract data from open government data portals |
-| RF04 | Doctrine collection | Collect content from legal doctrine repositories |
-| RF05 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
-| RF06 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
-| RF07 | Topic classification | Automatically classify the legal topic of each decision via NLP |
-| RF08 | Entity extraction | Extract legal entities and concepts via NLP |
+| RF01 | Simplified Query	| Allow natural language questions that return direct indicators |
+| RF02 | Single-screen Metrics | Display adherence, processing time, and case volume in one unified interface |
+| RF03 | Basic Filters | Enable filtering by court, topic, and period without complex navigation |
+| RF04 | Semantic Search | Support meaning-based search to find related precedents |
+| RF05 | DataJud extraction | Extract decisions from the DataJud (CNJ) API |
+| RF06 | Open data extraction | Extract data from open government data portals |
+| RF07 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
+| RF08 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
 | RF09 | Semantic indexing | Semantically index documents to enable meaning-based search |
 | RF10 | Semantic search | Support search by meaning/context, not only by keyword |
 | RF11 | OLAP queries | Support multidimensional queries by court, topic and period |
 | RF12 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
 | RF13 | Source & reliability | Display the original source and a reliability indicator with every result |
-| RF14 | Query interface | Provide an interface where users ask business questions and view supporting decisions |
-| RF15 | Adherence rate | Calculate a court's adherence rate to a given topic or precedent |
-| RF16 | Average processing time | Calculate average case processing time by court and topic |
 | RF17 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
-| RF18 | Natural language answers | Answer natural language questions about indicators (e.g. "which court has the highest adherence to Topic X?") |
 
 </details>
 
@@ -169,22 +163,33 @@ uv run ruff check src tests
 <h1 id="card_file_box-product-backlog">🗂 Product Backlog</h1>
 
 | Rank | Priority | User Story | Points | Sprint | DOR |
-|---|---|---|---|---|---|
-| 1.1 | Highest | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 | Court and period fields defined, dataset available, filtering rules documented |
-| 1.2 | Highest | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
+| --- | --- | --- | --- | --- | --- |
+| 1.1 | Critical | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 | Court and period fields defined, dataset available, filtering rules documented |
+| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available |
+| 1.2 | High | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
 | 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 | Search endpoints defined, sample dataset ready |
-| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available|
 | 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 | Data model finalized, API endpoints listed, documentation template ready |
+| 2.3 | Critical | As a Strategic Lawyer, I want each decision’s legal topic to be automatically classified and searchable by meaning, so that I don’t depend on exact keywords. | 8 | 2 | NLP model selected, classification rules defined |
+| 2.4 | Critical | As a Lawyer/Judge, I want to search by meaning and perform multidimensional queries (by court, topic, period), so that I can find related precedents and identify jurisprudence patterns. | 8 | 2 | Semantic index available, query parameters defined, test cases prepared |
+| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
 | 2.1 | High | As a Legal Manager, I want open data portal information to enrich the context of decisions, so that I have a more complete view when analyzing a case. | 8 | 2 | Open data sources identified, access validated, enrichment rules defined |
 | 2.2 | Medium | As a Legal Manager, I want to filter decisions also by topic, author, and document type, so that I can perform more complete analyses of a case or thesis. | 5 | 2 | Dimensions identified, schema updated, filtering logic documented |
-| 2.3 | Highest | As a Strategic Lawyer, I want each decision’s legal topic to be automatically classified and searchable by meaning, so that I don’t depend on exact keywords. | 8 | 2 | NLP model selected, classification rules defined |
-| 2.4 | Highest | As a Lawyer/Judge, I want to search by meaning and perform multidimensional queries (by court, topic, period), so that I can find related precedents and identify jurisprudence patterns. | 8 | 2 | Semantic index available, query parameters defined, test cases prepared |
-| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
-| 3.1 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 | Doctrine sources identified, access validated |
+| 3.3 | Critical | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 | Dashboard requirements defined, OLAP model ready, visualization tool selected |
+| 3.4 | Critical | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 8 | 3 | Regression test plan defined, CI/CD pipeline available, monitoring configured |
 | 3.2 | High | As the system, I need to extract legal entities (parties, courts, cited legislation), so that structured data is enriched. | 8 | 3 | NLP entity extraction model defined, training dataset ready, validation rules set |
-| 3.3 | Highest | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 | Dashboard requirements defined, OLAP model ready, visualization tool selected |
-| 3.4 | Highest | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 8 | 3 | Regression test plan defined, CI/CD pipeline available, monitoring configured |
+| 3.1 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 | Doctrine sources identified, access validated |
 
+### **Global Definition of Done (DoD)**
+
+A backlog item is considered done if:
+
+* Code has been written, tested locally and follows the team's code standards.
+* Reviewed and approved by peers.
+* Merged into the main integration branch.
+* Automated tests created and passing.
+* Acceptance criteria met.
+* The computed indicator has been validated against the client's own reference numbers.
+* The Product Owner has approved the functionality.
 
 <br>
 
@@ -200,11 +205,11 @@ uv run ruff check src tests
 * **Blocking dependency:** the business rule for what counts as "adherence"/"success" must be confirmed with the client before Story 1.4 can be reliably estimated and started.
 
 | Rank | Priority | User Story | Points |
-|---|---|---|---|
-| 1.1 | Highest | Extract decisions from the DataJud (CNJ) API for a pilot court | 8 |
-| 1.2 | Highest | Clean and standardize the extracted decisions | 5 |
-| 1.3 | Highest | Build a minimal dimensional model (Fact + Court, Topic, Period, Outcome) | 5 |
-| 1.4 | Highest | Calculate the adherence rate for one pilot legal topic | 8 |
+| --- | --- | --- | --- |
+| 1.1 | Critical | Extract decisions from the DataJud (CNJ) API for a pilot court | 8 |
+| 1.2 | Critical | Clean and standardize the extracted decisions | 5 |
+| 1.3 | Critical | Build a minimal dimensional model (Fact + Court, Topic, Period, Outcome) | 5 |
+| 1.4 | Critical | Calculate the adherence rate for one pilot legal topic | 8 |
 | 1.5 | High | Display source and reliability indicator next to the pilot metric | 3 |
 | 1.6 | High | Build a simple query interface to view supporting decisions | 3 |
 | 1.7 | Medium | Document the initial data model and dictionary | 3 |
@@ -222,18 +227,6 @@ A backlog item is ready for the sprint if it meets the following:
 * Dependencies on other stories mapped and flagged in Jira.
 * Traceable to the originating RF/RNF.
 
-### **Definition of Done (DoD)**
-
-A backlog item is considered done if:
-
-* Code has been written, tested locally and follows the team's code standards.
-* Reviewed and approved by peers.
-* Merged into the main integration branch.
-* Automated tests created and passing.
-* Acceptance criteria met.
-* The computed indicator has been validated against the client's own reference numbers.
-* The Product Owner has approved the functionality.
-
 </details>
 
 <details>
@@ -245,29 +238,22 @@ A backlog item is considered done if:
 * **Estimated Capacity:** 60 story points
 
 | Rank | Priority | User Story | Points |
-|---|---|---|---|
-| 2.1 | High | Extract decisions from remaining State Court (TJ) APIs | 8 |
-| 2.2 | Medium | Extract data from open government data portals | 5 |
-| 2.3 | High | Expand dimensional model with remaining dimensions | 5 |
-| 2.4 | Highest | Classify legal topic automatically via NLP | 8 |
+| --- | --- | --- | --- |
+| 2.4 | Critical | Classify legal topic automatically via NLP | 8 |
+| 2.6 | Critical | Semantically index all documents | 8 |
+| 2.7 | Critical | Support natural language semantic search | 5 |
+| 2.8 | Critical | Calculate average case processing time by court/topic | 8 |
 | 2.5 | High | Extract legal entities via NLP | 8 |
-| 2.6 | Highest | Semantically index all documents | 8 |
-| 2.7 | Highest | Support natural language semantic search | 5 |
-| 2.8 | Highest | Calculate average case processing time by court/topic | 8 |
+| 2.1 | High | Extract decisions from remaining State Court (TJ) APIs | 8 |
+| 2.3 | High | Expand dimensional model with remaining dimensions | 5 |
 | 2.9 | High | Add automated unit and integration tests for ETL and dimensional model | 5 |
+| 2.2 | Medium | Extract data from open government data portals | 5 |
 
 ### **Global Definition of Ready (DoR)**
 
 * Same criteria as Sprint 1.
 * NLP tool has been technically evaluated (e.g. Pangea, cited as a market reference by the client) and a decision made or explicitly deferred.
 * Sample input/output for the NLP pipeline reviewed with the Product Owner.
-
-### **Definition of Done (DoD)**
-
-* Same criteria as Sprint 1.
-* No new issues introduced in SonarQube.
-* Technical documentation updated by developers.
-* Semantic search results manually validated against a sample of real queries.
 
 </details>
 
@@ -280,24 +266,17 @@ A backlog item is considered done if:
 * **Estimated Capacity:** 37 story points
 
 | Rank | Priority | User Story | Points |
-|---|---|---|---|
-| 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
+| --- | --- | --- | --- |
+| 3.3 | Critical | Ship complete OLAP-backed dashboards (adherence, processing time, volume) | 8 |
+| 3.4 | Critical | Add automated functional tests (API and UI) | 8 |
 | 3.2 | High | Classify decision outcome (favorable/unfavorable, adherent/non-adherent) | 8 |
-| 3.3 | Highest | Ship complete OLAP-backed dashboards (adherence, processing time, volume) | 8 |
-| 3.4 | Highest | Add automated functional tests (API and UI) | 8 |
+| 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
 | 3.5 | Medium | Set up CI/CD pipeline | 5 |
 
 ### **Global Definition of Ready (DoR)**
 
 * Same criteria as previous sprints.
 * Dashboard KPIs and visualizations reviewed and approved with the Product Owner.
-
-### **Definition of Done (DoD)**
-
-* Same criteria as previous sprints.
-* Full regression suite (unit, integration, functional) passing in CI/CD.
-* Final data model, dictionary and API documentation published.
-* Application is responsive and follows the team's design/style guide.
 
 </details>
 
