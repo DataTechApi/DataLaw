@@ -60,13 +60,11 @@ The challenge required the team to:
 DataLaw is a Business Intelligence platform applied to Law. It consolidates case law, precedents and legal doctrine into a single dimensional model, and turns them into actionable indicators of adherence, processing time and volume — answering business questions directly (e.g. <i>"Which court has the highest adherence to Topic X of General Repercussion?"</i>) rather than only returning a list of documents.
 </p>
 
-The application allows users to:
-- Ask **business questions in natural language** and receive a direct, indicator-based answer;
-- Track **adherence rate** of a court to a given topic or precedent;
-- Monitor **average case processing time** by court and topic;
-- Explore **multidimensional (OLAP) analysis** by court, topic, document type and period;
-- Perform **semantic search**, finding related precedents even when different terminology is used;
-- Always see the **original source and a reliability indicator** next to every result.
+DataLaw focuses on minimalism and clarity. Our solution delivers decision-ready metrics in one or two screens, with intuitive navigation and natural language queries.
+
+- Single-screen interface: Adherence rate, average processing time, and case volume displayed in one place.
+- Natural language queries: Users ask questions directly (e.g., “Which court has the highest adherence to Topic X?”) and receive metrics, not just documents.
+- Transparency: Every metric is accompanied by its original source and a reliability indicator.
 
 **Target users:**
 - **Legal Managers / Legal Ops / Executives** — evaluate success rates of legal theses and average processing time to support financial decisions (risk provisioning, settle vs. litigate).
@@ -74,9 +72,49 @@ The application allows users to:
 - **Judges / Judicial Analysts** — track volume and adherence to binding precedents (STF/STJ) to manage stalled or pending case backlogs.
 
 **Scope:** STF (constitutional matters), STJ (unifying precedents) and TJ (state-level case law) — restricted exclusively to **civil law** across all three instances.
-
 <br>
 
+## **Running Locally**
+### **Prerequisites**
+
+- Git
+- [uv](https://docs.astral.sh/uv/)
+- A [DataJud](https://datajud-wiki.cnj.jus.br/api-publica/acesso/) Public API access key
+
+### Installation
+```bash
+git clone <REPOSITORY_URL>
+cd DataLaw
+uv sync
+```
+
+### API Key Configuration
+
+Create a `.env` file in the project root:
+
+```env
+DATAJUD_API_KEY=your_api_key
+```
+
+### Run the Ingestion
+
+```bash
+uv run python -m data_law.main
+```
+
+The application queries TJSP cases with a final dismissal or definitive archival movement in the past six months.
+
+Raw API responses are automatically saved to:
+
+```text
+data/raw/tjsp/
+```
+### Code Quality
+
+```bash
+uv run ruff format src tests
+uv run ruff check src tests
+```
 <h1 id="white_check_mark-requirements">✅ Requirements</h1>
 
 <details>
@@ -84,24 +122,20 @@ The application allows users to:
 
 | ID | Title | Description |
 |---|---|---|
-| RF01 | DataJud extraction | Extract decisions from the DataJud (CNJ) API |
-| RF02 | State Court extraction | Extract decisions from State Court of Justice (TJ) APIs |
-| RF03 | Open data extraction | Extract data from open government data portals |
-| RF04 | Doctrine collection | Collect content from legal doctrine repositories |
-| RF05 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
-| RF06 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
-| RF07 | Topic classification | Automatically classify the legal topic of each decision via NLP |
-| RF08 | Entity extraction | Extract legal entities and concepts via NLP |
+| RF01 | Simplified Query	| Allow natural language questions that return direct indicators |
+| RF02 | Single-screen Metrics | Display adherence, processing time, and case volume in one unified interface |
+| RF03 | Basic Filters | Enable filtering by court, topic, and period without complex navigation |
+| RF04 | Semantic Search | Support meaning-based search to find related precedents |
+| RF05 | DataJud extraction | Extract decisions from the DataJud (CNJ) API |
+| RF06 | Open data extraction | Extract data from open government data portals |
+| RF07 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
+| RF08 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
 | RF09 | Semantic indexing | Semantically index documents to enable meaning-based search |
 | RF10 | Semantic search | Support search by meaning/context, not only by keyword |
 | RF11 | OLAP queries | Support multidimensional queries by court, topic and period |
 | RF12 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
 | RF13 | Source & reliability | Display the original source and a reliability indicator with every result |
-| RF14 | Query interface | Provide an interface where users ask business questions and view supporting decisions |
-| RF15 | Adherence rate | Calculate a court's adherence rate to a given topic or precedent |
-| RF16 | Average processing time | Calculate average case processing time by court and topic |
-| RF17 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
-| RF18 | Natural language answers | Answer natural language questions about indicators (e.g. "which court has the highest adherence to Topic X?") |
+| RF14 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
 
 </details>
 
@@ -128,30 +162,34 @@ The application allows users to:
 
 <h1 id="card_file_box-product-backlog">🗂 Product Backlog</h1>
 
-| Rank | Priority | User Story | Points | Sprint |
-|---|---|---|---|---|
-| 1.1 | Highest | As the system, I want to extract decisions from the DataJud (CNJ) API for a pilot court, so that a real, usable dataset is available to build the first indicator. | 8 | 1 |
-| 1.2 | Highest | As the system, I want to clean and standardize the extracted decisions, so that inconsistent formats don't break downstream calculations. | 5 | 1 |
-| 1.3 | Highest | As a data team, I want a minimal dimensional model (Fact: Decision; Dimensions: Court, Topic, Period, Outcome), so that the first indicator can be stored and queried. | 5 | 1 |
-| 1.4 | Highest | As a Legal Ops manager, I want to see the adherence rate of a court to one pilot legal topic, so that I can validate the platform against a metric I already care about. | 8 | 1 |
-| 1.5 | High | As any user, I want to see the original source and a reliability indicator next to the pilot metric, so that I can trust the number before using it in a decision. | 3 | 1 |
-| 1.6 | High | As any user, I want a simple query interface to view the decisions behind the pilot indicator, so that I can audit how the number was calculated. | 3 | 1 |
-| 1.7 | Medium | As a team, we want the initial data model and dictionary documented, so that the project remains traceable from day one. | 3 | 1 |
-| 1.8 | Medium | As a team, we want the Jira project and traceability structure set up, so that every requirement maps to a backlog item. | 1 | 1 |
-| 2.1 | High | As the system, I want to extract decisions from State Court (TJ) APIs beyond the pilot court, so that coverage expands to the full defined scope. | 8 | 2 |
-| 2.2 | Medium | As the system, I want to extract data from open government data portals, so that processual context is enriched. | 5 | 2 |
-| 2.3 | High | As a data team, I want to expand the dimensional model with all remaining dimensions (Author, Document Type), so that OLAP analysis is fully supported. | 5 | 2 |
-| 2.4 | Highest | As the system, I want to automatically classify the legal topic of each decision via NLP, so that documents are organized without manual tagging. | 8 | 2 |
-| 2.5 | High | As the system, I want to extract legal entities from each decision via NLP, so that the outcome classification indicator has richer input. | 8 | 2 |
-| 2.6 | Highest | As the system, I want to semantically index all documents, so that search can operate by meaning rather than keyword. | 8 | 2 |
-| 2.7 | Highest | As a strategic lawyer, I want to search using natural language questions, so that I can find related precedents even with different terminology. | 5 | 2 |
-| 2.8 | Highest | As the system, I want to calculate the average case processing time by court and topic, so that Legal Ops can support settlement vs. litigation decisions. | 8 | 2 |
-| 2.9 | High | As a team, we want automated unit and integration tests covering the ETL and dimensional model, so that data integrity is protected as scope grows. | 5 | 2 |
-| 3.1 | Medium | As the system, I want to collect content from legal doctrine repositories, so that doctrinal analysis becomes possible. | 8 | 3 |
-| 3.2 | High | As the system, I want to classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent), so that success-rate indicators are accurate. | 8 | 3 |
-| 3.3 | Highest | As a judge or Legal Ops manager, I want complete OLAP-backed dashboards for adherence, processing time and volume, so that I can support strategic and financial decisions. | 8 | 3 |
-| 3.4 | Highest | As a team, we want automated functional tests at API and UI level, so that the full system is validated end to end. | 8 | 3 |
-| 3.5 | Medium | As a team, we want a CI/CD pipeline in place, so that tests and deployment are automated on every change. | 5 | 3 |
+| Rank | Priority | User Story | Points | Sprint | DOR |
+| --- | --- | --- | --- | --- | --- |
+| 1.1 | Critical | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 | Court and period fields defined, dataset available, filtering rules documented |
+| 2.3 | Critical | As a Strategic Lawyer, I want each decision’s legal topic to be automatically classified and searchable by meaning, so that I don’t depend on exact keywords. | 8 | 2 | NLP model selected, classification rules defined |
+| 2.4 | Critical | As a Lawyer/Judge, I want to search by meaning and perform multidimensional queries (by court, topic, period), so that I can find related precedents and identify jurisprudence patterns. | 8 | 2 | Semantic index available, query parameters defined, test cases prepared |
+| 3.3 | Critical | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 | Dashboard requirements defined, OLAP model ready, visualization tool selected |
+| 3.4 | Critical | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 8 | 3 | Regression test plan defined, CI/CD pipeline available, monitoring configured |
+| 1.2 | High | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
+| 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 | Search endpoints defined, sample dataset ready |
+| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available |
+| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
+| 2.1 | High | As a Legal Manager, I want open data portal information to enrich the context of decisions, so that I have a more complete view when analyzing a case. | 8 | 2 | Open data sources identified, access validated, enrichment rules defined |
+| 3.2 | High | As the system, I need to extract legal entities (parties, courts, cited legislation), so that structured data is enriched. | 8 | 3 | NLP entity extraction model defined, training dataset ready, validation rules set |
+| 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 | Data model finalized, API endpoints listed, documentation template ready |
+| 2.2 | Medium | As a Legal Manager, I want to filter decisions also by topic, author, and document type, so that I can perform more complete analyses of a case or thesis. | 5 | 2 | Dimensions identified, schema updated, filtering logic documented |
+| 3.1 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 | Doctrine sources identified, access validated |
+
+### **Global Definition of Done (DoD)**
+
+A backlog item is considered done if:
+
+* Code has been written, tested locally and follows the team's code standards.
+* Reviewed and approved by peers.
+* Merged into the main integration branch.
+* Automated tests created and passing.
+* Acceptance criteria met.
+* The computed indicator has been validated against the client's own reference numbers.
+* The Product Owner has approved the functionality.
 
 <br>
 
@@ -167,39 +205,127 @@ The application allows users to:
 * **Blocking dependency:** the business rule for what counts as "adherence"/"success" must be confirmed with the client before Story 1.4 can be reliably estimated and started.
 
 | Rank | Priority | User Story | Points |
-|---|---|---|---|
-| 1.1 | Highest | Extract decisions from the DataJud (CNJ) API for a pilot court | 8 |
-| 1.2 | Highest | Clean and standardize the extracted decisions | 5 |
-| 1.3 | Highest | Build a minimal dimensional model (Fact + Court, Topic, Period, Outcome) | 5 |
-| 1.4 | Highest | Calculate the adherence rate for one pilot legal topic | 8 |
+| --- | --- | --- | --- |
+| 1.1 | Critical | Extract decisions from the DataJud (CNJ) API for a pilot court | 8 |
+| 1.2 | Critical | Clean and standardize the extracted decisions | 5 |
+| 1.3 | Critical | Build a minimal dimensional model (Fact + Court, Topic, Period, Outcome) | 5 |
+| 1.4 | Critical | Calculate the adherence rate for one pilot legal topic | 8 |
 | 1.5 | High | Display source and reliability indicator next to the pilot metric | 3 |
 | 1.6 | High | Build a simple query interface to view supporting decisions | 3 |
 | 1.7 | Medium | Document the initial data model and dictionary | 3 |
 | 1.8 | Medium | Set up Jira project and traceability structure | 1 |
 
-### **Definition of Ready (DoR)**
+<details>
+  
+<summary><strong>US1.1 — Extract decisions from the DataJud (CNJ) API for a pilot court</strong></summary>
 
-A backlog item is ready for the sprint if it meets the following:
+DoR Checklist
 
-* Clear title, description and objective.
-* Acceptance criteria and business rules defined (e.g. what counts as "adherence" or "success").
-* Priority established.
-* Effort estimated by the team.
-* Data source/access confirmed as available, or a fallback plan exists.
-* Dependencies on other stories mapped and flagged in Jira.
-* Traceable to the originating RF/RNF.
+- Business rules defined: which court and decision types to extract.
 
-### **Definition of Done (DoD)**
+- Data available: API access key configured and validated.
 
-A backlog item is considered done if:
+- Prototype approved: initial data ingestion flow documented.
 
-* Code has been written, tested locally and follows the team's code standards.
-* Reviewed and approved by peers.
-* Merged into the main integration branch.
-* Automated tests created and passing.
-* Acceptance criteria met.
-* The computed indicator has been validated against the client's own reference numbers.
-* The Product Owner has approved the functionality.
+</details>
+
+<details>
+<summary><strong>US1.2 — Clean and standardize the extracted decisions</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: cleaning rules documented (remove duplicates, normalize fields).
+
+- Data available: raw dataset ready for cleaning.
+
+- Prototype approved: schema for cleaned dataset validated.
+
+
+</details>
+
+<details>
+<summary><strong>US1.3 — Build a minimal dimensional model (Fact + Court, Topic, Period, Outcome)</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: fact table and dimensions documented.
+
+- Data available: cleaned dataset mapped to dimensional schema.
+
+- Prototype approved: ER diagram or schema mockup available.
+
+</details>
+
+<details>
+<summary><strong>US1.4 — Calculate the adherence rate for one pilot legal topic</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: adherence calculation formula agreed with stakeholders.
+
+- Data available: pilot dataset with topic classification.
+
+- Prototype approved: metric displayed in single-screen interface.
+
+</details>
+
+<details>
+<summary><strong>US1.5 — Display source and reliability indicator next to the pilot metric</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: reliability calculation method documented.
+
+- Data available: metadata accessible for each decision.
+
+- Prototype approved: source and reliability displayed next to metrics.
+
+</details>
+
+<details>
+<summary><strong>US1.6 — Build a simple query interface to view supporting decisions</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: query parameters documented (court, topic, period).
+
+- Data available: pilot dataset indexed for queries.
+
+- Messages defined: error if query returns no results; success confirmation when decisions are displayed.
+
+- Prototype approved: query interface mockup validated.
+
+</details>
+
+<details>
+<summary><strong>US1.7 — Document the initial data model and dictionary</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: documentation template agreed.
+
+- Data available: dimensional schema finalized.
+
+- Messages defined: documentation must include validation notes.
+
+- Prototype approved: draft data dictionary reviewed.
+
+</details>
+
+<details>
+<summary><strong>US1.8 — Set up Jira project and traceability structure</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: backlog structure mapped to requirements.
+
+- Data available: Jira project created with access for all team members.
+
+- Messages defined: notifications configured for backlog changes.
+
+- Prototype approved: Jira board structure validated.
+
+</details>
 
 </details>
 
@@ -212,29 +338,133 @@ A backlog item is considered done if:
 * **Estimated Capacity:** 60 story points
 
 | Rank | Priority | User Story | Points |
-|---|---|---|---|
-| 2.1 | High | Extract decisions from remaining State Court (TJ) APIs | 8 |
-| 2.2 | Medium | Extract data from open government data portals | 5 |
-| 2.3 | High | Expand dimensional model with remaining dimensions | 5 |
-| 2.4 | Highest | Classify legal topic automatically via NLP | 8 |
+| --- | --- | --- | --- |
+| 2.4 | Critical | Classify legal topic automatically via NLP | 8 |
+| 2.6 | Critical | Semantically index all documents | 8 |
+| 2.7 | Critical | Support natural language semantic search | 5 |
+| 2.8 | Critical | Calculate average case processing time by court/topic | 8 |
 | 2.5 | High | Extract legal entities via NLP | 8 |
-| 2.6 | Highest | Semantically index all documents | 8 |
-| 2.7 | Highest | Support natural language semantic search | 5 |
-| 2.8 | Highest | Calculate average case processing time by court/topic | 8 |
+| 2.1 | High | Extract decisions from remaining State Court (TJ) APIs | 8 |
+| 2.3 | High | Expand dimensional model with remaining dimensions | 5 |
 | 2.9 | High | Add automated unit and integration tests for ETL and dimensional model | 5 |
+| 2.2 | Medium | Extract data from open government data portals | 5 |
 
-### **Definition of Ready (DoR)**
+<details>
+<summary><strong>US2.4 — Classify legal topic automatically via NLP</strong></summary>
 
-* Same criteria as Sprint 1.
-* NLP tool has been technically evaluated (e.g. Pangea, cited as a market reference by the client) and a decision made or explicitly deferred.
-* Sample input/output for the NLP pipeline reviewed with the Product Owner.
+DoR Checklist
 
-### **Definition of Done (DoD)**
+- Business rules defined: topic classification logic documented.
 
-* Same criteria as Sprint 1.
-* No new issues introduced in SonarQube.
-* Technical documentation updated by developers.
-* Semantic search results manually validated against a sample of real queries.
+- Data available: training dataset prepared and validated.
+
+- Prototype approved: topic field visible in search results.
+
+</details>
+
+<details>
+<summary><strong>US2.6 — Semantically index all documents</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: semantic indexing parameters documented.
+
+- Data available: dataset indexed with semantic model.
+
+- Prototype approved: semantic index validated with sample queries.
+
+</details>
+
+<details>
+<summary><strong>US2.7 — Support natural language semantic search</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: query parameters documented for semantic search.
+
+- Data available: indexed dataset validated for queries.
+
+- Prototype approved: semantic search bar mockup validated.
+
+</details>
+
+<details>
+<summary><strong>US2.8 — Calculate average case processing time by court/topic</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: calculation formula documented.
+
+- Data available: dataset with timestamps validated.
+
+- Prototype approved: metric displayed in single-screen interface.
+
+</details>
+
+<details>
+<summary><strong>US2.5 — Extract legal entities via NLP</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: entity extraction rules documented (parties, courts, legislation).
+
+- Data available: training dataset prepared and validated.
+
+- Prototype approved: entities displayed in structured format.
+
+</details>
+
+<details>
+<summary><strong>US2.1 — Extract decisions from remaining State Court (TJ) APIs</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: which State Courts and decision types to extract.
+
+- Data available: API endpoints validated and accessible.
+
+- Prototype approved: ingestion flow documented for multiple courts.
+
+</details>
+
+<details>
+<summary><strong>US2.3 — Expand dimensional model with remaining dimensions</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: additional dimensions documented (author, document type).
+
+- Data available: schema updated with new dimensions.
+
+- Prototype approved: ER diagram updated with new dimensions.
+
+</details>
+
+<details>
+<summary><strong>US2.9 — Add automated unit and integration tests for ETL and dimensional model</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: test coverage requirements documented.
+
+- Data available: sample datasets prepared for testing.
+
+- Prototype approved: CI/CD pipeline configured to run tests.
+
+</details>
+
+<details>
+<summary><strong>US2.2 — Extract data from open government data portals</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: enrichment rules documented for open data sources.
+
+- Data available: open data sources identified and validated.
+
+- Prototype approved: schema updated to include enriched fields.
+
+</details>
 
 </details>
 
@@ -247,24 +477,77 @@ A backlog item is considered done if:
 * **Estimated Capacity:** 37 story points
 
 | Rank | Priority | User Story | Points |
-|---|---|---|---|
-| 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
+| --- | --- | --- | --- |
+| 3.3 | Critical | Ship complete OLAP-backed dashboards (adherence, processing time, volume) | 8 |
+| 3.4 | Critical | Add automated functional tests (API and UI) | 8 |
 | 3.2 | High | Classify decision outcome (favorable/unfavorable, adherent/non-adherent) | 8 |
-| 3.3 | Highest | Ship complete OLAP-backed dashboards (adherence, processing time, volume) | 8 |
-| 3.4 | Highest | Add automated functional tests (API and UI) | 8 |
+| 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
 | 3.5 | Medium | Set up CI/CD pipeline | 5 |
 
-### **Definition of Ready (DoR)**
+<details>
+<summary><strong>US3.3 — Ship complete OLAP-backed dashboards (adherence, processing time, volume)</strong></summary>
 
-* Same criteria as previous sprints.
-* Dashboard KPIs and visualizations reviewed and approved with the Product Owner.
+DoR Checklist
 
-### **Definition of Done (DoD)**
+- Business rules defined: KPIs documented (adherence %, average time, case volume).
 
-* Same criteria as previous sprints.
-* Full regression suite (unit, integration, functional) passing in CI/CD.
-* Final data model, dictionary and API documentation published.
-* Application is responsive and follows the team's design/style guide.
+- Data available: OLAP model finalized and validated.
+
+- Prototype approved: dashboard mockup with charts reviewed.
+
+</details>
+
+<details>
+<summary><strong>US3.4 — Add automated functional tests (API and UI)</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: functional test coverage requirements documented.
+
+- Data available: test cases prepared for API and UI.
+
+- Prototype approved: CI/CD pipeline configured to run functional tests.
+
+</details>
+
+<details>
+<summary><strong>US3.2 — Classify decision outcome (favorable/unfavorable, adherent/non-adherent)</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: classification logic documented (outcome categories).
+
+- Data available: dataset labeled with outcomes for training.
+
+- Prototype approved: outcome field visible in decision results.
+
+</details>
+
+<details>
+<summary><strong>US3.1 — Collect content from legal doctrine repositories</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: doctrine sources identified and validated.
+
+- Data available: access confirmed to repositories.
+
+- Prototype approved: schema updated to include doctrine content.
+
+</details>
+
+<details>
+<summary><strong>US3.5 — Set up CI/CD pipeline</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: CI/CD workflow documented (build, test, deploy).
+
+- Data available: environment variables and secrets configured.
+
+- Prototype approved: pipeline configuration validated in GitHub Actions/Docker.
+
+</details>
 
 </details>
 
@@ -272,10 +555,10 @@ A backlog item is considered done if:
 
 <h1 id="hourglass_flowing_sand-project-timeline">⏳ Project Timeline</h1>
 
-- [x] Kick-off with partner (Xertica)
-- [x] Discovery follow-up: additional stakeholder questions to refine the real business pain point
-- [ ] Sprint 1 — Planning
-- [ ] Sprint 1 — Execution
+- - Kick-off with partner (Xertica)
+- - Discovery follow-up: additional stakeholder questions to refine the real business pain point
+- - Sprint 1 — Planning
+- - Sprint 1 — Execution
 - [ ] Sprint 1 — Review / Sprint 2 Planning
 - [ ] Sprint 2 — Execution
 - [ ] Sprint 2 — Review / Sprint 3 Planning
@@ -303,13 +586,13 @@ A backlog item is considered done if:
 </div>
 
 **Notes on tooling choices:**
-- **Python + Django** — suggested by the partner (Xertica); mature ORM, well suited for exposing APIs on top of the dimensional model.
-- **PostgreSQL** — open-source, handles analytical workloads well and supports search-related extensions.
-- **NLP** — Pangea was cited by the partner as a strong market reference during kick-off; it is the first option to be technically evaluated for topic classification and entity extraction. Final tool selection is pending validation.
-- **SonarQube** — continuous static code analysis, an explicit requirement from Fatec.
-- **Docker + GitHub Actions** — consistent environments and automated CI/CD.
-- **Jira** — maps natively to the team's workflow (Problem → Solution Proposal → Requirements → MVP → Product Backlog → DoR → Sprint Backlog → Version Control), giving full traceability from requirement to delivery.
-- **VS Code** — standardizes the development environment across the team.
+- **Python** - Mature ecosystem with robust ORMs (e.g., SQLAlchemy, Django ORM), excellent support for APIs (FastAPI, Flask), and strong libraries for data processing and NLP.
+- **PostgreSQL** - Open-source RDBMS optimized for analytical workloads, supports advanced indexing (GIN, GiST), full-text search, and extensions like PostGIS. - Store and query large volumes of legal decisions efficiently, enabling OLAP-style analysis and semantic search. 
+- **NLP (Pangea)** - Market reference cited by the partner; offers pretrained models for topic classification and entity extraction. Flexible integration with Python pipelines.
+- **SonarQube** - Continuous static code analysis, detects vulnerabilities, code smells, and enforces quality gates. Integrates with CI/CD pipelines. - Guarantee code quality and compliance with Fatec’s explicit requirement for maintainable and secure software.
+- **Docker + GitHub Actions** - Docker ensures reproducible environments; GitHub Actions automates builds, tests, and deployments. Together they enable CI/CD pipelines with minimal overhead. 
+- **Jira** - Native mapping to agile workflows, supports backlog management, sprint planning, and traceability from requirements to delivery. - Ensure full visibility of progress and alignment with the team’s workflow (Problem → Solution Proposal → Requirements → MVP → Backlog → DoR → Sprint Backlog → Version Control). 
+- **VS Code** - Lightweight IDE, cross-platform, with extensive extensions for Python, Docker, GitHub, and PostgreSQL. Highly customizable and resource-efficient.
 
 <br>
 
@@ -319,11 +602,10 @@ A backlog item is considered done if:
   <summary><b>Branching Strategy</b></summary>
 
 **Typical workflow:**
-1. Create a **feature branch** from `develop`.
-2. Develop the functionality.
-3. Rebase/update the branch against `develop` to avoid conflicts.
-4. Open a **Pull Request** to `develop`.
-5. After the required approvals, merge into `develop`.
+1. Create a **sprint branch** from `main`.
+2. Develop the functionality..
+3. Open a **Pull Request** to `main`.
+4. After the required approvals, merge into `main`.
 
 </details>
 
@@ -339,23 +621,18 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 
 | Type | Description | Example |
 |---|---|---|
-| feat | New functionality | SCRUM-01 feat(auth): add login endpoint |
-| fix | Bug fix | SCRUM-01 fix(etl): fix duplicate record handling |
-| chore | Maintenance, no direct impact | SCRUM-01 chore(deps): update project dependencies |
-| docs | Documentation changes | SCRUM-01 docs(readme): update setup instructions |
-| style | Formatting only, no behavior change | SCRUM-01 style(css): fix indentation |
-| refactor | Code refactoring | SCRUM-01 refactor(pipeline): remove redundant checks |
-| perf | Performance improvements | SCRUM-01 perf(api): reduce search endpoint response time |
-| test | Adding or adjusting tests | SCRUM-01 test(etl): add unit tests for cleaning step |
-| build | Build or external dependency changes | SCRUM-01 build(docker): add Dockerfile |
-| ci | CI/CD changes | SCRUM-01 ci(workflow): update GitHub Actions workflow |
-| revert | Revert a previous commit | SCRUM-01 revert(auth): revert "feat(auth): add JWT login" |
-| hotfix | Urgent production fix | SCRUM-01 hotfix(etl): fix broken DataJud client |
-
-**Branch naming:**
-```
-git checkout -b SCRUM-1/create-login-screen
-```
+| :sparkles: feat | New functionality | SCRUM-01 :sparkles: feat(auth): add login endpoint |
+| :bug: fix | Bug fix | SCRUM-01 :bug: fix(etl): fix duplicate record handling |
+| :wrench: chore | Maintenance, no direct impact | SCRUM-01 :wrench: chore(deps): update project dependencies |
+| :books: docs | Documentation changes | SCRUM-01 :books: docs(readme): update setup instructions |
+| :art: style | Formatting only, no behavior change | SCRUM-01 :art: style(css): fix indentation |
+| :recycle: refactor | Code refactoring | SCRUM-01 :recycle: refactor(pipeline): remove redundant checks |
+| :zap: perf | Performance improvements | SCRUM-01 :zap: perf(api): reduce search endpoint response time |
+| :test_tube: test | Adding or adjusting tests | SCRUM-01 :test_tube: test(etl): add unit tests for cleaning step |
+| :building_construction: build | Build or external dependency changes | SCRUM-01 :building_construction: build(docker): add Dockerfile |
+| :robot: ci | CI/CD changes | SCRUM-01 :robot: ci(workflow): update GitHub Actions workflow |
+| :rewind: revert | Revert a previous commit | SCRUM-01 :rewind: revert(auth): revert "feat(auth): add JWT login" |
+| :ambulance: hotfix | Urgent production fix | SCRUM-01 :ambulance: hotfix(etl): fix broken DataJud client |
 
 **Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
 
