@@ -3,7 +3,7 @@
 set -e
 
 echo "🐘 Subindo o banco de dados (PostgreSQL 18)..."
-docker-compose up -d
+docker compose up -d
 
 echo "⏳ Sincronizando dependências do projeto..."
 uv sync

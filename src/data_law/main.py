@@ -1,37 +1,35 @@
-from data_law.ingestion.ingestion import DataJudClient, DataJudSettings
-from data_law.ingestion.storage import save_raw_response
+import argparse
+from collections.abc import Sequence
+
+from data_law.infra.database.session import create_session_factory
+from data_law.ingestion.ingestion import (
+    DataJudClient,
+    DataJudIngestionService,
+    DataJudSettings,
+)
 
 
-def main() -> None:
-    settings = DataJudSettings()
-    client = DataJudClient(settings)
+def main(argv: Sequence[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Ingestão DataJud do TJSP")
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="executa a carga histórica dos últimos seis meses",
+    )
+    arguments = parser.parse_args(argv)
 
-    tribunal = "api_publica_tjsp"
+    settings = DataJudSettings()  # type: ignore[call-arg]
+    service = DataJudIngestionService(
+        DataJudClient(settings),
+        create_session_factory(),
+    )
+    report = service.run_full() if arguments.full else service.run_incremental()
 
-    body = {
-        "size": 100,
-        "track_total_hits": False,
-        "query": {
-            "bool": {
-                "filter": [
-                    {"terms": {"movimentos.codigo": [22, 246]}},
-                    {
-                        "range": {
-                            "movimentos.dataHora": {
-                                "gte": "now-6M",
-                                "lte": "now",
-                            }
-                        }
-                    },
-                ]
-            }
-        },
-    }
-
-    payload = client.ingest(tribunal, body)
-    file_path = save_raw_response("tjsp", payload)
-
-    print(f"Deu certo aqui {file_path}")
+    print(
+        f"Ingestão {report.mode} concluída: {report.pages} página(s), "
+        f"{report.candidates} candidato(s), {report.changed} alteração(ões), "
+        f"{report.unchanged} processo(s) sem alteração."
+    )
 
 
 if __name__ == "__main__":

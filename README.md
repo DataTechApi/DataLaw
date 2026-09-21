@@ -94,20 +94,55 @@ Create a `.env` file in the project root:
 
 ```env
 DATAJUD_API_KEY=your_api_key
+DATABASE_URL=postgresql+psycopg://datalaw:datalaw@localhost:5432/datalaw_db
+```
+
+### Database migrations
+
+With PostgreSQL running and `DATABASE_URL` configured, create the database
+structure defined by the SQLAlchemy models:
+
+```bash
+uv run alembic upgrade head
+```
+
+Whenever a model changes, generate and review a migration before applying it:
+
+```bash
+uv run alembic revision --autogenerate -m "describe the schema change"
+uv run alembic upgrade head
 ```
 
 ### Run the Ingestion
+
+Run the historical load once before the incremental routine:
+
+```bash
+uv run task full-ingest
+```
+
+It downloads every TJSP candidate with a definitive discharge or archival movement in the last six months, then persists only records whose same movement `22` or `246` occurred in that period.
+
+After a successful historical load, run the daily incremental update manually:
 
 ```bash
 uv run python -m data_law.main
 ```
 
-The application queries TJSP cases with a final dismissal or definitive archival movement in the past six months.
+The incremental routine rechecks the prior 48 hours of DataJud updates, adds newly finalized processes, and refreshes new movements for processes already held in Bronze.
 
-Raw API responses are automatically saved to:
+Raw API responses are automatically saved as compressed, immutable pages under:
 
 ```text
-data/raw/tjsp/
+data/raw/tjsp/ingestion_date=YYYY-MM-DD/run_id=.../page-000001.json.gz
+```
+
+### Reprocess Raw Files
+
+To process files already saved in `data/raw`, run:
+
+```bash
+uv run task bronze-load
 ```
 ### Code Quality
 
