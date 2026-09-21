@@ -78,17 +78,18 @@ DataLaw focuses on minimalism and clarity. Our solution delivers decision-ready 
 ### **Prerequisites**
 
 - Git
+- [Docker](https://docs.docker.com/get-docker/) with Docker Compose
 - [uv](https://docs.astral.sh/uv/)
 - A [DataJud](https://datajud-wiki.cnj.jus.br/api-publica/acesso/) Public API access key
 
 ### Installation
+
 ```bash
-git clone <REPOSITORY_URL>
+git clone https://github.com/DataTechApi/DataLaw.git
 cd DataLaw
-uv sync
 ```
 
-### API Key Configuration
+### Environment Configuration
 
 Create a `.env` file in the project root:
 
@@ -97,14 +98,57 @@ DATAJUD_API_KEY=your_api_key
 DATABASE_URL=postgresql+psycopg://datalaw:datalaw@localhost:5432/datalaw_db
 ```
 
-### Database migrations
+### Complete Execution Flow
 
-With PostgreSQL running and `DATABASE_URL` configured, create the database
-structure defined by the SQLAlchemy models:
+Run the following commands in order. The first run must be a historical load;
+subsequent runs use the incremental routine.
 
 ```bash
+docker compose up -d --wait
+uv sync
 uv run alembic upgrade head
+uv run task full-ingest
 ```
+
+The commands start PostgreSQL, install project dependencies, create the database
+schema, and load the eligible TJSP processes from the previous six months.
+
+Confirm that the database is ready:
+
+```bash
+docker compose ps
+```
+
+### Run the Incremental Ingestion
+
+After the historical load has completed successfully, run the daily incremental
+update manually:
+
+```bash
+uv run python -m data_law.main
+```
+
+The incremental routine rechecks the prior 48 hours of DataJud updates, adds
+newly finalized processes, and refreshes new movements for processes already
+held in Bronze.
+
+### Inspect the Database
+
+```bash
+uv run task db-shell
+```
+
+For example, inside `psql`:
+
+```sql
+SELECT id, tribunal_sigla, source_file, extracted_at
+FROM bronze.datajud_extract
+LIMIT 10;
+```
+
+Exit the database shell with `\q`.
+
+### Database Migrations
 
 Whenever a model changes, generate and review a migration before applying it:
 
@@ -112,24 +156,6 @@ Whenever a model changes, generate and review a migration before applying it:
 uv run alembic revision --autogenerate -m "describe the schema change"
 uv run alembic upgrade head
 ```
-
-### Run the Ingestion
-
-Run the historical load once before the incremental routine:
-
-```bash
-uv run task full-ingest
-```
-
-It downloads every TJSP candidate with a definitive discharge or archival movement in the last six months, then persists only records whose same movement `22` or `246` occurred in that period.
-
-After a successful historical load, run the daily incremental update manually:
-
-```bash
-uv run python -m data_law.main
-```
-
-The incremental routine rechecks the prior 48 hours of DataJud updates, adds newly finalized processes, and refreshes new movements for processes already held in Bronze.
 
 Raw API responses are automatically saved as compressed, immutable pages under:
 
@@ -144,6 +170,13 @@ To process files already saved in `data/raw`, run:
 ```bash
 uv run task bronze-load
 ```
+
+### Stop PostgreSQL
+
+```bash
+docker compose down
+```
+
 ### Code Quality
 
 ```bash
