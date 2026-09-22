@@ -7,6 +7,7 @@ from data_law.ingestion.ingestion import (
     DataJudIngestionService,
     DataJudSettings,
 )
+from data_law.transformation.silver import sync_bronze_to_silver
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -19,16 +20,20 @@ def main(argv: Sequence[str] | None = None) -> None:
     arguments = parser.parse_args(argv)
 
     settings = DataJudSettings()  # type: ignore[call-arg]
+    session_factory = create_session_factory()
     service = DataJudIngestionService(
         DataJudClient(settings),
-        create_session_factory(),
+        session_factory,
+        silver_sync=lambda: sync_bronze_to_silver(session_factory),
     )
     report = service.run_full() if arguments.full else service.run_incremental()
 
     print(
         f"Ingestão {report.mode} concluída: {report.pages} página(s), "
         f"{report.candidates} candidato(s), {report.changed} alteração(ões), "
-        f"{report.unchanged} processo(s) sem alteração."
+        f"{report.unchanged} processo(s) sem alteração. Silver: "
+        f"{report.silver_synced} processo(s), {report.silver_movements} "
+        f"movimento(s), {report.silver_warnings} aviso(s)."
     )
 
 

@@ -1,4 +1,5 @@
 import calendar
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -25,6 +26,7 @@ from data_law.infra.database.model.bronze.ingestion_state import (
 from data_law.infra.database.session import SessionFactory
 from data_law.ingestion.bronze import RAW_DIRECTORY, TRIBUNAL_METADATA, process_raw_file
 from data_law.ingestion.storage import save_raw_response
+from data_law.transformation.silver import SilverSyncReport
 
 COMPLETION_CODES = frozenset({22, 246})
 PAGE_SIZE = 500
@@ -84,6 +86,9 @@ class IngestionReport:
     candidates: int
     persisted: int
     changed: int
+    silver_synced: int = 0
+    silver_movements: int = 0
+    silver_warnings: int = 0
 
     @property
     def unchanged(self) -> int:
@@ -97,6 +102,7 @@ class DataJudIngestionService:
         self,
         client: DataJudClient,
         session_factory: SessionFactory,
+        silver_sync: Callable[[], SilverSyncReport] | None = None,
         *,
         tribunal_key: str = "tjsp",
         raw_directory: Path = RAW_DIRECTORY,
@@ -113,6 +119,7 @@ class DataJudIngestionService:
 
         self.client = client
         self.session_factory = session_factory
+        self.silver_sync = silver_sync
         self.tribunal_key = tribunal_key
         self.metadata = metadata
         self.raw_directory = raw_directory
@@ -222,6 +229,7 @@ class DataJudIngestionService:
                 break
             search_after = _last_sort_value(hits[-1])
 
+        silver_report = self.silver_sync() if self.silver_sync is not None else None
         self._save_checkpoint(run_started_at)
         return IngestionReport(
             mode=mode,
@@ -230,6 +238,11 @@ class DataJudIngestionService:
             candidates=candidates,
             persisted=persisted,
             changed=changed,
+            silver_synced=silver_report.synced if silver_report is not None else 0,
+            silver_movements=silver_report.movements
+            if silver_report is not None
+            else 0,
+            silver_warnings=silver_report.warnings if silver_report is not None else 0,
         )
 
     def _checkpoint(self) -> datetime | None:

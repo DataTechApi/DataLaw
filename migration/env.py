@@ -10,6 +10,12 @@ from data_law.infra.database.model.bronze.bronze_process import (  # noqa: F401
 from data_law.infra.database.model.bronze.ingestion_state import (  # noqa: F401
     BronzeDataJudIngestionState,
 )
+from data_law.infra.database.model.silver.movement import (  # noqa: F401
+    SilverDataJudMovement,
+)
+from data_law.infra.database.model.silver.process import (  # noqa: F401
+    SilverDataJudProcess,
+)
 from data_law.infra.database.settings import DatabaseSettings
 
 # Alembic exposes the configuration object while it runs this module.

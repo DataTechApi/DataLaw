@@ -14,6 +14,7 @@ from data_law.infra.database.model.bronze.bronze_process import (
     BronzeDataJudExtract,
 )
 from data_law.infra.database.session import create_session_factory
+from data_law.transformation.silver import sync_bronze_to_silver
 
 RAW_DIRECTORY = Path("data/raw")
 
@@ -209,6 +210,7 @@ def process_raw_directory(
     processed_files: list[ProcessedFile] = []
 
     for file_path in files:
+        print(f"Processando arquivo: {file_path}")
         with factory() as session:
             processed_files.append(process_raw_file(file_path, session, raw_directory))
 
@@ -219,9 +221,14 @@ def main() -> None:
     processed_files = process_raw_directory()
     total = sum(item.total for item in processed_files)
     changed = sum(item.changed for item in processed_files)
+    silver_report = sync_bronze_to_silver(create_session_factory())
     print(
         f"Bronze processada: {len(processed_files)} arquivo(s), "
         f"{total} processo(s), {changed} alteração(ões)."
+    )
+    print(
+        f"Silver sincronizada: {silver_report.synced} processo(s), "
+        f"{silver_report.movements} movimento(s), {silver_report.warnings} aviso(s)."
     )
 
 

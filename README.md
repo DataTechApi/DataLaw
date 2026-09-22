@@ -111,7 +111,11 @@ uv run task full-ingest
 ```
 
 The commands start PostgreSQL, install project dependencies, create the database
-schema, and load the eligible TJSP processes from the previous six months.
+schema, load the eligible TJSP processes from the previous six months into Bronze,
+and synchronize the new or changed processes and movements into Silver.
+
+See [Medallion Architecture](docs/architecture/medallion.md) for the current
+data-layer design and implementation decisions.
 
 Confirm that the database is ready:
 
@@ -129,8 +133,8 @@ uv run python -m data_law.main
 ```
 
 The incremental routine rechecks the prior 48 hours of DataJud updates, adds
-newly finalized processes, and refreshes new movements for processes already
-held in Bronze.
+newly finalized processes, refreshes new movements for processes already held in
+Bronze, and then performs the incremental Silver SCD1 merge.
 
 ### Inspect the Database
 
@@ -170,6 +174,19 @@ To process files already saved in `data/raw`, run:
 ```bash
 uv run task bronze-load
 ```
+
+The command processes Bronze first and then runs the incremental Silver merge. To
+retry only pending or changed Bronze records in Silver, run:
+
+```bash
+uv run task silver-load
+```
+
+Run `silver-load` after `docker compose up -d --wait` and `uv run alembic upgrade
+head`. It reads directly from Bronze; it does not call the DataJud API or reload
+Raw files. The operation is restartable: after an interruption, run the same
+command again and it will skip Silver processes whose source hash already matches
+their Bronze payload.
 
 ### Stop PostgreSQL
 
