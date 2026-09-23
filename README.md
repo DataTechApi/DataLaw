@@ -634,8 +634,6 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 | :rewind: revert | Revert a previous commit | SCRUM-01 :rewind: revert(auth): revert "feat(auth): add JWT login" |
 | :ambulance: hotfix | Urgent production fix | SCRUM-01 :ambulance: hotfix(etl): fix broken DataJud client |
 
-**Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
-
 </details>
 
 <br>

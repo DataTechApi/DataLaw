@@ -1,0 +1,63 @@
+[project]
+name = "datalaw"
+version = "0.1.0"
+description = "Ingestão e processamento de dados para o projeto DataLaw."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "duckdb>=1.5.5",
+    "fastapi[standard]>=0.141.1",
+    "httpx>=0.28.1",
+    "polar>=0.0.127",
+    "psycopg[binary]>=3.3.5",
+    "pydantic-settings>=2.15.0",
+    "pytonic>=0.0.1.dev1",
+    "requests>=2.34.2",
+    "sqlalchemy>=2.0.54",
+    "tenacity>=9.1.4",
+]
+
+[build-system]
+requires= ["hatchling"]
+build-backend= "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/data_law"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.0",
+    "pytest>=8.0",
+    "ruff>=0.16.6",
+    "taskipy>=1.14.1",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["integration: requires a configured PostgreSQL database"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+warn_unused_configs = true
+check_untyped_defs = true
+
+[tool.taskipy.tasks]
+lint = "ruff check src tests"
+format = "ruff format --check src tests"
+test = "pytest"
+typecheck = "mypy src"
+bronze-load = "python -m data_law.ingestion.bronze"
+silver-load = "python -m data_law.transformation.silver"
+full-ingest = "python -m data_law.main --full"
+db-shell = "docker exec -it datalaw_db psql -U datalaw -d datalaw_db"

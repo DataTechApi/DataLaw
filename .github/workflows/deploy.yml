@@ -1,0 +1,72 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: Integração Contínua (CI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Instalar dependências
+        run: uv sync --all-extras --dev
+
+      - name: Rodar linter (Ruff)
+        run: uv run task lint
+
+      - name: Checagem de tipos (Mypy)
+        run: uv run task typecheck
+
+      - name: Executar testes (Pytest)
+        run: uv run task test
+
+  cd:
+    name: Entrega Contínua (CD) - Deploy na Azure
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Executar deploy via SSH na VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            # Verifica se o repositório já foi clonado. Se não, avisa o usuário (no primeiro deploy).
+            if [ ! -d "datalaw" ]; then
+              echo "Repositório não encontrado. Por favor, clone o repositório manualmente na VM pela primeira vez em ~/datalaw"
+              exit 1
+            fi
+
+            cd datalaw
+            
+            # Atualiza o código
+            git pull origin main
+            
+            # Atualiza as dependências (uv deve estar no PATH. O setup_vm.sh instala em ~/.local/bin/uv)
+            ~/.local/bin/uv sync
+            
+            # Garante que o banco suba
+            docker compose up -d
+
+            echo "Deploy concluído com sucesso!"
