@@ -78,122 +78,37 @@ DataLaw focuses on minimalism and clarity. Our solution delivers decision-ready 
 ### **Prerequisites**
 
 - Git
-- [Docker](https://docs.docker.com/get-docker/) with Docker Compose
 - [uv](https://docs.astral.sh/uv/)
 - A [DataJud](https://datajud-wiki.cnj.jus.br/api-publica/acesso/) Public API access key
 
 ### Installation
-
 ```bash
-git clone https://github.com/DataTechApi/DataLaw.git
+git clone <REPOSITORY_URL>
 cd DataLaw
+uv sync
 ```
 
-### Environment Configuration
+### API Key Configuration
 
 Create a `.env` file in the project root:
 
 ```env
 DATAJUD_API_KEY=your_api_key
-DATABASE_URL=postgresql+psycopg://datalaw:datalaw@localhost:5432/datalaw_db
 ```
 
-### Complete Execution Flow
-
-Run the following commands in order. The first run must be a historical load;
-subsequent runs use the incremental routine.
-
-```bash
-docker compose up -d --wait
-uv sync
-uv run alembic upgrade head
-uv run task full-ingest
-```
-
-The commands start PostgreSQL, install project dependencies, create the database
-schema, load the eligible TJSP processes from the previous six months into Bronze,
-and synchronize the new or changed processes and movements into Silver.
-
-See [Medallion Architecture](docs/architecture/medallion.md) for the current
-data-layer design and implementation decisions.
-
-Confirm that the database is ready:
-
-```bash
-docker compose ps
-```
-
-### Run the Incremental Ingestion
-
-After the historical load has completed successfully, run the daily incremental
-update manually:
+### Run the Ingestion
 
 ```bash
 uv run python -m data_law.main
 ```
 
-The incremental routine rechecks the prior 48 hours of DataJud updates, adds
-newly finalized processes, refreshes new movements for processes already held in
-Bronze, and then performs the incremental Silver SCD1 merge.
+The application queries TJSP cases with a final dismissal or definitive archival movement in the past six months.
 
-### Inspect the Database
-
-```bash
-uv run task db-shell
-```
-
-For example, inside `psql`:
-
-```sql
-SELECT id, tribunal_sigla, source_file, extracted_at
-FROM bronze.datajud_extract
-LIMIT 10;
-```
-
-Exit the database shell with `\q`.
-
-### Database Migrations
-
-Whenever a model changes, generate and review a migration before applying it:
-
-```bash
-uv run alembic revision --autogenerate -m "describe the schema change"
-uv run alembic upgrade head
-```
-
-Raw API responses are automatically saved as compressed, immutable pages under:
+Raw API responses are automatically saved to:
 
 ```text
-data/raw/tjsp/ingestion_date=YYYY-MM-DD/run_id=.../page-000001.json.gz
+data/raw/tjsp/
 ```
-
-### Reprocess Raw Files
-
-To process files already saved in `data/raw`, run:
-
-```bash
-uv run task bronze-load
-```
-
-The command processes Bronze first and then runs the incremental Silver merge. To
-retry only pending or changed Bronze records in Silver, run:
-
-```bash
-uv run task silver-load
-```
-
-Run `silver-load` after `docker compose up -d --wait` and `uv run alembic upgrade
-head`. It reads directly from Bronze; it does not call the DataJud API or reload
-Raw files. The operation is restartable: after an interruption, run the same
-command again and it will skip Silver processes whose source hash already matches
-their Bronze payload.
-
-### Stop PostgreSQL
-
-```bash
-docker compose down
-```
-
 ### Code Quality
 
 ```bash
@@ -250,18 +165,18 @@ uv run ruff check src tests
 | Rank | Priority | User Story | Points | Sprint | DOR |
 | --- | --- | --- | --- | --- | --- |
 | 1.1 | Critical | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 | Court and period fields defined, dataset available, filtering rules documented |
-| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available |
-| 1.2 | High | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
-| 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 | Search endpoints defined, sample dataset ready |
-| 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 | Data model finalized, API endpoints listed, documentation template ready |
 | 2.3 | Critical | As a Strategic Lawyer, I want each decision’s legal topic to be automatically classified and searchable by meaning, so that I don’t depend on exact keywords. | 8 | 2 | NLP model selected, classification rules defined |
 | 2.4 | Critical | As a Lawyer/Judge, I want to search by meaning and perform multidimensional queries (by court, topic, period), so that I can find related precedents and identify jurisprudence patterns. | 8 | 2 | Semantic index available, query parameters defined, test cases prepared |
-| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
-| 2.1 | High | As a Legal Manager, I want open data portal information to enrich the context of decisions, so that I have a more complete view when analyzing a case. | 8 | 2 | Open data sources identified, access validated, enrichment rules defined |
-| 2.2 | Medium | As a Legal Manager, I want to filter decisions also by topic, author, and document type, so that I can perform more complete analyses of a case or thesis. | 5 | 2 | Dimensions identified, schema updated, filtering logic documented |
 | 3.3 | Critical | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 | Dashboard requirements defined, OLAP model ready, visualization tool selected |
 | 3.4 | Critical | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 8 | 3 | Regression test plan defined, CI/CD pipeline available, monitoring configured |
+| 1.2 | High | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
+| 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 | Search endpoints defined, sample dataset ready |
+| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available |
+| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
+| 2.1 | High | As a Legal Manager, I want open data portal information to enrich the context of decisions, so that I have a more complete view when analyzing a case. | 8 | 2 | Open data sources identified, access validated, enrichment rules defined |
 | 3.2 | High | As the system, I need to extract legal entities (parties, courts, cited legislation), so that structured data is enriched. | 8 | 3 | NLP entity extraction model defined, training dataset ready, validation rules set |
+| 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 | Data model finalized, API endpoints listed, documentation template ready |
+| 2.2 | Medium | As a Legal Manager, I want to filter decisions also by topic, author, and document type, so that I can perform more complete analyses of a case or thesis. | 5 | 2 | Dimensions identified, schema updated, filtering logic documented |
 | 3.1 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 | Doctrine sources identified, access validated |
 
 ### **Global Definition of Done (DoD)**
@@ -306,11 +221,11 @@ A backlog item is considered done if:
 
 DoR Checklist
 
-[x] Business rules defined: which court and decision types to extract.
+- Business rules defined: which court and decision types to extract.
 
-[x] Data available: API access key configured and validated.
+- Data available: API access key configured and validated.
 
-[x] Prototype approved: initial data ingestion flow documented.
+- Prototype approved: initial data ingestion flow documented.
 
 </details>
 
@@ -319,11 +234,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: cleaning rules documented (remove duplicates, normalize fields).
+- Business rules defined: cleaning rules documented (remove duplicates, normalize fields).
 
-[x] Data available: raw dataset ready for cleaning.
+- Data available: raw dataset ready for cleaning.
 
-[x] Prototype approved: schema for cleaned dataset validated.
+- Prototype approved: schema for cleaned dataset validated.
 
 
 </details>
@@ -333,11 +248,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: fact table and dimensions documented.
+- Business rules defined: fact table and dimensions documented.
 
-[x] Data available: cleaned dataset mapped to dimensional schema.
+- Data available: cleaned dataset mapped to dimensional schema.
 
-[x] Prototype approved: ER diagram or schema mockup available.
+- Prototype approved: ER diagram or schema mockup available.
 
 </details>
 
@@ -346,11 +261,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: adherence calculation formula agreed with stakeholders.
+- Business rules defined: adherence calculation formula agreed with stakeholders.
 
-[x] Data available: pilot dataset with topic classification.
+- Data available: pilot dataset with topic classification.
 
-[x] Prototype approved: metric displayed in single-screen interface.
+- Prototype approved: metric displayed in single-screen interface.
 
 </details>
 
@@ -359,11 +274,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: reliability calculation method documented.
+- Business rules defined: reliability calculation method documented.
 
-[x] Data available: metadata accessible for each decision.
+- Data available: metadata accessible for each decision.
 
-[x] Prototype approved: source and reliability displayed next to metrics.
+- Prototype approved: source and reliability displayed next to metrics.
 
 </details>
 
@@ -372,13 +287,13 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: query parameters documented (court, topic, period).
+- Business rules defined: query parameters documented (court, topic, period).
 
-[x] Data available: pilot dataset indexed for queries.
+- Data available: pilot dataset indexed for queries.
 
-[x] Messages defined: error if query returns no results; success confirmation when decisions are displayed.
+- Messages defined: error if query returns no results; success confirmation when decisions are displayed.
 
-[x] Prototype approved: query interface mockup validated.
+- Prototype approved: query interface mockup validated.
 
 </details>
 
@@ -387,13 +302,13 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: documentation template agreed.
+- Business rules defined: documentation template agreed.
 
-[x] Data available: dimensional schema finalized.
+- Data available: dimensional schema finalized.
 
-[x] Messages defined: documentation must include validation notes.
+- Messages defined: documentation must include validation notes.
 
-[x] Prototype approved: draft data dictionary reviewed.
+- Prototype approved: draft data dictionary reviewed.
 
 </details>
 
@@ -402,13 +317,13 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: backlog structure mapped to requirements.
+- Business rules defined: backlog structure mapped to requirements.
 
-[x] Data available: Jira project created with access for all team members.
+- Data available: Jira project created with access for all team members.
 
-[x] Messages defined: notifications configured for backlog changes.
+- Messages defined: notifications configured for backlog changes.
 
-[x] Prototype approved: Jira board structure validated.
+- Prototype approved: Jira board structure validated.
 
 </details>
 
@@ -439,11 +354,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: topic classification logic documented.
+- Business rules defined: topic classification logic documented.
 
-[x] Data available: training dataset prepared and validated.
+- Data available: training dataset prepared and validated.
 
-[x] Prototype approved: topic field visible in search results.
+- Prototype approved: topic field visible in search results.
 
 </details>
 
@@ -452,11 +367,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: semantic indexing parameters documented.
+- Business rules defined: semantic indexing parameters documented.
 
-[x] Data available: dataset indexed with semantic model.
+- Data available: dataset indexed with semantic model.
 
-[x] Prototype approved: semantic index validated with sample queries.
+- Prototype approved: semantic index validated with sample queries.
 
 </details>
 
@@ -465,11 +380,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: query parameters documented for semantic search.
+- Business rules defined: query parameters documented for semantic search.
 
-[x] Data available: indexed dataset validated for queries.
+- Data available: indexed dataset validated for queries.
 
-[x] Prototype approved: semantic search bar mockup validated.
+- Prototype approved: semantic search bar mockup validated.
 
 </details>
 
@@ -478,11 +393,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: calculation formula documented.
+- Business rules defined: calculation formula documented.
 
-[x] Data available: dataset with timestamps validated.
+- Data available: dataset with timestamps validated.
 
-[x] Prototype approved: metric displayed in single-screen interface.
+- Prototype approved: metric displayed in single-screen interface.
 
 </details>
 
@@ -491,11 +406,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: entity extraction rules documented (parties, courts, legislation).
+- Business rules defined: entity extraction rules documented (parties, courts, legislation).
 
-[x] Data available: training dataset prepared and validated.
+- Data available: training dataset prepared and validated.
 
-[x] Prototype approved: entities displayed in structured format.
+- Prototype approved: entities displayed in structured format.
 
 </details>
 
@@ -504,11 +419,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: which State Courts and decision types to extract.
+- Business rules defined: which State Courts and decision types to extract.
 
-[x] Data available: API endpoints validated and accessible.
+- Data available: API endpoints validated and accessible.
 
-[x] Prototype approved: ingestion flow documented for multiple courts.
+- Prototype approved: ingestion flow documented for multiple courts.
 
 </details>
 
@@ -517,11 +432,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: additional dimensions documented (author, document type).
+- Business rules defined: additional dimensions documented (author, document type).
 
-[x] Data available: schema updated with new dimensions.
+- Data available: schema updated with new dimensions.
 
-[x] Prototype approved: ER diagram updated with new dimensions.
+- Prototype approved: ER diagram updated with new dimensions.
 
 </details>
 
@@ -530,11 +445,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: test coverage requirements documented.
+- Business rules defined: test coverage requirements documented.
 
-[x] Data available: sample datasets prepared for testing.
+- Data available: sample datasets prepared for testing.
 
-[x] Prototype approved: CI/CD pipeline configured to run tests.
+- Prototype approved: CI/CD pipeline configured to run tests.
 
 </details>
 
@@ -543,11 +458,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: enrichment rules documented for open data sources.
+- Business rules defined: enrichment rules documented for open data sources.
 
-[x] Data available: open data sources identified and validated.
+- Data available: open data sources identified and validated.
 
-[x] Prototype approved: schema updated to include enriched fields.
+- Prototype approved: schema updated to include enriched fields.
 
 </details>
 
@@ -574,11 +489,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: KPIs documented (adherence %, average time, case volume).
+- Business rules defined: KPIs documented (adherence %, average time, case volume).
 
-[x] Data available: OLAP model finalized and validated.
+- Data available: OLAP model finalized and validated.
 
-[x] Prototype approved: dashboard mockup with charts reviewed.
+- Prototype approved: dashboard mockup with charts reviewed.
 
 </details>
 
@@ -587,11 +502,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: functional test coverage requirements documented.
+- Business rules defined: functional test coverage requirements documented.
 
-[x] Data available: test cases prepared for API and UI.
+- Data available: test cases prepared for API and UI.
 
-[x] Prototype approved: CI/CD pipeline configured to run functional tests.
+- Prototype approved: CI/CD pipeline configured to run functional tests.
 
 </details>
 
@@ -600,11 +515,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: classification logic documented (outcome categories).
+- Business rules defined: classification logic documented (outcome categories).
 
-[x] Data available: dataset labeled with outcomes for training.
+- Data available: dataset labeled with outcomes for training.
 
-[x] Prototype approved: outcome field visible in decision results.
+- Prototype approved: outcome field visible in decision results.
 
 </details>
 
@@ -613,11 +528,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: doctrine sources identified and validated.
+- Business rules defined: doctrine sources identified and validated.
 
-[x] Data available: access confirmed to repositories.
+- Data available: access confirmed to repositories.
 
-[x] Prototype approved: schema updated to include doctrine content.
+- Prototype approved: schema updated to include doctrine content.
 
 </details>
 
@@ -626,11 +541,11 @@ DoR Checklist
 
 DoR Checklist
 
-[x] Business rules defined: CI/CD workflow documented (build, test, deploy).
+- Business rules defined: CI/CD workflow documented (build, test, deploy).
 
-[x] Data available: environment variables and secrets configured.
+- Data available: environment variables and secrets configured.
 
-[x] Prototype approved: pipeline configuration validated in GitHub Actions/Docker.
+- Prototype approved: pipeline configuration validated in GitHub Actions/Docker.
 
 </details>
 
@@ -640,10 +555,10 @@ DoR Checklist
 
 <h1 id="hourglass_flowing_sand-project-timeline">⏳ Project Timeline</h1>
 
-- [x] Kick-off with partner (Xertica)
-- [x] Discovery follow-up: additional stakeholder questions to refine the real business pain point
-- [x] Sprint 1 — Planning
-- [x] Sprint 1 — Execution
+- - Kick-off with partner (Xertica)
+- - Discovery follow-up: additional stakeholder questions to refine the real business pain point
+- - Sprint 1 — Planning
+- - Sprint 1 — Execution
 - [ ] Sprint 1 — Review / Sprint 2 Planning
 - [ ] Sprint 2 — Execution
 - [ ] Sprint 2 — Review / Sprint 3 Planning
@@ -718,8 +633,6 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 | :robot: ci | CI/CD changes | SCRUM-01 :robot: ci(workflow): update GitHub Actions workflow |
 | :rewind: revert | Revert a previous commit | SCRUM-01 :rewind: revert(auth): revert "feat(auth): add JWT login" |
 | :ambulance: hotfix | Urgent production fix | SCRUM-01 :ambulance: hotfix(etl): fix broken DataJud client |
-
-**Pull Requests:** opened after a task is complete, referencing all involved Task IDs, with a detailed description of what was implemented. Each task should have its own Pull Request.
 
 </details>
 
