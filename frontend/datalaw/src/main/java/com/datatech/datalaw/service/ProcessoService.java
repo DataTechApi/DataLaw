@@ -1,7 +1,11 @@
 package com.datatech.datalaw.service;
 
 import com.datatech.datalaw.repository.ProcessoRepository;
+import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+@Service
 public class ProcessoService {
 
     private final ProcessoRepository processoRepository;
@@ -10,12 +14,11 @@ public class ProcessoService {
         this.processoRepository = processoRepository;
     }
 
-    public void exibirQuantidadeProcessosPorOrgaoJulgador() {
-        var resultados = processoRepository.findQuantidadeProcessosPorOrgaoJulgador();
-        for (Object[] resultado : resultados) {
-            String orgaoJulgador = (String) resultado[0];
-            Long quantidade = (Long) resultado[1];
-            System.out.println("Órgão Julgador: " + orgaoJulgador + ", Quantidade de Processos: " + quantidade);
-        }
+    public List<Object[]> obterQuantidadeProcessosPorOrgaoJulgador(String classeNome) {
+        return processoRepository.findQuantidadeProcessosPorOrgaoJulgador(classeNome);
+    }
+
+    public List<Object[]> obterQuantidadeProcessosPorClasse() {
+        return processoRepository.findQuantidadeProcessosPorClasse();
     }
 }
