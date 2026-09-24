@@ -53,12 +53,12 @@ jobs:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           script: |
             # Verifica se o repositório já foi clonado. Se não, avisa o usuário (no primeiro deploy).
-            if [ ! -d "datalaw" ]; then
-              echo "Repositório não encontrado. Por favor, clone o repositório manualmente na VM pela primeira vez em ~/datalaw"
+            if [ ! -d "DataLaw" ]; then
+              echo "Repositório não encontrado. Por favor, clone o repositório manualmente na VM pela primeira vez em ~/DataLaw"
               exit 1
             fi
 
-            cd datalaw
+            cd DataLaw
             
             # Atualiza o código
             git pull origin main
