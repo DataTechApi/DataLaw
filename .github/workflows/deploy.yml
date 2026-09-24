@@ -66,7 +66,7 @@ jobs:
             # Atualiza as dependências (uv deve estar no PATH. O setup_vm.sh instala em ~/.local/bin/uv)
             ~/.local/bin/uv sync
             
-            # Garante que o banco suba
-            docker compose up -d
+            # Garante que o banco e a nova imagem da API subam
+            docker compose up -d --build
 
             echo "Deploy concluído com sucesso!"

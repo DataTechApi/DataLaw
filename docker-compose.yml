@@ -16,5 +16,22 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build: .
+    container_name: datalaw_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Ajuste essas variáveis conforme a necessidade do seu DataJudSettings
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=datalaw
+      - DB_PASSWORD=datalaw
+      - DB_NAME=datalaw_db
+      - POSTGRES_SERVER=db
+      - DATABASE_URL=postgresql://datalaw:datalaw@db:5432/datalaw_db
+
+
 volumes:
   postgres_data:
