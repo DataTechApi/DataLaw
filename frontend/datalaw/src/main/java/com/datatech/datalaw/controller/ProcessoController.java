@@ -14,8 +14,11 @@ public class ProcessoController {
         this.processoService = processoService;
     }
 
-    @GetMapping("/processos/orgaos-julgadores")
-    public String listarProcessosPorOrgao(@org.springframework.web.bind.annotation.RequestParam(value = "classeNome", defaultValue = "Execução Fiscal") String classeNome, Model model) {
+    @GetMapping({"/", "/processos/orgaos-julgadores"})
+    public String listarProcessosPorOrgao(@org.springframework.web.bind.annotation.RequestParam(value = "classeNome", required = false) String classeNome, Model model) {
+        if (classeNome == null) {
+            classeNome = "";
+        }
         var processosPorOrgao = processoService.obterQuantidadeProcessosPorOrgaoJulgador(classeNome);
         var processosPorClasse = processoService.obterQuantidadeProcessosPorClasse();
         model.addAttribute("processos", processosPorOrgao);

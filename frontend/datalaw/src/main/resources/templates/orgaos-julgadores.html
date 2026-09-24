@@ -178,8 +178,14 @@
         .chart-wrap {
             position: relative;
             min-height: 480px;
-            max-height: 900px;
+            max-height: 600px;
             overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .chart-inner {
+            position: relative;
+            width: 100%;
         }
 
         .chart-empty {
@@ -249,7 +255,9 @@
         <div class="chart-card">
             <h3>Processos por Classe</h3>
             <div class="chart-wrap" th:if="${processosPorClasse != null and not #lists.isEmpty(processosPorClasse)}">
-                <canvas id="chartClasse"></canvas>
+                <div class="chart-inner" id="inner-chartClasse">
+                    <canvas id="chartClasse"></canvas>
+                </div>
             </div>
             <div class="chart-empty" th:if="${processosPorClasse == null or #lists.isEmpty(processosPorClasse)}">
                 Sem dados de classe para exibir.
@@ -258,7 +266,9 @@
         <div class="chart-card">
             <h3>Processos por Órgão Julgador</h3>
             <div class="chart-wrap" th:if="${not #lists.isEmpty(processos)}">
-                <canvas id="chartOrgao"></canvas>
+                <div class="chart-inner" id="inner-chartOrgao">
+                    <canvas id="chartOrgao"></canvas>
+                </div>
             </div>
             <div class="chart-empty" th:if="${#lists.isEmpty(processos)}">
                 Sem dados de órgão julgador para exibir.
@@ -316,12 +326,12 @@
                     return;
                 }
 
-                // altura dinâmica: mais itens => mais espaço, até o
-                // max-height do CSS, que ativa scroll interno no card
-                const wrap = el.parentElement;
-                if (wrap) {
-                    const dynamicHeight = Math.max(480, labels.length * 42);
-                    wrap.style.height = dynamicHeight + 'px';
+                // altura dinâmica: mais itens => mais espaço,
+                // aplicado ao container interno para que o chart-wrap faça o scroll
+                const innerWrap = document.getElementById('inner-' + canvasId);
+                if (innerWrap) {
+                    const dynamicHeight = Math.max(480, labels.length * 20);
+                    innerWrap.style.height = dynamicHeight + 'px';
                 }
 
                 new Chart(el, {
