@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataLaw · Processos por Órgão Julgador</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg-color: #0F172A;
+            --surface: #1E293B;
+            --surface-hover: #334155;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: #334155;
+            --gold: #FBBF24;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1300px;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .brand-logo {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 4px 10px rgba(129, 140, 248, 0.35));
+        }
+
+        .brand-text h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #818CF8 0%, #C084FC 60%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text span.tag {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0 0.25rem;
+            color: var(--text-main);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            font-size: 1.05rem;
+        }
+
+        .search-container {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .search-form {
+            display: flex;
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s ease;
+        }
+
+        .search-form:focus-within {
+            border-color: #818CF8;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-button:hover { opacity: 0.9; }
+        .search-button:active { transform: scale(0.98); }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        .chart-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .chart-card h3 {
+            margin: 0 0 1.25rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .chart-wrap {
+            position: relative;
+            min-height: 480px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .chart-inner {
+            position: relative;
+            width: 100%;
+        }
+
+        .chart-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 480px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="brand-header">
+        <svg class="brand-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#818CF8"/>
+                    <stop offset="60%" stop-color="#C084FC"/>
+                    <stop offset="100%" stop-color="#FBBF24"/>
+                </linearGradient>
+            </defs>
+            <rect x="30" y="10" width="4" height="40" rx="1.5" fill="url(#logoGrad)"/>
+            <circle cx="32" cy="7" r="4" fill="url(#logoGrad)"/>
+            <rect x="18" y="50" width="28" height="4" rx="1.5" fill="url(#logoGrad)"/>
+            <rect x="12" y="54" width="40" height="4" rx="1.5" fill="url(#logoGrad)"/>
+            <rect x="10" y="14" width="44" height="3" rx="1.5" fill="url(#logoGrad)"/>
+            <line x1="14" y1="16" x2="14" y2="28" stroke="url(#logoGrad)" stroke-width="2"/>
+            <path d="M6 28 L22 28 L18 36 A8 8 0 0 1 10 36 Z" fill="none" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="50" y1="16" x2="50" y2="28" stroke="url(#logoGrad)" stroke-width="2"/>
+            <path d="M42 28 L58 28 L54 36 A8 8 0 0 1 46 36 Z" fill="none" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-text">
+            <h1>DataLaw</h1>
+            <span class="tag">Inteligência Processual</span>
+        </div>
+    </div>
+
+    <div class="header">
+        <h2 th:text="${classeNome != null and !classeNome.isEmpty() ? classeNome : 'Todos os processos'}">Processos</h2>
+        <p>Quantidade de processos classificados por Órgão Julgador</p>
+    </div>
+
+    <div class="search-container">
+        <form class="search-form" method="get" action="/processos/orgaos-julgadores">
+            <input type="text" name="classeNome" class="search-input" th:value="${classeNome}" placeholder="Digite a classe (ex: Execução Fiscal)">
+            <button type="submit" class="search-button">Buscar</button>
+        </form>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Processos por Classe</h3>
+            <div class="chart-wrap" th:if="${processosPorClasse != null and not #lists.isEmpty(processosPorClasse)}">
+                <div class="chart-inner" id="inner-chartClasse">
+                    <canvas id="chartClasse"></canvas>
+                </div>
+            </div>
+            <div class="chart-empty" th:if="${processosPorClasse == null or #lists.isEmpty(processosPorClasse)}">
+                Sem dados de classe para exibir.
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Processos por Órgão Julgador</h3>
+            <div class="chart-wrap" th:if="${not #lists.isEmpty(processos)}">
+                <div class="chart-inner" id="inner-chartOrgao">
+                    <canvas id="chartOrgao"></canvas>
+                </div>
+            </div>
+            <div class="chart-empty" th:if="${#lists.isEmpty(processos)}">
+                Sem dados de órgão julgador para exibir.
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        // Não usamos "x != null ? x : {}" no Thymeleaf: quando x é null,
+        // isso serializa como {} (objeto), e {}.map() quebra o JS inteiro
+        // e derruba os DOIS gráficos. Em vez disso, pegamos o valor cru
+        // (pode vir null) e normalizamos para array aqui no JS.
+        /*<![CDATA[*/
+        const rawOrgaoData = /*[[${processos}]]*/ null;
+        const rawClasseData = /*[[${processosPorClasse}]]*/ null;
+        /*]]>*/
+
+        const orgaoData = Array.isArray(rawOrgaoData) ? rawOrgaoData : [];
+        const classeData = Array.isArray(rawClasseData) ? rawClasseData : [];
+
+        const orgaoLabels = orgaoData.map(p => String(p[0] ?? 'N/A'));
+        const orgaoValues = orgaoData.map(p => Number(p[1] ?? 0));
+        const classeLabels = classeData.map(p => String(p[0] ?? 'N/A'));
+        const classeValues = classeData.map(p => Number(p[1] ?? 0));
+
+        const chartTheme = {
+            grid: 'rgba(148, 163, 184, 0.1)',
+            ticks: '#94A3B8',
+            bar: 'rgba(129, 140, 248, 0.75)',
+            barHover: 'rgba(192, 132, 252, 0.9)',
+            barBorder: '#818CF8'
+        };
+
+        // Cada busca recarrega a página (form GET), então "processos" e
+        // "processosPorClasse" já chegam atualizados do Thymeleaf a cada
+        // pesquisa — os gráficos são reconstruídos do zero com os dados
+        // atuais toda vez que a página carrega. A altura também se ajusta
+        // dinamicamente à quantidade de itens retornados pela busca.
+        function buildBarChart(canvasId, labels, values, barColor) {
+            try {
+                const el = document.getElementById(canvasId);
+                if (!el) {
+                    console.warn('[DataLaw] canvas não encontrado:', canvasId);
+                    return;
+                }
+                if (!labels || labels.length === 0) {
+                    console.warn('[DataLaw] sem dados para', canvasId);
+                    return;
+                }
+                if (typeof Chart === 'undefined') {
+                    console.error('[DataLaw] Chart.js não carregou (verifique bloqueio de rede/adblock/CSP).');
+                    return;
+                }
+
+                // altura dinâmica: mais itens => mais espaço,
+                // aplicado ao container interno para que o chart-wrap faça o scroll
+                const innerWrap = document.getElementById('inner-' + canvasId);
+                if (innerWrap) {
+                    const dynamicHeight = Math.max(480, labels.length * 20);
+                    innerWrap.style.height = dynamicHeight + 'px';
+                }
+
+                new Chart(el, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: barColor,
+                            borderColor: chartTheme.barBorder,
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            maxBarThickness: 36,
+                            hoverBackgroundColor: chartTheme.barHover
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1E293B',
+                                borderColor: '#334155',
+                                borderWidth: 1,
+                                titleColor: '#F8FAFC',
+                                bodyColor: '#F8FAFC',
+                                padding: 10
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { color: chartTheme.ticks, precision: 0 },
+                                grid: { color: chartTheme.grid }
+                            },
+                            y: {
+                                ticks: { color: chartTheme.ticks, autoSkip: false },
+                                grid: { color: 'transparent' }
+                            }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('[DataLaw] erro ao montar o gráfico', canvasId, err);
+            }
+        }
+
+        buildBarChart('chartClasse', classeLabels, classeValues, 'rgba(192, 132, 252, 0.75)');
+        buildBarChart('chartOrgao', orgaoLabels, orgaoValues, chartTheme.bar);
+    });
+</script>
+
+</body>
+</html>
