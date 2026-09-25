@@ -4,8 +4,8 @@
 
 DataLaw ingests DataJud process data from the TJSP and prepares it for future
 legal-theme adherence indicators. The current implementation covers the Raw,
-Bronze, and Silver layers. Gold metrics and the theme-classification model are
-not implemented yet.
+Bronze, Silver, and a generic Gold materialization layer. Theme classification
+and business-specific analytical marts are not implemented yet.
 
 The architecture is intentionally incremental and restartable: an unchanged
 source payload does not cause a new write in Bronze or a new transformation in
@@ -29,8 +29,8 @@ silver.processo ──< silver.movimento
 normalized current process and movement data
     |
     v
-Gold (planned)
-theme-adherence indicators and analytical marts
+gold.<materialization>
+physical analytical tables rebuilt from Silver by SQL or Polars recipes
 ```
 
 ### Raw
@@ -85,6 +85,43 @@ movement code, name, timestamp, movement court unit, and
 A movement is identified by a SHA-256 hash of its complete canonical JSON
 object. Duplicate movement objects in the same source payload are consolidated.
 The unique key is `(processo_id, source_hash)`.
+
+### Gold
+
+Gold stores physical analytical tables in the Gold PostgreSQL schema. Recipes are
+versioned in data_law.transformation.gold_recipes and may use SQL or Polars.
+
+Consulte [Criacao de tabelas Gold](gold.md) para registrar uma nova recipe.
+
+- SQL recipes expose exactly one read-only SELECT over tables qualified with
+  the silver schema.
+- Polars recipes receive a GoldContext and call read_silver with a SELECT over
+  Silver before returning a DataFrame or LazyFrame.
+- Every v1 recipe uses rebuild: the result is staged and atomically replaces the
+  target table only after successful processing.
+
+Run all registered recipes manually:
+
+~~~bash
+uv run task gold-load
+~~~
+
+Run the success-by-class materialization:
+
+~~~bash
+uv run task gold-load -- --name process_results
+~~~
+
+`gold.process_results` groups closed processes by tribunal and procedural
+class. It classifies the latest merit movement before closure as favorable
+(`219`), partially favorable (`221`), or unfavorable (`220`), assigning weights
+of 1.0, 0.5, and 0.0 respectively. Cases without one of those result movements
+remain visible as `sem_resultado_de_merito` and are excluded from the weighted
+rate denominator. This is a success proxy, not a determination of adherence to
+a legal thesis or a result for a particular party.
+
+Add further recipes to `data_law.transformation.gold_recipes`; the executor
+creates a Gold table on each recipe's first successful run.
 
 ## Silver SCD Type 1 Synchronization
 
@@ -200,7 +237,7 @@ suited to interactive, ad hoc SQL exploration.
 | Identical movements are deduplicated | DataJud payloads can contain repeated movement objects; retaining them would inflate later metrics. |
 | Silver runs after Bronze as a batch | Bronze is the durable source of truth; a batch dependency keeps the pipeline explicit and restartable. |
 | The checkpoint follows Silver success | An ingestion run is not considered complete until its Silver data is current. |
-| No additional DataFrame or warehouse engine is used in the ETL | SQLAlchemy and PostgreSQL are sufficient for the current operational flow. DuckDB and Polars remain optional future tools, not pipeline dependencies. |
+| Gold uses versioned SQL or Polars recipes | Each recipe reads Silver and atomically replaces one physical table in the `gold` schema. |
 
 ## Current Limits and Next Steps
 
@@ -208,9 +245,9 @@ suited to interactive, ad hoc SQL exploration.
   without a matching Silver hash must be transformed.
 - Silver synchronization is restartable and subsequent runs process only changed
   Bronze payloads.
-- Gold tables for adherence by theme, period, court unit, and jurisdiction level
-  are planned after a theme catalog and a process-to-theme assessment model are
-  defined.
+- Gold infrastructure has no business recipes yet. Facts and dimensions for
+  adherence, period, court unit, and jurisdiction level will be registered after
+  their business rules are defined.
 - A presentation layer is not part of the current pipeline. DBeaver is suitable
   for database inspection; a future internal dashboard can use a separate
   visualization decision.
