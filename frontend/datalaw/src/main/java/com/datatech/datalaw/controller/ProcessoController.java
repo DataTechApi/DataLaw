@@ -26,4 +26,13 @@ public class ProcessoController {
         model.addAttribute("classeNome", classeNome);
         return "orgaos-julgadores";
     }
+
+    @GetMapping("/processos/taxa-sucesso")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public java.util.Map<String, Object> obterTaxaSucesso(@org.springframework.web.bind.annotation.RequestParam("classeNome") String classeNome) {
+        Double taxa = processoService.obterTaxaSucessoPorClasse(classeNome);
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("taxa", taxa);
+        return response;
+    }
 }
