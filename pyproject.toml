@@ -11,7 +11,6 @@ dependencies = [
     "httpx>=0.28.1",
     "pandas>=2.0",
     "pglast>=7.11",
-    "polars>=1.0",
     "pyarrow>=8.0",
     "psycopg[binary]>=3.3.5",
     "pydantic-settings>=2.15.0",
@@ -19,6 +18,7 @@ dependencies = [
     "requests>=2.34.2",
     "sqlalchemy>=2.0.54",
     "tenacity>=9.1.4",
+    "polars-lts-cpu>=1.33.1",
 ]
 
 [build-system]

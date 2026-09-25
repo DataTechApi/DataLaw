@@ -21,4 +21,8 @@ public class ProcessoService {
     public List<Object[]> obterQuantidadeProcessosPorClasse() {
         return processoRepository.findQuantidadeProcessosPorClasse();
     }
+
+    public Double obterTaxaSucessoPorClasse(String classeNome) {
+        return processoRepository.findTaxaSucessoPorClasse(classeNome);
+    }
 }

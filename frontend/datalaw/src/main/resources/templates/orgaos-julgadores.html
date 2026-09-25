@@ -148,7 +148,7 @@
         .charts-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            align-items: start;
+            align-items: stretch;
             gap: 1.5rem;
             margin-bottom: 2.5rem;
         }
@@ -164,6 +164,8 @@
             padding: 2rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             animation: slideUp 0.6s ease-out;
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-card h3 {
@@ -177,10 +179,11 @@
 
         .chart-wrap {
             position: relative;
-            min-height: 480px;
-            max-height: 600px;
+            min-height: 250px;
+            max-height: 400px;
             overflow-y: auto;
             padding-right: 5px;
+            flex: 1;
         }
 
         .chart-inner {
@@ -192,9 +195,74 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 480px;
+            height: 250px;
             color: var(--text-muted);
             font-size: 0.9rem;
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: none; border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem; cursor: pointer;
+        }
+        .modal-close:hover { color: var(--text-main); }
+        .modal-title {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            color: var(--gold);
+        }
+        .gauge-container {
+            position: relative;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+        }
+        .gauge-text {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-main);
         }
 
         @keyframes slideUp {
@@ -265,17 +333,32 @@
         </div>
         <div class="chart-card">
             <h3>Processos por Órgão Julgador</h3>
-            <div class="chart-wrap" th:if="${not #lists.isEmpty(processos)}">
+            <div class="chart-wrap" th:if="${classeNome != null and !classeNome.isEmpty() and not #lists.isEmpty(processos)}">
                 <div class="chart-inner" id="inner-chartOrgao">
                     <canvas id="chartOrgao"></canvas>
                 </div>
             </div>
-            <div class="chart-empty" th:if="${#lists.isEmpty(processos)}">
+            <div class="chart-empty" th:if="${classeNome == null or classeNome.isEmpty()}">
+                Faça uma busca acima para ver os processos por órgão julgador.
+            </div>
+            <div class="chart-empty" th:if="${classeNome != null and !classeNome.isEmpty() and #lists.isEmpty(processos)}">
                 Sem dados de órgão julgador para exibir.
             </div>
         </div>
     </div>
 
+</div>
+
+<div class="modal-overlay" id="successModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 class="modal-title" id="modalTitle">Decisão Favorável (Ouro)</h3>
+        <p style="text-align: center; color: var(--text-muted); margin-top: -10px; margin-bottom: 20px;" id="modalSubtitle"></p>
+        <div class="gauge-container">
+            <canvas id="gaugeChart"></canvas>
+            <div class="gauge-text" id="gaugeText">0%</div>
+        </div>
+    </div>
 </div>
 
 <script th:inline="javascript">
@@ -290,7 +373,10 @@
         /*]]>*/
 
         const orgaoData = Array.isArray(rawOrgaoData) ? rawOrgaoData : [];
-        const classeData = Array.isArray(rawClasseData) ? rawClasseData : [];
+        let classeData = Array.isArray(rawClasseData) ? rawClasseData : [];
+
+        // Filtrar classes com mais de 30 processos
+        classeData = classeData.filter(p => Number(p[1] ?? 0) > 30);
 
         const orgaoLabels = orgaoData.map(p => String(p[0] ?? 'N/A'));
         const orgaoValues = orgaoData.map(p => Number(p[1] ?? 0));
@@ -310,7 +396,12 @@
         // pesquisa — os gráficos são reconstruídos do zero com os dados
         // atuais toda vez que a página carrega. A altura também se ajusta
         // dinamicamente à quantidade de itens retornados pela busca.
-        function buildBarChart(canvasId, labels, values, barColor) {
+        //
+        // clickType controla o que acontece ao clicar numa barra:
+        //   'classe' -> abre o modal de Taxa de Sucesso (busca no backend)
+        //   'orgao'  -> abre o modal de Participação no Total (calculado no cliente)
+        //   null     -> barra não é clicável
+        function buildBarChart(canvasId, labels, values, barColor, clickType = null) {
             try {
                 const el = document.getElementById(canvasId);
                 if (!el) {
@@ -330,9 +421,11 @@
                 // aplicado ao container interno para que o chart-wrap faça o scroll
                 const innerWrap = document.getElementById('inner-' + canvasId);
                 if (innerWrap) {
-                    const dynamicHeight = Math.max(480, labels.length * 20);
+                    const dynamicHeight = Math.max(250, labels.length * 20);
                     innerWrap.style.height = dynamicHeight + 'px';
                 }
+
+                const total = values.reduce((acc, v) => acc + v, 0);
 
                 new Chart(el, {
                     type: 'bar',
@@ -352,6 +445,18 @@
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
+                        onClick: (event, elements, chart) => {
+                            if (!clickType || elements.length === 0) return;
+                            const index = elements[0].index;
+                            const label = chart.data.labels[index];
+                            const value = chart.data.datasets[0].data[index];
+
+                            if (clickType === 'classe') {
+                                openTaxaSucessoModal(label);
+                            } else if (clickType === 'orgao') {
+                                openParticipacaoModal(label, value, total);
+                            }
+                        },
                         plugins: {
                             legend: { display: false },
                             tooltip: {
@@ -381,8 +486,73 @@
             }
         }
 
-        buildBarChart('chartClasse', classeLabels, classeValues, 'rgba(192, 132, 252, 0.75)');
-        buildBarChart('chartOrgao', orgaoLabels, orgaoValues, chartTheme.bar);
+        buildBarChart('chartClasse', classeLabels, classeValues, 'rgba(192, 132, 252, 0.75)', 'classe');
+        buildBarChart('chartOrgao', orgaoLabels, orgaoValues, chartTheme.bar, 'orgao');
+
+        let gaugeChartInstance = null;
+
+        function renderGauge(percentual, cor) {
+            if (gaugeChartInstance) {
+                gaugeChartInstance.destroy();
+            }
+            const ctx = document.getElementById('gaugeChart');
+            gaugeChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [percentual, 100 - percentual],
+                        backgroundColor: [cor, '#334155'],
+                        borderWidth: 0,
+                        circumference: 180,
+                        rotation: 270
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Modal de Taxa de Sucesso (clique no gráfico de Classe) — busca no backend
+        window.openTaxaSucessoModal = function(classeNome) {
+            document.getElementById('successModal').classList.add('active');
+            document.getElementById('modalTitle').innerText = 'Decisão Favorável (Ouro)';
+            document.getElementById('modalSubtitle').innerText = classeNome;
+            document.getElementById('gaugeText').innerText = '...';
+
+            fetch(`/processos/taxa-sucesso?classeNome=${encodeURIComponent(classeNome)}`)
+                .then(r => r.json())
+                .then(data => {
+                    const taxa = data.taxa || 0;
+                    document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
+                    renderGauge(taxa, '#FBBF24');
+                })
+                .catch(err => {
+                    console.error('Erro ao buscar taxa de sucesso', err);
+                    document.getElementById('gaugeText').innerText = 'Erro';
+                });
+        };
+
+        // Modal de Participação no Total (clique no gráfico de Órgão Julgador) — calculado no cliente
+        window.openParticipacaoModal = function(orgaoNome, quantidade, total) {
+            document.getElementById('successModal').classList.add('active');
+            document.getElementById('modalTitle').innerText = 'Participação no Total de Processos';
+            document.getElementById('modalSubtitle').innerText = orgaoNome;
+
+            const pct = total > 0 ? (quantidade / total) * 100 : 0;
+            document.getElementById('gaugeText').innerText = pct.toFixed(1) + '%';
+            renderGauge(pct, '#818CF8');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('successModal').classList.remove('active');
+        };
     });
 </script>
 
