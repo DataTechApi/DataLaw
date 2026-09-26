@@ -33,6 +33,7 @@ from data_law.transformation.silver import SilverSyncReport
 COMPLETION_CODES = frozenset({22, 246})
 PAGE_SIZE = 500
 INCREMENTAL_OVERLAP = timedelta(hours=48)
+HISTORICAL_START = datetime(2026, 3, 1, tzinfo=UTC)
 
 logger = logging.getLogger(__name__)
 
@@ -132,20 +133,19 @@ class DataJudIngestionService:
         self.incremental_overlap = incremental_overlap
 
     def run_full(self) -> IngestionReport:
-        """Backfill processes with a completion movement in the last six months."""
+        """Backfill processes with a completion movement since March 2026."""
         run_started_at = datetime.now(UTC)
-        window_start = _subtract_calendar_months(run_started_at, 6)
         logger.info(
             "Iniciando ingestão histórica: tribunal=%s janela=%s até=%s",
             self.metadata.sigla,
-            _format_timestamp(window_start),
+            _format_timestamp(HISTORICAL_START),
             _format_timestamp(run_started_at),
         )
         return self._run(
             mode="full",
             run_started_at=run_started_at,
-            completion_window_start=window_start,
-            query=_historical_query(window_start, run_started_at),
+            completion_window_start=HISTORICAL_START,
+            query=_historical_query(HISTORICAL_START, run_started_at),
             include_existing=False,
         )
 

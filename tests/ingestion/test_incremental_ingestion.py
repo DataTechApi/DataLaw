@@ -148,6 +148,7 @@ def test_full_load_persists_only_completion_in_the_same_movement(
     assert session.state is not None
     date_filter = client.bodies[0]["query"]["bool"]["filter"][1]["range"]
     assert "movimentos.dataHora" in date_filter
+    assert date_filter["movimentos.dataHora"]["gte"] == "2026-03-01T00:00:00Z"
     assert "search_after" in client.bodies[1]
 
 

@@ -26,7 +26,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="executa a carga histórica dos últimos seis meses",
+        help="executa a carga histórica a partir de março de 2026",
     )
     arguments = parser.parse_args(argv)
 
