@@ -1,4 +1,5 @@
 import calendar
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -11,6 +12,7 @@ from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import select
 from tenacity import (
+    before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -31,6 +33,8 @@ from data_law.transformation.silver import SilverSyncReport
 COMPLETION_CODES = frozenset({22, 246})
 PAGE_SIZE = 500
 INCREMENTAL_OVERLAP = timedelta(hours=48)
+
+logger = logging.getLogger(__name__)
 
 
 class DataJudSettings(BaseSettings):
@@ -56,6 +60,7 @@ class DataJudClient:
         wait=wait_exponential(multiplier=1, min=4, max=15),
         stop=stop_after_attempt(5),
         retry=retry_if_exception_type((requests.exceptions.RequestException,)),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
     )
     def ingest(self, tribunal: str, body: dict[str, Any]) -> dict[str, Any]:
@@ -130,6 +135,12 @@ class DataJudIngestionService:
         """Backfill processes with a completion movement in the last six months."""
         run_started_at = datetime.now(UTC)
         window_start = _subtract_calendar_months(run_started_at, 6)
+        logger.info(
+            "Iniciando ingestão histórica: tribunal=%s janela=%s até=%s",
+            self.metadata.sigla,
+            _format_timestamp(window_start),
+            _format_timestamp(run_started_at),
+        )
         return self._run(
             mode="full",
             run_started_at=run_started_at,
@@ -148,6 +159,12 @@ class DataJudIngestionService:
 
         run_started_at = datetime.now(UTC)
         window_start = _subtract_calendar_months(run_started_at, 6)
+        logger.info(
+            "Iniciando ingestão incremental: tribunal=%s checkpoint=%s sobreposição=%s",
+            self.metadata.sigla,
+            _format_timestamp(checkpoint),
+            self.incremental_overlap,
+        )
         return self._run(
             mode="incremental",
             run_started_at=run_started_at,
@@ -175,6 +192,13 @@ class DataJudIngestionService:
         persisted = 0
         changed = 0
 
+        logger.info(
+            "Execução de ingestão iniciada: id=%s modo=%s tribunal=%s",
+            run_id,
+            mode,
+            self.metadata.sigla,
+        )
+
         while True:
             body = _search_body(
                 query,
@@ -184,6 +208,7 @@ class DataJudIngestionService:
             response = self.client.ingest(self.metadata.alias, body)
             hits = _response_hits(response)
             if not hits:
+                logger.info("Nenhum resultado adicional retornado pela DataJud")
                 break
 
             sources = _source_payloads(hits)
@@ -225,13 +250,47 @@ class DataJudIngestionService:
                 persisted += result.total
                 changed += result.changed
 
+            logger.info(
+                "Página processada: página=%s candidatos=%s selecionados=%s "
+                "persistidos=%s alterados=%s arquivo=%s",
+                pages,
+                len(sources),
+                len(included_ids),
+                result.total if included_ids else 0,
+                result.changed if included_ids else 0,
+                file_path,
+            )
+
             if len(hits) < self.page_size:
+                logger.info("Última página recebida: página=%s", pages)
                 break
             search_after = _last_sort_value(hits[-1])
 
-        silver_report = self.silver_sync() if self.silver_sync is not None else None
+        logger.info(
+            "Ingestão Bronze concluída: páginas=%s candidatos=%s persistidos=%s "
+            "alterados=%s",
+            pages,
+            candidates,
+            persisted,
+            changed,
+        )
+        if self.silver_sync is not None:
+            logger.info("Iniciando sincronização Silver")
+            silver_report = self.silver_sync()
+            logger.info(
+                "Sincronização Silver concluída: processos=%s movimentos=%s avisos=%s",
+                silver_report.synced,
+                silver_report.movements,
+                silver_report.warnings,
+            )
+        else:
+            silver_report = None
         self._save_checkpoint(run_started_at)
-        return IngestionReport(
+        logger.info(
+            "Checkpoint salvo: concluído_em=%s", _format_timestamp(run_started_at)
+        )
+
+        report = IngestionReport(
             mode=mode,
             run_started_at=run_started_at,
             pages=pages,
@@ -244,6 +303,17 @@ class DataJudIngestionService:
             else 0,
             silver_warnings=silver_report.warnings if silver_report is not None else 0,
         )
+        logger.info(
+            "Ingestão concluída: id=%s modo=%s páginas=%s candidatos=%s "
+            "alterados=%s sem_alteração=%s",
+            run_id,
+            report.mode,
+            report.pages,
+            report.candidates,
+            report.changed,
+            report.unchanged,
+        )
+        return report
 
     def _checkpoint(self) -> datetime | None:
         with self.session_factory() as session:

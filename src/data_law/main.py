@@ -1,4 +1,6 @@
 import argparse
+import logging
+import os
 from collections.abc import Sequence
 
 from data_law.infra.database.session import create_session_factory
@@ -10,7 +12,16 @@ from data_law.ingestion.ingestion import (
 from data_law.transformation.silver import sync_bronze_to_silver
 
 
+def configure_logging() -> None:
+    """Configure command-line logs without changing library consumers' setup."""
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO").upper(),
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+
+
 def main(argv: Sequence[str] | None = None) -> None:
+    configure_logging()
     parser = argparse.ArgumentParser(description="Ingestão DataJud do TJSP")
     parser.add_argument(
         "--full",
@@ -26,7 +37,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         session_factory,
         silver_sync=lambda: sync_bronze_to_silver(session_factory),
     )
-    report = service.run_full() if arguments.full else service.run_incremental()
+    try:
+        report = service.run_full() if arguments.full else service.run_incremental()
+    except Exception:
+        logging.getLogger(__name__).exception("Ingestão interrompida por erro")
+        raise
 
     print(
         f"Ingestão {report.mode} concluída: {report.pages} página(s), "
