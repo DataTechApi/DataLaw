@@ -148,6 +148,7 @@ def test_full_load_persists_only_completion_in_the_same_movement(
     assert session.state is not None
     date_filter = client.bodies[0]["query"]["bool"]["filter"][1]["range"]
     assert "movimentos.dataHora" in date_filter
+    assert date_filter["movimentos.dataHora"]["gte"] == "2026-03-01T00:00:00Z"
     assert "search_after" in client.bodies[1]
 
 
@@ -197,3 +198,31 @@ def test_incremental_load_requires_a_completed_historical_load(
 
     with pytest.raises(InitialIngestionRequiredError, match="full-ingest"):
         service.run_incremental()
+
+
+def test_full_load_logs_progress_and_summary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    now = datetime.now(UTC)
+    source = _source(
+        "completed",
+        [{"codigo": 22, "dataHora": (now - timedelta(days=1)).isoformat()}],
+        timestamp=now,
+    )
+    service, _ = _service(
+        monkeypatch,
+        tmp_path,
+        FakeClient([_response(source)]),
+        FakeSession(),
+    )
+
+    with caplog.at_level("INFO", logger="data_law.ingestion.ingestion"):
+        service.run_full()
+
+    assert "Iniciando ingestão histórica" in caplog.text
+    assert "Página processada: página=1 candidatos=1 selecionados=1" in caplog.text
+    assert "Ingestão Bronze concluída" in caplog.text
+    assert "Checkpoint salvo" in caplog.text
+    assert "Ingestão concluída:" in caplog.text
