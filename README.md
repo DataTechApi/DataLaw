@@ -177,11 +177,11 @@ uv run ruff check src tests
 | 2.5 | High | As a Legal Manager, I want to view adherence indicators for a selected topic, so that I can evaluate how strongly the topic appears within the analyzed dataset. | 8 | 2 |
 | 2.8 | High | As a Strategic Lawyer, I want to access related jurisprudence references for a searched topic, so that I can deepen my legal research. | 5 | 2 |
 | 2.9 | Medium | As a User, I want dashboards to display data source and reliability information, so that I can trust the generated indicators. | 3 | 2 |
-| 3.0 | High | As the system, I need to extract legal entities (parties, courts, cited legislation), so that structured data is enriched. | 8 | 3 |
-| 3.1 | High | As the system, I need to classify decision outcomes as favorable/unfavorable and adherent/non-adherent, so that advanced legal analysis becomes possible. | 8 | 3 |
-| 3.2 | High | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 |
-| 3.3 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 |
-| 3.4 | Medium | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 5 | 3 |
+| 3.1 | Medium | As a User, I want a unified interface for jurisprudence, precedents and doctrine, so that I can navigate legal information more efficiently. | 5 | 3 |
+| 3.2 | Low | As a User, I want improved dashboard visualizations, so that legal indicators are easier to understand. | 5 | 3 |
+| 3.3 | Low | As a Legal Manager, I want complete documentation of indicators and calculations, so that I can trust the platform results. | 3 | 3 |
+| 3.4 | Low | As the system, I want dashboard and query performance improvements, so that data is displayed faster. | 3 | 3 |
+| 3.5 | Low | As a User, I want evidence sections linked to indicators, so that I can understand how each result was calculated. | 3 | 3 |
 
 ### **Global Definition of Done (DoD)**
 
@@ -450,82 +450,89 @@ DoR Checklist
 
 ### **Sprint 3: Planning and Execution**
 
-* **Sprint Goal:** Consolidate the platform — bring in doctrine as a data source, complete outcome classification, ship full OLAP dashboards, and close out the mandatory non-functional requirements (functional testing, CI/CD).
-* **Estimated Capacity:** 37 story points
+* **Sprint Goal:** Consolidate the user experience, improve platform reliability, refine legal analytics visualizations, and finalize documentation, testing and performance optimizations.
+* **Estimated Capacity:** 19 story points
 
 | Rank | Priority | User Story | Points |
 | --- | --- | --- | --- |
-| 3.3 | Critical | Ship complete OLAP-backed dashboards (adherence, processing time, volume) | 8 |
-| 3.4 | Critical | Add automated functional tests (API and UI) | 8 |
-| 3.2 | High | Classify decision outcome (favorable/unfavorable, adherent/non-adherent) | 8 |
-| 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
-| 3.5 | Medium | Set up CI/CD pipeline | 5 |
+| 3.1 | Medium | As a User, I want a unified interface for jurisprudence, precedents and doctrine, so that I can navigate legal information more efficiently. | 5 | 
+| 3.2 | Low | As a User, I want improved dashboard visualizations, so that legal indicators are easier to understand. | 5 | 
+| 3.3 | Low | As a Legal Manager, I want complete documentation of indicators and calculations, so that I can trust the platform results. | 3 | 
+| 3.4 | Low | As the system, I want dashboard and query performance improvements, so that data is displayed faster. | 3 | 
+| 3.5 | Low | As a User, I want evidence sections linked to indicators, so that I can understand how each result was calculated. | 3 | 
 
 <details>
-<summary><strong>US3.3 — Ship complete OLAP-backed dashboards (adherence, processing time, volume)</strong></summary>
-
+ 
+<summary><strong>US3.1 — Provide a unified interface for jurisprudence, precedents and doctrine</strong></summary>
+ 
 DoR Checklist
+  
+- Business rules defined: navigation flow between jurisprudence, precedents and doctrine documented.
+ 
+- Data available: jurisprudence, precedent and doctrine datasets available and linked to legal topics.
+ 
+- Prototype approved: unified legal intelligence interface reviewed and approved. 
 
-- Business rules defined: KPIs documented (adherence %, average time, case volume).
-
-- Data available: OLAP model finalized and validated.
-
-- Prototype approved: dashboard mockup with charts reviewed.
-
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.4 — Add automated functional tests (API and UI)</strong></summary>
-
+ 
+<summary><strong>US3.2 — Improve dashboard visualizations</strong></summary>
+ 
 DoR Checklist
 
-- Business rules defined: functional test coverage requirements documented.
-
-- Data available: test cases prepared for API and UI.
-
-- Prototype approved: CI/CD pipeline configured to run functional tests.
-
+- Business rules defined: visualization improvements and UX guidelines documented.
+ 
+- Data available: indicators and charts from previous sprints validated.
+ 
+- Prototype approved: updated dashboard mockups reviewed with stakeholders.
+ 
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.2 — Classify decision outcome (favorable/unfavorable, adherent/non-adherent)</strong></summary>
-
+ 
+<summary><strong>US3.3 — Document indicators and calculations</strong></summary>
+ 
 DoR Checklist
+  
+- Business rules defined: formulas, assumptions and calculation methods documented.
+ 
+- Data available: final business indicators validated by the Product Owner.
+ 
+- Prototype approved: documentation structure reviewed and approved.
 
-- Business rules defined: classification logic documented (outcome categories).
-
-- Data available: dataset labeled with outcomes for training.
-
-- Prototype approved: outcome field visible in decision results.
-
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.1 — Collect content from legal doctrine repositories</strong></summary>
-
+ 
+<summary><strong>US3.4 — Improve dashboard and query performance</strong></summary>
+ 
 DoR Checklist
-
-- Business rules defined: doctrine sources identified and validated.
-
-- Data available: access confirmed to repositories.
-
-- Prototype approved: schema updated to include doctrine content.
-
+  
+- Business rules defined: performance targets and acceptable response times documented.
+ 
+- Data available: representative dataset available for performance testing.
+ 
+- Prototype approved: optimization approach reviewed by the team.
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.5 — Set up CI/CD pipeline</strong></summary>
-
+ 
+<summary><strong>US3.5 — Provide evidence sections linked to indicators</strong></summary>
+ 
 DoR Checklist
-
-- Business rules defined: CI/CD workflow documented (build, test, deploy).
-
-- Data available: environment variables and secrets configured.
-
-- Prototype approved: pipeline configuration validated in GitHub Actions/Docker.
-
+  
+- Business rules defined: evidence selection criteria documented.
+ 
+- Data available: supporting decisions, jurisprudence references and related sources available.
+ 
+- Prototype approved: evidence section layout reviewed and approved.
+ 
 </details>
-
 </details>
 
 <br>
@@ -536,7 +543,7 @@ DoR Checklist
 - - Discovery follow-up: additional stakeholder questions to refine the real business pain point
 - - Sprint 1 — Planning
 - - Sprint 1 — Execution
-- [ ] Sprint 1 — Review / Sprint 2 Planning
+- [x] Sprint 1 — Review / Sprint 2 Planning
 - [ ] Sprint 2 — Execution
 - [ ] Sprint 2 — Review / Sprint 3 Planning
 - [ ] Sprint 3 — Execution
