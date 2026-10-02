@@ -25,7 +25,7 @@ jobs:
 
       - name: Build da aplicação Java (Maven)
         run: |
-          cd frontend/datalaw
+          cd frontend
           chmod +x mvnw
           ./mvnw clean package -DskipTests
           # Identifica o jar gerado e renomeia para datalaw.jar na pasta target
@@ -53,9 +53,9 @@ jobs:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
-          source: "frontend/datalaw/target/datalaw.jar"
+          source: "frontend/target/datalaw.jar"
           target: "/home/azureuser/frontend/"
-          strip_components: 3
+          strip_components: 2
 
       - name: Configurar e reiniciar serviço na VM
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
