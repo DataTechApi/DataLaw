@@ -9,8 +9,8 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
-    name: Build e Deploy na Azure
+  build-and-deploy-frontend:
+    name: Build e Deploy Frontend na Nova VM
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do código
@@ -35,9 +35,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.AZURE_FRONTEND_VM_HOST }}
+          username: ${{ secrets.AZURE_FRONTEND_VM_USER }}
+          key: ${{ secrets.AZURE_FRONTEND_VM_SSH_KEY }}
           script: |
             mkdir -p /home/azureuser/frontend
             if [ -f /home/azureuser/frontend/datalaw.jar ]; then
@@ -50,9 +50,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.AZURE_FRONTEND_VM_HOST }}
+          username: ${{ secrets.AZURE_FRONTEND_VM_USER }}
+          key: ${{ secrets.AZURE_FRONTEND_VM_SSH_KEY }}
           source: "frontend/target/datalaw.jar"
           target: "/home/azureuser/frontend/"
           strip_components: 2
@@ -61,9 +61,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.AZURE_FRONTEND_VM_HOST }}
+          username: ${{ secrets.AZURE_FRONTEND_VM_USER }}
+          key: ${{ secrets.AZURE_FRONTEND_VM_SSH_KEY }}
           script: |
             SERVICE_FILE="/etc/systemd/system/datalaw.service"
             
@@ -93,4 +93,64 @@ jobs:
             echo "Reiniciando aplicação datalaw na porta 8080..."
             sudo systemctl restart datalaw.service
             sudo systemctl status datalaw.service --no-pager
-            echo "Deploy concluído com sucesso!"
+            echo "Deploy Frontend concluído com sucesso!"
+
+  deploy-backend:
+    name: Deploy Backend na VM Atual
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Copiar arquivos do backend para a VM
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          source: "backend/"
+          target: "/home/azureuser/backend/"
+          strip_components: 1
+
+      - name: Configurar e reiniciar serviço do backend na VM
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            cd /home/azureuser/backend
+            chmod +x start.sh
+            
+            # Executa o uv sync
+            uv sync || echo "UV não instalado ou falha no sync. Verifique a instalação do UV."
+            
+            SERVICE_FILE="/etc/systemd/system/datalaw-backend.service"
+            
+            if [ ! -f "$SERVICE_FILE" ]; then
+              echo "Criando serviço systemd datalaw-backend.service..."
+              sudo bash -c 'cat <<EOF > /etc/systemd/system/datalaw-backend.service
+            [Unit]
+            Description=DataLaw Python Backend
+            After=network.target
+
+            [Service]
+            User=azureuser
+            WorkingDirectory=/home/azureuser/backend
+            ExecStart=/home/azureuser/backend/start.sh
+            Restart=on-failure
+            Environment="LOG_LEVEL=INFO"
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF'
+              sudo systemctl daemon-reload
+              sudo systemctl enable datalaw-backend.service
+            fi
+
+            echo "Reiniciando aplicação backend..."
+            sudo systemctl restart datalaw-backend.service
+            sudo systemctl status datalaw-backend.service --no-pager
+            echo "Deploy Backend concluído com sucesso!"
