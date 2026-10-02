@@ -13,7 +13,7 @@ public interface ProcessoRepository extends JpaRepository<Processo, UUID> {
     @Query(value = "select orgao_julgador_nome, count(id) as quantidade " +
             "from silver.processo " +
             "where (:classeNome IS NULL OR :classeNome = '' " +
-            "       OR similarity(imutable_unaccent(classe_nome), imutable_unaccent(:classeNome)) > 0.1) " +
+            "       OR classe_nome ILIKE concat('%', :classeNome, '%')) " +
             "group by orgao_julgador_nome order by quantidade desc", nativeQuery = true)
     List<Object[]> findQuantidadeProcessosPorOrgaoJulgador(@Param("classeNome") String classeNome);
 
