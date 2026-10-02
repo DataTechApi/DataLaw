@@ -162,22 +162,26 @@ uv run ruff check src tests
 
 <h1 id="card_file_box-product-backlog">🗂 Product Backlog</h1>
 
-| Rank | Priority | User Story | Points | Sprint | DOR |
-| --- | --- | --- | --- | --- | --- |
-| 1.1 | Critical | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 | Court and period fields defined, dataset available, filtering rules documented |
-| 2.3 | Critical | As a Strategic Lawyer, I want each decision’s legal topic to be automatically classified and searchable by meaning, so that I don’t depend on exact keywords. | 8 | 2 | NLP model selected, classification rules defined |
-| 2.4 | Critical | As a Lawyer/Judge, I want to search by meaning and perform multidimensional queries (by court, topic, period), so that I can find related precedents and identify jurisprudence patterns. | 8 | 2 | Semantic index available, query parameters defined, test cases prepared |
-| 3.3 | Critical | As a Judge, I want to visualize dashboards with doctrinal trends, so that I can support strategic decisions. | 8 | 3 | Dashboard requirements defined, OLAP model ready, visualization tool selected |
-| 3.4 | Critical | As a Judge, I want all platform functionalities to operate correctly and updates not to break existing features, so that usage is not impacted. | 8 | 3 | Regression test plan defined, CI/CD pipeline available, monitoring configured |
-| 1.2 | High | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 | Raw decisions collected, cleaning rules defined |
-| 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 | Search endpoints defined, sample dataset ready |
-| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 | Reliability rules documented, metadata available |
-| 2.5 | High | As a Strategic Lawyer, I want the presented data to always be correct, consistent, and technically reliable, so that I can trust the information when building an argument. | 5 | 2 | Data validation rules defined, quality checks automated |
-| 2.1 | High | As a Legal Manager, I want open data portal information to enrich the context of decisions, so that I have a more complete view when analyzing a case. | 8 | 2 | Open data sources identified, access validated, enrichment rules defined |
-| 3.2 | High | As the system, I need to extract legal entities (parties, courts, cited legislation), so that structured data is enriched. | 8 | 3 | NLP entity extraction model defined, training dataset ready, validation rules set |
-| 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 | Data model finalized, API endpoints listed, documentation template ready |
-| 2.2 | Medium | As a Legal Manager, I want to filter decisions also by topic, author, and document type, so that I can perform more complete analyses of a case or thesis. | 5 | 2 | Dimensions identified, schema updated, filtering logic documented |
-| 3.1 | Medium | As the system, I need to collect content from doctrine repositories, so that doctrine is included as a source of analysis. | 8 | 3 | Doctrine sources identified, access validated |
+
+| Rank | Priority | User Story | Points | Sprint |
+| --- | --- | --- | --- | --- |
+| 1.1 | Critical | As a Strategic Lawyer, I want to filter decisions by court and period, so that I can quickly locate relevant jurisprudence for my case. | 8 | 1 |
+| 1.2 | High | As a Strategic Lawyer, I want to consult decisions from STJ, STF, and State Courts already cleaned and standardized, so that I reduce the time spent gathering jurisprudence from different sources. | 5 | 1 |
+| 1.3 | High | As a Lawyer/Judge, I want to search and visualize real decisions in a simple way, so that I can validate that the system already provides useful data from the start. | 5 | 1 |
+| 1.4 | High | As the system, I need to display the original source and a reliability indicator for each result, so that transparency is ensured for the user. | 3 | 1 |
+| 1.5 | Medium | As a Legal Manager, I want the data structure and API of the platform to be well documented and traceable from the beginning, so that I can trust the numbers used in financial decisions. | 3 | 1 |
+| 2.1 | High | As a Legal Manager, I want to analyze case volume across multiple courts, so that I can identify where a legal topic is most concentrated. | 5 | 2 |
+| 2.2 | High | As a Legal Manager, I want to view the average case processing time by court and legal topic, so that I can evaluate judicial efficiency. | 5 | 2 |
+| 2.3 | High | As a Strategic Lawyer, I want to view the courts with the highest concentration of a topic, so that I can identify regional legal trends. | 3 | 2 |
+| 2.4 | High | As a Strategic Lawyer, I want to view the evolution of a legal topic over time, so that I can identify growth or reduction patterns. | 5 | 2 |
+| 2.5 | High | As a Legal Manager, I want to view adherence indicators for a selected topic, so that I can evaluate how strongly the topic appears within the analyzed dataset. | 8 | 2 |
+| 2.8 | High | As a Strategic Lawyer, I want to access related jurisprudence references for a searched topic, so that I can deepen my legal research. | 5 | 2 |
+| 2.9 | Medium | As a User, I want dashboards to display data source and reliability information, so that I can trust the generated indicators. | 3 | 2 |
+| 3.1 | Medium | As a User, I want a unified interface for jurisprudence, precedents and doctrine, so that I can navigate legal information more efficiently. | 5 | 3 |
+| 3.2 | Low | As a User, I want improved dashboard visualizations, so that legal indicators are easier to understand. | 5 | 3 |
+| 3.3 | Low | As a Legal Manager, I want complete documentation of indicators and calculations, so that I can trust the platform results. | 3 | 3 |
+| 3.4 | Low | As the system, I want dashboard and query performance improvements, so that data is displayed faster. | 3 | 3 |
+| 3.5 | Low | As a User, I want evidence sections linked to indicators, so that I can understand how each result was calculated. | 3 | 3 |
 
 ### **Global Definition of Done (DoD)**
 
@@ -334,135 +338,108 @@ DoR Checklist
 
 ### **Sprint 2: Planning and Execution**
 
-* **Sprint Goal:** Expand data coverage to the full defined scope (all TJs, open data portals), turn on NLP-based intelligence (topic classification, entity extraction, semantic indexing) and enable semantic search and the average processing time indicator.
-* **Estimated Capacity:** 60 story points
+* **Sprint Goal:** Expand DataLaw from a volumetric judicial dashboard into a legal intelligence platform by increasing court coverage, introducing analytical metrics and providing the first jurisprudence-based insights.
+* **Estimated Capacity:** 34 story points
 
 | Rank | Priority | User Story | Points |
 | --- | --- | --- | --- |
-| 2.4 | Critical | Classify legal topic automatically via NLP | 8 |
-| 2.6 | Critical | Semantically index all documents | 8 |
-| 2.7 | Critical | Support natural language semantic search | 5 |
-| 2.8 | Critical | Calculate average case processing time by court/topic | 8 |
-| 2.5 | High | Extract legal entities via NLP | 8 |
-| 2.1 | High | Extract decisions from remaining State Court (TJ) APIs | 8 |
-| 2.3 | High | Expand dimensional model with remaining dimensions | 5 |
-| 2.9 | High | Add automated unit and integration tests for ETL and dimensional model | 5 |
-| 2.2 | Medium | Extract data from open government data portals | 5 |
+| 2.1 | High | As a Legal Manager, I want to analyze case volume across multiple courts, so that I can identify where a legal topic is most concentrated. | 5 |
+| 2.2 | High | As a Legal Manager, I want to view the average case processing time by court and legal topic, so that I can evaluate judicial efficiency. | 5 | 
+| 2.3 | High | As a Strategic Lawyer, I want to view the courts with the highest concentration of a topic, so that I can identify regional legal trends. | 3 |
+| 2.4 | High | As a Strategic Lawyer, I want to view the evolution of a legal topic over time, so that I can identify growth or reduction patterns. | 5 |
+| 2.5 | High | As a Legal Manager, I want to view adherence indicators for a selected topic, so that I can evaluate how strongly the topic appears within the analyzed dataset. | 8 | 
+| 2.8 | High | As a Strategic Lawyer, I want to access related jurisprudence references for a searched topic, so that I can deepen my legal research. | 5 | 
+| 2.9 | Medium | As a User, I want dashboards to display data source and reliability information, so that I can trust the generated indicators. | 3 | 
 
 <details>
-<summary><strong>US2.4 — Classify legal topic automatically via NLP</strong></summary>
-
+  
+<summary><strong>US2.1 — Analyze case volume across multiple courts</strong></summary>
+ 
 DoR Checklist
 
-- Business rules defined: topic classification logic documented.
+- Business rules defined: participating courts and aggregation criteria documented.
+ 
+- Data available: court datasets validated and available in the warehouse.
+ 
+- Prototype approved: volume comparison visualization defined.
+ 
+</details>
+ 
+<details>
+<summary><strong>US2.2 — View average case processing time by court and legal topic</strong></summary>
+ 
+DoR Checklist
+  
+- Business rules defined: processing time calculation formula documented.
+ 
+- Data available: ajuizamento and closing/archive dates validated.
+ 
+- Prototype approved: KPI and chart layout approved.
+ 
+</details>
+ 
+<details>
+<summary><strong>US2.3 — View courts with the highest concentration of a legal topic</strong></summary>
+ 
+DoR Checklist
 
-- Data available: training dataset prepared and validated.
+- Business rules defined: topic concentration calculation documented.
+ 
+- Data available: court and topic dimensions validated.
+ 
+- Prototype approved: ranking visualization approved.
+ 
+</details>
+ 
+<details>
+<summary><strong>US2.4 — View evolution of a legal topic over time</strong></summary>
+ 
+DoR Checklist
+  
+- Business rules defined: temporal aggregation period documented (monthly, quarterly, yearly).
 
-- Prototype approved: topic field visible in search results.
+- Data available: historical process dates validated.
+
+- Prototype approved: timeline chart mockup approved.
 
 </details>
-
+ 
 <details>
-<summary><strong>US2.6 — Semantically index all documents</strong></summary>
-
+<summary><strong>US2.5 — View adherence indicators for a selected topic</strong></summary>
+ 
 DoR Checklist
-
-- Business rules defined: semantic indexing parameters documented.
-
-- Data available: dataset indexed with semantic model.
-
-- Prototype approved: semantic index validated with sample queries.
+  
+- Business rules defined: adherence concept aligned with stakeholders.
+ 
+- Data available: topic classification and related process data available.
+ 
+- Prototype approved: adherence indicator visualization approved.
+ 
+</details>
+ 
+<details>
+<summary><strong>US2.8 — Access related jurisprudence references</strong></summary>
+ 
+DoR Checklist
+  
+- Business rules defined: jurisprudence sources and association criteria documented.
+ 
+- Data available: access to jurisprudence repositories validated.
+ 
+- Prototype approved: jurisprudence reference component approved. 
 
 </details>
-
+ 
 <details>
-<summary><strong>US2.7 — Support natural language semantic search</strong></summary>
-
+<summary><strong>US2.9 — Display source and reliability information in dashboards</strong></summary>
+ 
 DoR Checklist
-
-- Business rules defined: query parameters documented for semantic search.
-
-- Data available: indexed dataset validated for queries.
-
-- Prototype approved: semantic search bar mockup validated.
-
-</details>
-
-<details>
-<summary><strong>US2.8 — Calculate average case processing time by court/topic</strong></summary>
-
-DoR Checklist
-
-- Business rules defined: calculation formula documented.
-
-- Data available: dataset with timestamps validated.
-
-- Prototype approved: metric displayed in single-screen interface.
-
-</details>
-
-<details>
-<summary><strong>US2.5 — Extract legal entities via NLP</strong></summary>
-
-DoR Checklist
-
-- Business rules defined: entity extraction rules documented (parties, courts, legislation).
-
-- Data available: training dataset prepared and validated.
-
-- Prototype approved: entities displayed in structured format.
-
-</details>
-
-<details>
-<summary><strong>US2.1 — Extract decisions from remaining State Court (TJ) APIs</strong></summary>
-
-DoR Checklist
-
-- Business rules defined: which State Courts and decision types to extract.
-
-- Data available: API endpoints validated and accessible.
-
-- Prototype approved: ingestion flow documented for multiple courts.
-
-</details>
-
-<details>
-<summary><strong>US2.3 — Expand dimensional model with remaining dimensions</strong></summary>
-
-DoR Checklist
-
-- Business rules defined: additional dimensions documented (author, document type).
-
-- Data available: schema updated with new dimensions.
-
-- Prototype approved: ER diagram updated with new dimensions.
-
-</details>
-
-<details>
-<summary><strong>US2.9 — Add automated unit and integration tests for ETL and dimensional model</strong></summary>
-
-DoR Checklist
-
-- Business rules defined: test coverage requirements documented.
-
-- Data available: sample datasets prepared for testing.
-
-- Prototype approved: CI/CD pipeline configured to run tests.
-
-</details>
-
-<details>
-<summary><strong>US2.2 — Extract data from open government data portals</strong></summary>
-
-DoR Checklist
-
-- Business rules defined: enrichment rules documented for open data sources.
-
-- Data available: open data sources identified and validated.
-
-- Prototype approved: schema updated to include enriched fields.
+  
+- Business rules defined: reliability score calculation documented.
+ 
+- Data available: source metadata available in the warehouse.
+ 
+- Prototype approved: source and reliability widgets approved.
 
 </details>
 
@@ -473,82 +450,89 @@ DoR Checklist
 
 ### **Sprint 3: Planning and Execution**
 
-* **Sprint Goal:** Consolidate the platform — bring in doctrine as a data source, complete outcome classification, ship full OLAP dashboards, and close out the mandatory non-functional requirements (functional testing, CI/CD).
-* **Estimated Capacity:** 37 story points
+* **Sprint Goal:** Consolidate the user experience, improve platform reliability, refine legal analytics visualizations, and finalize documentation, testing and performance optimizations.
+* **Estimated Capacity:** 19 story points
 
 | Rank | Priority | User Story | Points |
 | --- | --- | --- | --- |
-| 3.3 | Critical | Ship complete OLAP-backed dashboards (adherence, processing time, volume) | 8 |
-| 3.4 | Critical | Add automated functional tests (API and UI) | 8 |
-| 3.2 | High | Classify decision outcome (favorable/unfavorable, adherent/non-adherent) | 8 |
-| 3.1 | Medium | Collect content from legal doctrine repositories | 8 |
-| 3.5 | Medium | Set up CI/CD pipeline | 5 |
+| 3.1 | Medium | As a User, I want a unified interface for jurisprudence, precedents and doctrine, so that I can navigate legal information more efficiently. | 5 | 
+| 3.2 | Low | As a User, I want improved dashboard visualizations, so that legal indicators are easier to understand. | 5 | 
+| 3.3 | Low | As a Legal Manager, I want complete documentation of indicators and calculations, so that I can trust the platform results. | 3 | 
+| 3.4 | Low | As the system, I want dashboard and query performance improvements, so that data is displayed faster. | 3 | 
+| 3.5 | Low | As a User, I want evidence sections linked to indicators, so that I can understand how each result was calculated. | 3 | 
 
 <details>
-<summary><strong>US3.3 — Ship complete OLAP-backed dashboards (adherence, processing time, volume)</strong></summary>
-
+ 
+<summary><strong>US3.1 — Provide a unified interface for jurisprudence, precedents and doctrine</strong></summary>
+ 
 DoR Checklist
+  
+- Business rules defined: navigation flow between jurisprudence, precedents and doctrine documented.
+ 
+- Data available: jurisprudence, precedent and doctrine datasets available and linked to legal topics.
+ 
+- Prototype approved: unified legal intelligence interface reviewed and approved. 
 
-- Business rules defined: KPIs documented (adherence %, average time, case volume).
-
-- Data available: OLAP model finalized and validated.
-
-- Prototype approved: dashboard mockup with charts reviewed.
-
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.4 — Add automated functional tests (API and UI)</strong></summary>
-
+ 
+<summary><strong>US3.2 — Improve dashboard visualizations</strong></summary>
+ 
 DoR Checklist
 
-- Business rules defined: functional test coverage requirements documented.
-
-- Data available: test cases prepared for API and UI.
-
-- Prototype approved: CI/CD pipeline configured to run functional tests.
-
+- Business rules defined: visualization improvements and UX guidelines documented.
+ 
+- Data available: indicators and charts from previous sprints validated.
+ 
+- Prototype approved: updated dashboard mockups reviewed with stakeholders.
+ 
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.2 — Classify decision outcome (favorable/unfavorable, adherent/non-adherent)</strong></summary>
-
+ 
+<summary><strong>US3.3 — Document indicators and calculations</strong></summary>
+ 
 DoR Checklist
+  
+- Business rules defined: formulas, assumptions and calculation methods documented.
+ 
+- Data available: final business indicators validated by the Product Owner.
+ 
+- Prototype approved: documentation structure reviewed and approved.
 
-- Business rules defined: classification logic documented (outcome categories).
-
-- Data available: dataset labeled with outcomes for training.
-
-- Prototype approved: outcome field visible in decision results.
-
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.1 — Collect content from legal doctrine repositories</strong></summary>
-
+ 
+<summary><strong>US3.4 — Improve dashboard and query performance</strong></summary>
+ 
 DoR Checklist
-
-- Business rules defined: doctrine sources identified and validated.
-
-- Data available: access confirmed to repositories.
-
-- Prototype approved: schema updated to include doctrine content.
-
+  
+- Business rules defined: performance targets and acceptable response times documented.
+ 
+- Data available: representative dataset available for performance testing.
+ 
+- Prototype approved: optimization approach reviewed by the team.
+ 
 </details>
-
+ 
 <details>
-<summary><strong>US3.5 — Set up CI/CD pipeline</strong></summary>
-
+ 
+<summary><strong>US3.5 — Provide evidence sections linked to indicators</strong></summary>
+ 
 DoR Checklist
-
-- Business rules defined: CI/CD workflow documented (build, test, deploy).
-
-- Data available: environment variables and secrets configured.
-
-- Prototype approved: pipeline configuration validated in GitHub Actions/Docker.
-
+  
+- Business rules defined: evidence selection criteria documented.
+ 
+- Data available: supporting decisions, jurisprudence references and related sources available.
+ 
+- Prototype approved: evidence section layout reviewed and approved.
+ 
 </details>
-
 </details>
 
 <br>
@@ -559,7 +543,7 @@ DoR Checklist
 - - Discovery follow-up: additional stakeholder questions to refine the real business pain point
 - - Sprint 1 — Planning
 - - Sprint 1 — Execution
-- [ ] Sprint 1 — Review / Sprint 2 Planning
+- [x] Sprint 1 — Review / Sprint 2 Planning
 - [ ] Sprint 2 — Execution
 - [ ] Sprint 2 — Review / Sprint 3 Planning
 - [ ] Sprint 3 — Execution
