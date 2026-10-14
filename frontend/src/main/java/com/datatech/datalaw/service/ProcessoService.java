@@ -14,15 +14,23 @@ public class ProcessoService {
         this.processoRepository = processoRepository;
     }
 
-    public List<Object[]> obterQuantidadeProcessosPorOrgaoJulgador(String classeNome) {
-        return processoRepository.findQuantidadeProcessosPorOrgaoJulgador(classeNome);
+    public List<Object[]> obterQuantidadeProcessosPorOrgaoJulgador(String classeNome, String assuntoNome) {
+        return processoRepository.findQuantidadeProcessosPorOrgaoJulgador(classeNome, assuntoNome);
     }
 
-    public List<Object[]> obterQuantidadeProcessosPorClasse() {
-        return processoRepository.findQuantidadeProcessosPorClasse();
+    public List<Object[]> obterQuantidadeProcessosPorClasse(String assuntoNome) {
+        return processoRepository.findQuantidadeProcessosPorClasse(assuntoNome);
     }
 
     public Double obterTaxaSucessoPorClasse(String classeNome) {
         return processoRepository.findTaxaSucessoPorClasse(classeNome);
+    }
+
+    public List<Object[]> obterQuantidadeProcessosPorAssunto(String classeNome, String assuntoNome) {
+        return processoRepository.findQuantidadeProcessosPorAssunto(classeNome, assuntoNome);
+    }
+
+    public Double obterTaxaSucessoPorAssunto(String assuntoNome) {
+        return processoRepository.findTaxaSucessoPorAssunto(assuntoNome);
     }
 }
