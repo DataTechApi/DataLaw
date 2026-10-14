@@ -14,7 +14,10 @@ Example Polars:
     register_polars("processos", processos)
 """
 
-from data_law.infra.database.model.gold import process_results  # noqa: F401
+from data_law.infra.database.model.gold import (  # noqa: F401
+    process_results,
+    topic_results,
+)
 from data_law.transformation.gold import GoldContext, register_polars, register_sql
 
 __all__ = ["GoldContext", "register_polars", "register_sql"]

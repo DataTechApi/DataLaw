@@ -77,6 +77,15 @@ erDiagram
         jsonb complementos_tabelados
     }
 
+    silver_processo_assunto {
+        uuid id PK
+        uuid processo_id FK
+        varchar_64 source_hash
+        int codigo
+        text nome
+        boolean principal
+    }
+
     %% GOLD LAYER
     gold_process_results {
         text tribunal_sigla
@@ -91,10 +100,25 @@ erDiagram
         numeric taxa_sucesso_ponderada_pct
     }
 
+    gold_topic_results {
+        text tribunal_sigla
+        int assunto_codigo
+        text assunto_nome
+        bigint processos_encerrados
+        bigint processos_com_resultado
+        bigint favoraveis
+        bigint parciais
+        bigint desfavoraveis
+        bigint sem_resultado_de_merito
+        numeric taxa_sucesso_ponderada_pct
+    }
+
     %% RELATIONSHIPS
     bronze_datajud_extract ||--|| silver_processo : "1:1 (refines)"
     silver_processo ||--o{ silver_movimento : "1:N (contains)"
+    silver_processo ||--o{ silver_processo_assunto : "1:N (categorized by)"
     silver_processo }|..|{ gold_process_results : "aggregates (via Gold Recipe)"
+    silver_processo_assunto }|..|{ gold_topic_results : "aggregates (via Gold Recipe)"
 ```
 
 ---
@@ -231,6 +255,28 @@ Stores the granular, deduplicated historical timeline of judicial movements and 
 
 ---
 
+### 5.3. Table: `silver.processo_assunto`
+
+Stores normalized legal subjects (TPU Assuntos / Temas) associated with each lawsuit.
+
+| Column Name | Data Type | Nullable? | Key | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `id` | `UUID` | No | **PK** | Surrogate unique subject key. |
+| `processo_id` | `UUID` | No | **FK, UK** | Foreign key referencing `silver.processo(id)` (`ON DELETE CASCADE`). |
+| `source_hash` | `VARCHAR(64)` | No | **UK** | SHA-256 hash of the canonical subject object for deterministic deduplication. |
+| `codigo` | `INTEGER` | Yes | - | Numerical TPU subject code (e.g. `10433`, `7779` = Indenização por Dano Moral). |
+| `nome` | `TEXT` | Yes | - | Descriptive subject/topic title from TPU standard. |
+| `principal` | `BOOLEAN` | Yes | - | Indicates whether the court marked this subject as the primary cause of action. |
+
+* **Constraints & Indexes:**
+  - `pk_silver_processo_assunto`: `PRIMARY KEY (id)`
+  - `fk_silver_processo_assunto_processo`: `FOREIGN KEY (processo_id) REFERENCES silver.processo(id) ON DELETE CASCADE`
+  - `uq_silver_processo_assunto_processo_source_hash`: `UNIQUE (processo_id, source_hash)`
+  - `ix_silver_processo_assunto_processo_id`: `INDEX (processo_id)`
+  - `ix_silver_processo_assunto_codigo`: `INDEX (codigo)`
+
+---
+
 ## 6. Gold Layer (PostgreSQL — Schema `gold`)
 
 The Gold layer houses physical analytical tables materialized via registered Python/SQL recipes ([`src/data_law/transformation/gold_recipes.py`](file:///C:/FATEC/DataLaw/src/data_law/transformation/gold_recipes.py)). Queries are pre-validated by [`pglast`](file:///C:/FATEC/DataLaw/src/data_law/transformation/gold.py) to enforce read-only isolation and schema safety.
@@ -251,6 +297,25 @@ Analytical mart computing weighted success rates and resolution volumes per proc
 | `desfavoraveis` | `BIGINT` | No | Unfavorable judgments (TPU `220` — Improcedência, weight 0.0). |
 | `sem_resultado_de_merito` | `BIGINT` | No | Closed cases without an identified terminal merits ruling. |
 | `taxa_sucesso_ponderada_pct` | `NUMERIC(5,2)` | Yes | Primary KPI: Weighted success percentage. <br>Formula: `ROUND(100 * AVG(peso_sucesso), 2)`. |
+
+---
+
+### 6.2. Table: `gold.topic_results`
+
+Analytical mart computing weighted success rates and case volumes grouped by legal subject / topic (TPU Assunto).
+
+| Column Name | Data Type | Nullable? | Description |
+| :--- | :--- | :---: | :--- |
+| `tribunal_sigla` | `TEXT` | No | Target court acronym (e.g. `TJSP`). |
+| `assunto_codigo` | `INTEGER` | Yes | TPU subject numerical code. |
+| `assunto_nome` | `TEXT` | Yes | Descriptive subject/topic title (e.g. *Indenização por Dano Moral*). |
+| `processos_encerrados` | `BIGINT` | No | Count of closed lawsuits associated with this subject (TPU `22` or `246`). |
+| `processos_com_resultado` | `BIGINT` | No | Count of closed cases with a merits judgment. |
+| `favoraveis` | `BIGINT` | No | Favorable judgments (TPU `219`, weight 1.0). |
+| `parciais` | `BIGINT` | No | Partially favorable judgments (TPU `221`, weight 0.5). |
+| `desfavoraveis` | `BIGINT` | No | Unfavorable judgments (TPU `220`, weight 0.0). |
+| `sem_resultado_de_merito` | `BIGINT` | No | Closed cases without a recognized merits judgment. |
+| `taxa_sucesso_ponderada_pct` | `NUMERIC(5,2)` | Yes | Primary KPI: Weighted success percentage for this topic. |
 
 ---
 
@@ -278,6 +343,7 @@ Analytical mart computing weighted success rates and resolution volumes per proc
 | **Process Identifier** | `hits.hits[]._id` | `datajud_id` | `datajud_id` | *(Grouped by court)* |
 | **CNJ Unified Number** | `_source.numeroProcesso` | `payload->>'numeroProcesso'` | `numero_processo` | *(Metric dimension)* |
 | **Procedural Class** | `_source.classe.codigo` | `payload->'classe'->>'codigo'`| `classe_codigo`, `classe_nome` | `classe_codigo`, `classe_nome` |
+| **TPU Subject / Topic** | `_source.assuntos[]` | `payload->'assuntos'` | `silver.processo_assunto` | `assunto_codigo`, `assunto_nome` |
 | **Judicial Unit** | `_source.orgaoJulgador.nome` | `payload->'orgaoJulgador'->>'nome'` | `orgao_julgador_nome` | *(Filtering dimension)* |
 | **Filing Date** | `_source.dataAjuizamento` | `payload->>'dataAjuizamento'` | `data_ajuizamento` | *(Duration calculation)* |
 | **Movements** | `_source.movimentos[]` | `payload->'movimentos'` | `silver.movimento` | *(Outcome classification)* |

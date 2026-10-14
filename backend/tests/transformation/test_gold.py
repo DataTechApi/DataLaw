@@ -9,6 +9,7 @@ from data_law.transformation.gold import (
     GoldRegistry,
     _validate_frame,
 )
+from data_law.transformation.silver import _canonical_hash, _subject_values
 
 
 def test_registry_registers_sql_and_polars_recipes() -> None:
@@ -66,6 +67,48 @@ def test_success_by_class_recipe_is_registered() -> None:
     assert "silver.processo" in recipe.query
     assert "silver.movimento" in recipe.query
     assert "sem_resultado_de_merito" in recipe.query
+
+
+def test_success_by_topic_recipe_is_registered() -> None:
+    from data_law.transformation import gold_recipes  # noqa: F401
+
+    recipe = DEFAULT_GOLD_REGISTRY.select("topic_results")[0]
+
+    assert recipe.engine is GoldEngine.SQL
+    assert recipe.query is not None
+    assert "silver.processo" in recipe.query
+    assert "silver.processo_assunto" in recipe.query
+    assert "silver.movimento" in recipe.query
+    assert "assunto_codigo" in recipe.query
+    assert "assunto_nome" in recipe.query
+    assert "taxa_sucesso_ponderada_pct" in recipe.query
+
+
+def test_subject_extraction_and_canonical_hashing() -> None:
+    payload = {
+        "assuntos": [
+            {"codigo": 10433, "nome": "Indenização por Dano Moral", "principal": True},
+            {"codigo": 10433, "nome": "Indenização por Dano Moral", "principal": True},
+            {"codigo": "7779", "nome": "Responsabilidade Civil"},
+            "invalido",
+        ]
+    }
+    values, warnings = _subject_values(payload)
+
+    assert len(values) == 2
+    assert len(warnings) == 1
+    assert "assunto 3 inválido" in warnings[0]
+
+    assert values[0]["codigo"] == 10433
+    assert values[0]["nome"] == "Indenização por Dano Moral"
+    assert values[0]["principal"] is True
+    assert values[0]["source_hash"] == _canonical_hash(
+        {"codigo": 10433, "nome": "Indenização por Dano Moral", "principal": True}
+    )
+
+    assert values[1]["codigo"] == 7779
+    assert values[1]["nome"] == "Responsabilidade Civil"
+    assert values[1]["principal"] is None
 
 
 def test_registry_rejects_duplicate_and_missing_names() -> None:

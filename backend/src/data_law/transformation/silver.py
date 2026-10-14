@@ -12,6 +12,7 @@ from data_law.infra.database.model.bronze.bronze_process import (
 )
 from data_law.infra.database.model.silver.movement import SilverDataJudMovement
 from data_law.infra.database.model.silver.process import SilverDataJudProcess
+from data_law.infra.database.model.silver.subject import SilverDataJudSubject
 from data_law.infra.database.session import SessionFactory, create_session_factory
 
 
@@ -21,6 +22,7 @@ class SilverSyncReport:
     synced: int
     movements: int
     warnings: int
+    subjects: int = 0
 
 
 def sync_bronze_to_silver(
@@ -35,6 +37,7 @@ def sync_bronze_to_silver(
     found = 0
     synced = 0
     movements = 0
+    subjects = 0
     warnings = 0
 
     while bronze_ids := _pending_bronze_ids(session_factory, batch_size):
@@ -61,7 +64,12 @@ def sync_bronze_to_silver(
                     movement_values, movement_warnings = _movement_values(
                         extract.payload
                     )
-                    extract_warnings = process_warnings + movement_warnings
+                    subject_values, subject_warnings = _subject_values(
+                        extract.payload
+                    )
+                    extract_warnings = (
+                        process_warnings + movement_warnings + subject_warnings
+                    )
                     for warning in extract_warnings:
                         print(f"Aviso Silver {extract.datajud_id}: {warning}")
                     warnings += len(extract_warnings)
@@ -106,13 +114,48 @@ def sync_bronze_to_silver(
                         )
                     session.execute(stale_movements)
 
+                    existing_subjects = {
+                        subject.source_hash: subject
+                        for subject in session.scalars(
+                            select(SilverDataJudSubject).where(
+                                SilverDataJudSubject.processo_id == process.id,
+                            )
+                        )
+                    }
+
+                    subject_hashes: set[str] = set()
+                    for values in subject_values:
+                        subject_hash = values["source_hash"]
+                        subject_hashes.add(subject_hash)
+                        subject = existing_subjects.get(subject_hash)
+                        if subject is None:
+                            session.add(
+                                SilverDataJudSubject(
+                                    processo_id=process.id,
+                                    **values,
+                                )
+                            )
+                        else:
+                            _assign(subject, values)
+
+                    stale_subjects = delete(SilverDataJudSubject).where(
+                        SilverDataJudSubject.processo_id == process.id
+                    )
+                    if subject_hashes:
+                        stale_subjects = stale_subjects.where(
+                            SilverDataJudSubject.source_hash.not_in(subject_hashes)
+                        )
+                    session.execute(stale_subjects)
+
                     synced += 1
                     movements += len(movement_values)
+                    subjects += len(subject_values)
 
     return SilverSyncReport(
         found=found,
         synced=synced,
         movements=movements,
+        subjects=subjects,
         warnings=warnings,
     )
 
@@ -230,6 +273,39 @@ def _movement_values(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], lis
     return values, warnings
 
 
+def _subject_values(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
+    raw_subjects = payload.get("assuntos")
+    if raw_subjects is None:
+        return [], []
+    if not isinstance(raw_subjects, list):
+        return [], ["assuntos não é uma lista"]
+
+    values: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    seen_hashes: set[str] = set()
+    for position, raw_subject in enumerate(raw_subjects):
+        if not isinstance(raw_subject, dict):
+            warnings.append(f"assunto {position} inválido foi ignorado")
+            continue
+
+        source_hash = _canonical_hash(raw_subject)
+        if source_hash in seen_hashes:
+            continue
+        seen_hashes.add(source_hash)
+
+        principal = raw_subject.get("principal")
+        values.append(
+            {
+                "source_hash": source_hash,
+                "codigo": _integer(raw_subject.get("codigo")),
+                "nome": _string(raw_subject.get("nome")),
+                "principal": principal if isinstance(principal, bool) else None,
+            }
+        )
+
+    return values, warnings
+
+
 def _canonical_hash(value: dict[str, Any]) -> str:
     serialized = json.dumps(
         value,
@@ -315,7 +391,8 @@ def main() -> None:
     report = sync_bronze_to_silver(create_session_factory())
     print(
         f"Silver sincronizada: {report.synced} processo(s), "
-        f"{report.movements} movimento(s), {report.warnings} aviso(s)."
+        f"{report.movements} movimento(s), {report.subjects} assunto(s), "
+        f"{report.warnings} aviso(s)."
     )
 
 

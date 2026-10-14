@@ -26,7 +26,8 @@ current raw process payload, one row per TJSP/DataJud process
     |
     v
 silver.processo ──< silver.movimento
-normalized current process and movement data
+                └──< silver.processo_assunto
+normalized current process, movement, and TPU subject data
     |
     v
 gold.<materialization>
@@ -86,6 +87,15 @@ A movement is identified by a SHA-256 hash of its complete canonical JSON
 object. Duplicate movement objects in the same source payload are consolidated.
 The unique key is `(processo_id, source_hash)`.
 
+#### `silver.processo_assunto`
+
+One row per distinct current TPU legal subject/topic associated with a Silver process.
+It contains the numerical TPU code (`codigo`), official description (`nome`), and
+optional primary flag (`principal`).
+
+Deduplication uses a SHA-256 hash (`source_hash`) over the canonical subject object.
+The unique key is `(processo_id, source_hash)`.
+
 ### Gold
 
 Gold stores physical analytical tables in the Gold PostgreSQL schema. Recipes are
@@ -112,13 +122,23 @@ Run the success-by-class materialization:
 uv run task gold-load -- --name process_results
 ~~~
 
-`gold.process_results` groups closed processes by tribunal and procedural
-class. It classifies the latest merit movement before closure as favorable
-(`219`), partially favorable (`221`), or unfavorable (`220`), assigning weights
-of 1.0, 0.5, and 0.0 respectively. Cases without one of those result movements
-remain visible as `sem_resultado_de_merito` and are excluded from the weighted
-rate denominator. This is a success proxy, not a determination of adherence to
-a legal thesis or a result for a particular party.
+Run the success-by-topic materialization:
+
+~~~bash
+uv run task gold-load -- --name topic_results
+~~~
+
+#### `gold.process_results`
+Groups closed processes by tribunal and procedural class. It classifies the
+latest merit movement before closure as favorable (`219`), partially favorable
+(`221`), or unfavorable (`220`), assigning weights of 1.0, 0.5, and 0.0
+respectively. Cases without one of those result movements remain visible as
+`sem_resultado_de_merito` and are excluded from the weighted rate denominator.
+
+#### `gold.topic_results`
+Groups closed processes by tribunal and TPU legal subject / topic (`assunto_codigo`,
+`assunto_nome`), calculating weighted success rates and case resolution volumes. This
+enables topic-specific analytics (e.g. *Indenização por Dano Moral*, *Contratos Bancários*).
 
 Add further recipes to `data_law.transformation.gold_recipes`; the executor
 creates a Gold table on each recipe's first successful run.
@@ -232,7 +252,7 @@ suited to interactive, ad hoc SQL exploration.
 | PostgreSQL and SQLAlchemy are the operational query layer | The project already uses SQLAlchemy models, Alembic migrations, and PostgreSQL JSONB. |
 | Raw is immutable; Bronze and Silver are current state | Raw provides auditability while current-state layers make incremental processing and querying practical. |
 | Bronze stores the full source payload as JSONB | The DataJud schema can evolve and Bronze must preserve the source without premature normalization. |
-| Silver is limited to processes and movements | This is the smallest useful normalized model for later adherence analysis. Subjects, themes, and evidence are deferred. |
+| Silver includes processes, movements, and TPU subjects | Processes and movements provide chronological flow; TPU subjects enable topic-based legal metrics (`gold.topic_results`). |
 | Silver uses SCD Type 1 and source hashes | The intended analytical view is current state; hashes avoid reprocessing unchanged content. |
 | Identical movements are deduplicated | DataJud payloads can contain repeated movement objects; retaining them would inflate later metrics. |
 | Silver runs after Bronze as a batch | Bronze is the durable source of truth; a batch dependency keeps the pipeline explicit and restartable. |
@@ -245,9 +265,7 @@ suited to interactive, ad hoc SQL exploration.
   without a matching Silver hash must be transformed.
 - Silver synchronization is restartable and subsequent runs process only changed
   Bronze payloads.
-- Gold infrastructure has no business recipes yet. Facts and dimensions for
-  adherence, period, court unit, and jurisdiction level will be registered after
-  their business rules are defined.
+- Gold infrastructure provides `gold.process_results` (by class) and `gold.topic_results` (by TPU subject/topic). Further analytical recipes for period, court unit, and duration metrics can be added as recipes.
 - A presentation layer is not part of the current pipeline. DBeaver is suitable
   for database inspection; a future internal dashboard can use a separate
   visualization decision.

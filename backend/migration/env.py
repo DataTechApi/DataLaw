@@ -1,4 +1,8 @@
+import os
+import sys
 from logging.config import fileConfig
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -15,6 +19,9 @@ from data_law.infra.database.model.silver.movement import (  # noqa: F401
 )
 from data_law.infra.database.model.silver.process import (  # noqa: F401
     SilverDataJudProcess,
+)
+from data_law.infra.database.model.silver.subject import (  # noqa: F401
+    SilverDataJudSubject,
 )
 from data_law.infra.database.settings import DatabaseSettings
 
