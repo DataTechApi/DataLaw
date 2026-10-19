@@ -34,25 +34,30 @@ class ProcessoControllerTest {
     void raizSemFiltroUsaClasseVaziaERenderizaPagina() throws Exception {
         List<Object[]> porOrgao = List.<Object[]>of(new Object[]{"1ª Vara Cível", 10L});
         List<Object[]> porClasse = List.<Object[]>of(new Object[]{"Execução Fiscal", 7L});
-        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("")).thenReturn(porOrgao);
-        when(processoService.obterQuantidadeProcessosPorClasse()).thenReturn(porClasse);
+        List<Object[]> porAssunto = List.<Object[]>of(new Object[]{"Dano Moral", 35L});
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("", "")).thenReturn(porOrgao);
+        when(processoService.obterQuantidadeProcessosPorClasse("")).thenReturn(porClasse);
+        when(processoService.obterQuantidadeProcessosPorAssunto("", "")).thenReturn(porAssunto);
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("orgaos-julgadores"))
                 .andExpect(model().attribute("classeNome", ""))
+                .andExpect(model().attribute("assuntoNome", ""))
                 .andExpect(model().attribute("processos", porOrgao))
                 .andExpect(model().attribute("processosPorClasse", porClasse))
-                .andExpect(content().string(containsString("Todos os processos")));
+                .andExpect(model().attribute("processosPorAssunto", porAssunto))
+                .andExpect(content().string(containsString("Visão Geral dos Processos")));
 
-        verify(processoService).obterQuantidadeProcessosPorOrgaoJulgador("");
+        verify(processoService).obterQuantidadeProcessosPorOrgaoJulgador("", "");
     }
 
     @Test
     void filtroPorClasseRepassaClasseAoServicoEMostraTitulo() throws Exception {
-        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal"))
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal", ""))
                 .thenReturn(List.<Object[]>of(new Object[]{"Vara de Execuções Fiscais", 3L}));
-        when(processoService.obterQuantidadeProcessosPorClasse()).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorClasse("")).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorAssunto("Execução Fiscal", "")).thenReturn(List.of());
 
         mockMvc.perform(get("/processos/orgaos-julgadores").param("classeNome", "Execução Fiscal"))
                 .andExpect(status().isOk())
@@ -60,13 +65,14 @@ class ProcessoControllerTest {
                 .andExpect(model().attribute("classeNome", "Execução Fiscal"))
                 .andExpect(content().string(containsString("Vara de Execuções Fiscais")));
 
-        verify(processoService).obterQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal");
+        verify(processoService).obterQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal", "");
     }
 
     @Test
     void paginaRenderizaSemDados() throws Exception {
-        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador(anyString())).thenReturn(List.of());
-        when(processoService.obterQuantidadeProcessosPorClasse()).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador(anyString(), anyString())).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorClasse(anyString())).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorAssunto(anyString(), anyString())).thenReturn(List.of());
 
         mockMvc.perform(get("/processos/orgaos-julgadores").param("classeNome", "Classe inexistente"))
                 .andExpect(status().isOk())

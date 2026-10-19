@@ -424,7 +424,8 @@
         // Só filtra corte de 30 na visão global sem filtros para evitar poluição visual
         const hasFilter = (currentClasseNome && currentClasseNome.trim() !== '') || (currentAssuntoNome && currentAssuntoNome.trim() !== '');
         if (!hasFilter) {
-            classeData = classeData.filter(p => Number(p[1] ?? 0) > 30);
+            classeData = classeData.filter(p => Number(p[1] ?? 0) >= 30);
+            assuntoData = assuntoData.filter(p => Number(p[1] ?? 0) >= 30);
         }
         assuntoData = assuntoData.filter(p => p[0] && String(p[0]).trim() !== '');
 

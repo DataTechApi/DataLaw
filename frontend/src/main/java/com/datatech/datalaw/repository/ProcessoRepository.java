@@ -40,7 +40,9 @@ public interface ProcessoRepository extends JpaRepository<Processo, UUID> {
             "where a.nome is not null and a.nome != '' " +
             "  and (:classeNome IS NULL OR :classeNome = '' OR p.classe_nome ILIKE concat('%', :classeNome, '%')) " +
             "  and (:assuntoNome IS NULL OR :assuntoNome = '' OR a.nome ILIKE concat('%', :assuntoNome, '%')) " +
-            "group by a.nome order by quantidade desc limit 25", nativeQuery = true)
+            "group by a.nome " +
+            "having count(distinct p.id) >= 30 " +
+            "order by quantidade desc limit 25", nativeQuery = true)
     List<Object[]> findQuantidadeProcessosPorAssunto(
             @Param("classeNome") String classeNome,
             @Param("assuntoNome") String assuntoNome);

@@ -23,20 +23,30 @@ class ProcessoServiceTest {
     private ProcessoService processoService;
 
     @Test
-    void quantidadePorOrgaoJulgadorRepassaFiltroDeClasse() {
+    void quantidadePorOrgaoJulgadorRepassaFiltroDeClasseEAssunto() {
         List<Object[]> esperado = List.<Object[]>of(new Object[]{"1ª Vara Cível", 10L});
-        when(processoRepository.findQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal")).thenReturn(esperado);
+        when(processoRepository.findQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal", "IPTU")).thenReturn(esperado);
 
-        assertThat(processoService.obterQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal")).isSameAs(esperado);
-        verify(processoRepository).findQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal");
+        assertThat(processoService.obterQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal", "IPTU")).isSameAs(esperado);
+        verify(processoRepository).findQuantidadeProcessosPorOrgaoJulgador("Execução Fiscal", "IPTU");
     }
 
     @Test
     void quantidadePorClasseRetornaResultadoDoRepositorio() {
         List<Object[]> esperado = List.<Object[]>of(new Object[]{"Execução Fiscal", 7L});
-        when(processoRepository.findQuantidadeProcessosPorClasse()).thenReturn(esperado);
+        when(processoRepository.findQuantidadeProcessosPorClasse("IPTU")).thenReturn(esperado);
 
-        assertThat(processoService.obterQuantidadeProcessosPorClasse()).isSameAs(esperado);
+        assertThat(processoService.obterQuantidadeProcessosPorClasse("IPTU")).isSameAs(esperado);
+        verify(processoRepository).findQuantidadeProcessosPorClasse("IPTU");
+    }
+
+    @Test
+    void quantidadePorAssuntoRetornaResultadoDoRepositorio() {
+        List<Object[]> esperado = List.<Object[]>of(new Object[]{"Dano Moral", 15L});
+        when(processoRepository.findQuantidadeProcessosPorAssunto("Procedimento Comum Cível", "Dano")).thenReturn(esperado);
+
+        assertThat(processoService.obterQuantidadeProcessosPorAssunto("Procedimento Comum Cível", "Dano")).isSameAs(esperado);
+        verify(processoRepository).findQuantidadeProcessosPorAssunto("Procedimento Comum Cível", "Dano");
     }
 
     @Test
