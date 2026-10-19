@@ -82,6 +82,7 @@ def test_success_by_topic_recipe_is_registered() -> None:
     assert "assunto_codigo" in recipe.query
     assert "assunto_nome" in recipe.query
     assert "taxa_sucesso_ponderada_pct" in recipe.query
+    assert "COUNT(*) >= 30" in recipe.query
 
 
 def test_subject_extraction_and_canonical_hashing() -> None:

@@ -70,6 +70,7 @@ register_sql(
         ) AS taxa_sucesso_ponderada_pct
     FROM resultados
     GROUP BY tribunal_sigla, assunto_codigo, assunto_nome
+    HAVING COUNT(*) >= 30
     ORDER BY taxa_sucesso_ponderada_pct DESC NULLS LAST, processos_com_resultado DESC
     """,
 )
