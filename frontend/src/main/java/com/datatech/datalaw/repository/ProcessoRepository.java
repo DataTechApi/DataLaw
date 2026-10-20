@@ -50,4 +50,8 @@ public interface ProcessoRepository extends JpaRepository<Processo, UUID> {
     @Query(value = "SELECT COALESCE(ROUND(100 * SUM(favoraveis + parciais * 0.5) / NULLIF(SUM(processos_com_resultado), 0), 2), 0) " +
             "FROM gold.topic_results WHERE assunto_nome = :assuntoNome", nativeQuery = true)
     Double findTaxaSucessoPorAssunto(@Param("assuntoNome") String assuntoNome);
+
+    @Query(value = "SELECT tribunal_precedente, identificador_precedente, precedente_titulo, precedente_tese, precedente_ementa " +
+            "FROM gold.topic_precedents WHERE assunto_nome = :assuntoNome ORDER BY identificador_precedente", nativeQuery = true)
+    List<Object[]> findPrecedentesPorAssunto(@Param("assuntoNome") String assuntoNome);
 }

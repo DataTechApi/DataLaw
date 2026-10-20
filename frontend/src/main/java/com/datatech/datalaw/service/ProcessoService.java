@@ -33,4 +33,8 @@ public class ProcessoService {
     public Double obterTaxaSucessoPorAssunto(String assuntoNome) {
         return processoRepository.findTaxaSucessoPorAssunto(assuntoNome);
     }
+
+    public List<Object[]> obterPrecedentesPorAssunto(String assuntoNome) {
+        return processoRepository.findPrecedentesPorAssunto(assuntoNome);
+    }
 }

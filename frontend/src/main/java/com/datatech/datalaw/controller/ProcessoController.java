@@ -55,8 +55,10 @@ public class ProcessoController {
     @ResponseBody
     public Map<String, Object> obterTaxaSucessoTema(@RequestParam("assuntoNome") String assuntoNome) {
         Double taxa = processoService.obterTaxaSucessoPorAssunto(assuntoNome);
+        var precedentes = processoService.obterPrecedentesPorAssunto(assuntoNome);
         Map<String, Object> response = new HashMap<>();
         response.put("taxa", taxa);
+        response.put("precedentes", precedentes);
         return response;
     }
 }

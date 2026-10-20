@@ -404,6 +404,10 @@
             <canvas id="gaugeChart"></canvas>
             <div class="gauge-text" id="gaugeText">0%</div>
         </div>
+        <div id="precedentesContainer" style="margin-top: 20px; display: none; text-align: left; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="font-size: 0.85rem; text-transform: uppercase; color: #34D399; margin: 0 0 8px 0; letter-spacing: 0.05em;">Jurisprudência e Precedentes Vinculantes</h4>
+            <div id="precedentesList"></div>
+        </div>
     </div>
 </div>
 
@@ -555,6 +559,7 @@
         }
 
         window.openTaxaSucessoModal = function(classeNome) {
+            document.getElementById('precedentesContainer').style.display = 'none';
             document.getElementById('successModal').classList.add('active');
             document.getElementById('modalTitle').innerText = 'Decisão Favorável por Classe (Ouro)';
             document.getElementById('modalSubtitle').innerText = classeNome;
@@ -578,6 +583,10 @@
             document.getElementById('modalTitle').innerText = 'Decisão Favorável por Tema (Ouro)';
             document.getElementById('modalSubtitle').innerText = assuntoNome;
             document.getElementById('gaugeText').innerText = '...';
+            const precContainer = document.getElementById('precedentesContainer');
+            const precList = document.getElementById('precedentesList');
+            precContainer.style.display = 'none';
+            precList.innerHTML = '';
 
             fetch(`/processos/taxa-sucesso-tema?assuntoNome=${encodeURIComponent(assuntoNome)}`)
                 .then(r => r.json())
@@ -585,6 +594,31 @@
                     const taxa = data.taxa || 0;
                     document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
                     renderGauge(taxa, '#34D399');
+
+                    if (data.precedentes && data.precedentes.length > 0) {
+                        precContainer.style.display = 'block';
+                        data.precedentes.forEach(p => {
+                            const trib = p[0] || '';
+                            const ident = p[1] || '';
+                            const tit = p[2] || '';
+                            const tese = p[3] || '';
+                            const em = p[4] || '';
+
+                            const itemDiv = document.createElement('div');
+                            itemDiv.style.marginBottom = '12px';
+                            itemDiv.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+                            itemDiv.style.paddingBottom = '8px';
+                            itemDiv.innerHTML = `
+                                <div style="font-weight: 600; color: #F8FAFC; font-size: 0.88rem;">
+                                    <span style="background: rgba(52, 211, 153, 0.2); color: #34D399; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">${trib}</span>
+                                    ${ident}: ${tit}
+                                </div>
+                                ${tese ? `<div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 4px;"><strong>Tese:</strong> ${tese}</div>` : ''}
+                                <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">${em}</div>
+                            `;
+                            precList.appendChild(itemDiv);
+                        });
+                    }
                 })
                 .catch(err => {
                     console.error('Erro ao buscar taxa de sucesso do tema', err);
@@ -593,6 +627,7 @@
         };
 
         window.openParticipacaoModal = function(orgaoNome, quantidade, total) {
+            document.getElementById('precedentesContainer').style.display = 'none';
             document.getElementById('successModal').classList.add('active');
             document.getElementById('modalTitle').innerText = 'Participação no Total de Processos';
             document.getElementById('modalSubtitle').innerText = orgaoNome;
