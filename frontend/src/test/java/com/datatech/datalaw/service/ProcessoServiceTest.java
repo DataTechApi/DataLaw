@@ -55,4 +55,20 @@ class ProcessoServiceTest {
 
         assertThat(processoService.obterTaxaSucessoPorClasse("Procedimento Comum Cível")).isEqualTo(62.5);
     }
+
+    @Test
+    void taxaSucessoPorAssuntoRetornaValorDoRepositorio() {
+        when(processoRepository.findTaxaSucessoPorAssunto("Dano Moral")).thenReturn(48.25);
+
+        assertThat(processoService.obterTaxaSucessoPorAssunto("Dano Moral")).isEqualTo(48.25);
+    }
+
+    @Test
+    void precedentesPorAssuntoRetornaResultadoDoRepositorio() {
+        List<Object[]> esperado = List.<Object[]>of(new Object[]{"Tema 1234", "STJ"});
+        when(processoRepository.findPrecedentesPorAssunto("Dano Moral")).thenReturn(esperado);
+
+        assertThat(processoService.obterPrecedentesPorAssunto("Dano Moral")).isSameAs(esperado);
+        verify(processoRepository).findPrecedentesPorAssunto("Dano Moral");
+    }
 }

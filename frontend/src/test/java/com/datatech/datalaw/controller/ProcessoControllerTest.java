@@ -95,4 +95,47 @@ class ProcessoControllerTest {
 
         verify(processoService, never()).obterTaxaSucessoPorClasse(anyString());
     }
+
+    @Test
+    void filtroPorTemaEClasseRepassaAmbosAoServicoEMostraTitulo() throws Exception {
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("Procedimento Comum Cível", "Dano Moral"))
+                .thenReturn(List.<Object[]>of(new Object[]{"2ª Vara Cível", 35L}));
+        when(processoService.obterQuantidadeProcessosPorClasse("Dano Moral"))
+                .thenReturn(List.<Object[]>of(new Object[]{"Procedimento Comum Cível", 35L}));
+        when(processoService.obterQuantidadeProcessosPorAssunto("Procedimento Comum Cível", "Dano Moral"))
+                .thenReturn(List.<Object[]>of(new Object[]{"Dano Moral", 35L}));
+
+        mockMvc.perform(get("/processos/orgaos-julgadores")
+                        .param("assuntoNome", "Dano Moral")
+                        .param("classeNome", "Procedimento Comum Cível"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("assuntoNome", "Dano Moral"))
+                .andExpect(content().string(containsString("Tema: Dano Moral · Classe: Procedimento Comum Cível")));
+
+        verify(processoService).obterQuantidadeProcessosPorOrgaoJulgador("Procedimento Comum Cível", "Dano Moral");
+        verify(processoService).obterQuantidadeProcessosPorClasse("Dano Moral");
+        verify(processoService).obterQuantidadeProcessosPorAssunto("Procedimento Comum Cível", "Dano Moral");
+    }
+
+    @Test
+    void taxaSucessoTemaRetornaJsonComTaxaEPrecedentes() throws Exception {
+        when(processoService.obterTaxaSucessoPorAssunto("Dano Moral")).thenReturn(48.25);
+        when(processoService.obterPrecedentesPorAssunto("Dano Moral"))
+                .thenReturn(List.<Object[]>of(new Object[]{"Tema 1234", "STJ"}));
+
+        mockMvc.perform(get("/processos/taxa-sucesso-tema").param("assuntoNome", "Dano Moral"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.taxa").value(48.25))
+                .andExpect(jsonPath("$.precedentes[0][0]").value("Tema 1234"))
+                .andExpect(jsonPath("$.precedentes[0][1]").value("STJ"));
+    }
+
+    @Test
+    void taxaSucessoTemaSemAssuntoRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/processos/taxa-sucesso-tema"))
+                .andExpect(status().isBadRequest());
+
+        verify(processoService, never()).obterTaxaSucessoPorAssunto(anyString());
+        verify(processoService, never()).obterPrecedentesPorAssunto(anyString());
+    }
 }
