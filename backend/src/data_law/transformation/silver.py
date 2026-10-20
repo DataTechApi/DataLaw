@@ -14,6 +14,7 @@ from data_law.infra.database.model.silver.movement import SilverDataJudMovement
 from data_law.infra.database.model.silver.process import SilverDataJudProcess
 from data_law.infra.database.model.silver.subject import SilverDataJudSubject
 from data_law.infra.database.session import SessionFactory, create_session_factory
+from data_law.ingestion.jurisprudencia import fetch_and_save_precedents_for_subject
 
 
 @dataclass(frozen=True)
@@ -150,6 +151,21 @@ def sync_bronze_to_silver(
                     synced += 1
                     movements += len(movement_values)
                     subjects += len(subject_values)
+
+                    # Trigger live jurisprudence search for newly inserted subjects
+                    for s_val in subject_values:
+                        c_code = s_val.get("codigo")
+                        c_name = s_val.get("nome")
+                        if c_code and c_name and s_val["source_hash"] not in existing_subjects:
+                            try:
+                                fetch_and_save_precedents_for_subject(
+                                    session_factory=session_factory,
+                                    assunto_codigo=c_code,
+                                    assunto_nome=c_name,
+                                    max_precedentes=2,
+                                )
+                            except Exception:
+                                pass
 
     return SilverSyncReport(
         found=found,
