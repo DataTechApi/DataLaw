@@ -85,6 +85,19 @@ def test_success_by_topic_recipe_is_registered() -> None:
     assert "COUNT(*) >= 30" in recipe.query
 
 
+def test_topic_precedents_recipe_is_registered() -> None:
+    from data_law.transformation import gold_recipes  # noqa: F401
+
+    recipe = DEFAULT_GOLD_REGISTRY.select("topic_precedents")[0]
+
+    assert recipe.engine is GoldEngine.SQL
+    assert recipe.query is not None
+    assert "silver.processo" in recipe.query
+    assert "silver.processo_assunto" in recipe.query
+    assert "silver.jurisprudencia" in recipe.query
+    assert "COUNT(*) >= 30" in recipe.query
+
+
 def test_subject_extraction_and_canonical_hashing() -> None:
     payload = {
         "assuntos": [
