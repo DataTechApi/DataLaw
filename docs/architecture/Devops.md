@@ -305,12 +305,3 @@ Configure os seguintes secrets em **Settings → Secrets and variables → Actio
 | `push` para outra branch | ❌ Não dispara | ❌ Não dispara | ❌ Não dispara |
 
 ---
-
-## Referências
-
-- [`.github/workflows/deploy.yml`](file:///media/jackson/DEV/DEV/ProjetoAPI/DataLaw/.github/workflows/deploy.yml) — Pipeline CI/CD completo
-- [`backend/infra/setup_vm.sh`](file:///media/jackson/DEV/DEV/ProjetoAPI/DataLaw/backend/infra/setup_vm.sh) — Provisionamento da VM
-- [`docker-compose.yaml`](file:///media/jackson/DEV/DEV/ProjetoAPI/DataLaw/docker-compose.yaml) — Banco local
-- [`backend/start.sh`](file:///media/jackson/DEV/DEV/ProjetoAPI/DataLaw/backend/start.sh) — Inicialização do backend
-- [`backend/pyproject.toml`](file:///media/jackson/DEV/DEV/ProjetoAPI/DataLaw/backend/pyproject.toml) — Dependências e tarefas
-- [`backend/migration/env.py`](file:///media/jackson/DEV/DEV/ProjetoAPI/DataLaw/backend/migration/env.py) — Configuração do Alembic
