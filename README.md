@@ -631,6 +631,10 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
   <p>Full technical documentation (data model, dictionary, API reference, deployment guide) will be published in the project's documentation repository as it becomes available.</p>
 </div>
 
+| Document | Description |
+|---|---|
+| [Test Cases](docs/testing/test-cases.md) | Test strategy, coverage and catalogue of the automated test cases (backend and frontend) |
+
 <br>
 
 <p align="center">
