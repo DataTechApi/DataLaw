@@ -130,12 +130,9 @@ uv run ruff check src tests
 | RF06 | Open data extraction | Extract data from open government data portals |
 | RF07 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
 | RF08 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
-| RF09 | Semantic indexing | Semantically index documents to enable meaning-based search |
-| RF10 | Semantic search | Support search by meaning/context, not only by keyword |
-| RF11 | OLAP queries | Support multidimensional queries by court, topic and period |
-| RF12 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
-| RF13 | Source & reliability | Display the original source and a reliability indicator with every result |
-| RF14 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
+| RF09 | Semantic search | Support search by meaning/context, not only by keyword |
+| RF10 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
+| RF11 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) |
 
 </details>
 
@@ -146,8 +143,8 @@ uv run ruff check src tests
 |---|---|---|
 | RNF01 | Data model documentation | Conceptual, logical and physical dimensional model, plus a data dictionary |
 | RNF02 | API documentation | All API endpoints must be documented |
-| RNF03 | Language | Built in Python |
-| RNF04 | Framework | Built with Django |
+| RNF03 | Backend Language | Built in Python |
+| RNF04 | Frontend Language | Built with Java |
 | RNF05 | Unit/integration tests | Automated unit and/or integration tests to ensure data integrity |
 | RNF06 | Functional tests | Automated functional tests at API and UI level |
 | RNF07 | Static analysis | Continuous static code analysis |
