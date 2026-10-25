@@ -1,4 +1,7 @@
-"""Gold recipe correlating high-volume TPU subjects (N >= 30) with jurisprudence and precedents."""
+"""Gold recipe correlating high-volume TPU subjects (N >= 30).
+
+Correlates subjects with jurisprudence and precedents.
+"""
 
 from data_law.transformation.gold import register_sql
 

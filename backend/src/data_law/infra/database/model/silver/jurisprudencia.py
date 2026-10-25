@@ -12,7 +12,10 @@ from data_law.infra.database.model.bronze.jurisprudencia_extract import (
 
 
 class SilverDataJudJurisprudencia(SilverBase):
-    """Normalized, deduplicated jurisprudence or precedent associated with TPU subjects."""
+    """Normalized, deduplicated jurisprudence or precedent.
+
+    Associated with TPU subjects.
+    """
 
     __tablename__ = "jurisprudencia"
     __table_args__ = (

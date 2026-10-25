@@ -1,6 +1,6 @@
-"""Real-time and batch ingestion of jurisprudence and precedents from CNJ BNP (Banco Nacional de Precedentes).
+"""Real-time and batch ingestion of jurisprudence and precedents from CNJ BNP.
 
-Directly integrates with the public Pangea/BNP API (https://pangeabnp.pdpj.jus.br/api/v1/precedentes).
+Directly integrates with the public Pangea/BNP API.
 Adheres strictly to LGPD data minimization guidelines: stores only public procedural
 precedents, ementas, binding legal theses, and court identifications.
 """
@@ -11,7 +11,6 @@ import json
 import logging
 import re
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -44,10 +43,14 @@ class BNPApiClient:
     def __init__(self, base_url: str = BNP_API_URL, timeout: int = 15) -> None:
         self.base_url = base_url
         self.timeout = timeout
+        user_agent = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko)"
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
+            "User-Agent": user_agent,
         }
 
     @retry(
@@ -66,7 +69,7 @@ class BNPApiClient:
         if not termo or not termo.strip():
             return []
 
-        payload = {
+        payload: dict[str, Any] = {
             "filtro": {
                 "buscaGeral": termo.strip(),
                 "todasPalavras": "",
@@ -159,7 +162,9 @@ def fetch_and_save_precedents_for_subject(
             for r in results:
                 tipo = r.get("tipo", "")
                 nr = r.get("nr", "")
-                identificador = f"{tipo} {nr}".strip() if nr else r.get("id", "Precedente")
+                identificador = (
+                    f"{tipo} {nr}".strip() if nr else r.get("id", "Precedente")
+                )
                 orgao = r.get("orgao", "CNJ")
 
                 tese_raw = r.get("tese") or ""
@@ -167,7 +172,9 @@ def fetch_and_save_precedents_for_subject(
                 tese = clean_html(tese_raw)
                 questao = clean_html(questao_raw)
 
-                titulo = questao[:250] if questao else f"{identificador} - {assunto_nome}"
+                titulo = (
+                    questao[:250] if questao else f"{identificador} - {assunto_nome}"
+                )
                 ementa = questao if questao else tese
 
                 if not tese and not ementa:
@@ -234,7 +241,9 @@ def sync_all_active_subjects(
         codigo = int(row.codigo)
         nome = str(row.nome)
         total_found += 1
-        logger.info("Buscando jurisprudência ao vivo no BNP para TPU %s - %s...", codigo, nome)
+        logger.info(
+            "Buscando jurisprudência ao vivo no BNP para TPU %s - %s...", codigo, nome
+        )
         ins = fetch_and_save_precedents_for_subject(
             session_factory=session_factory,
             assunto_codigo=codigo,
@@ -249,9 +258,11 @@ def sync_all_active_subjects(
 def main() -> None:
     factory = create_session_factory()
     report = sync_all_active_subjects(factory)
-    print(
-        f"Jurisprudência ao vivo (BNP/CNJ) sincronizada: {report.inserted} novo(s) precedentes de {report.total} assuntos consultados."
+    msg = (
+        f"Jurisprudência ao vivo (BNP/CNJ) sincronizada: {report.inserted} "
+        f"novo(s) precedentes de {report.total} assuntos consultados."
     )
+    print(msg)
 
 
 if __name__ == "__main__":

@@ -65,9 +65,7 @@ def sync_bronze_to_silver(
                     movement_values, movement_warnings = _movement_values(
                         extract.payload
                     )
-                    subject_values, subject_warnings = _subject_values(
-                        extract.payload
-                    )
+                    subject_values, subject_warnings = _subject_values(extract.payload)
                     extract_warnings = (
                         process_warnings + movement_warnings + subject_warnings
                     )
@@ -156,7 +154,11 @@ def sync_bronze_to_silver(
                     for s_val in subject_values:
                         c_code = s_val.get("codigo")
                         c_name = s_val.get("nome")
-                        if c_code and c_name and s_val["source_hash"] not in existing_subjects:
+                        if (
+                            c_code
+                            and c_name
+                            and s_val["source_hash"] not in existing_subjects
+                        ):
                             try:
                                 fetch_and_save_precedents_for_subject(
                                     session_factory=session_factory,
