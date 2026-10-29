@@ -7,6 +7,7 @@ import pytest
 
 from data_law import main as cli
 from data_law.ingestion.ingestion import IngestionReport
+from data_law.transformation.gold import GoldRunReport
 from data_law.transformation.silver import SilverSyncReport
 
 REPORT = IngestionReport(
@@ -53,10 +54,21 @@ class FakeService:
         return replace(REPORT, mode=mode)
 
 
+class FakeGoldMaterializer:
+    """Stands in for the Gold layer so unit tests never touch a real database."""
+
+    runs = 0
+
+    def run(self) -> GoldRunReport:
+        FakeGoldMaterializer.runs += 1
+        return GoldRunReport(materializations=())
+
+
 @pytest.fixture
 def fake_cli(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     FakeService.instances = []
     FakeService.fail_with = None
+    FakeGoldMaterializer.runs = 0
     session_factory = object()
     synced: list[object] = []
 
@@ -69,6 +81,7 @@ def fake_cli(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     monkeypatch.setattr(cli, "create_session_factory", lambda: session_factory)
     monkeypatch.setattr(cli, "DataJudIngestionService", FakeService)
     monkeypatch.setattr(cli, "sync_bronze_to_silver", fake_sync)
+    monkeypatch.setattr(cli, "GoldMaterializer", FakeGoldMaterializer)
     monkeypatch.setattr(cli, "configure_logging", lambda: None)
     return {"session_factory": session_factory, "synced": synced}
 
@@ -107,6 +120,7 @@ def test_main_wires_silver_sync_to_the_same_session_factory(
     FakeService.instances[0].silver_sync()
 
     assert fake_cli["synced"] == [fake_cli["session_factory"]]
+    assert FakeGoldMaterializer.runs == 1
 
 
 def test_main_logs_and_reraises_ingestion_errors(
