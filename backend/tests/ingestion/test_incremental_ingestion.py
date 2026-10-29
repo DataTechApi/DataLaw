@@ -10,9 +10,11 @@ from data_law.infra.database.model.bronze.ingestion_state import (
 )
 from data_law.ingestion.bronze import ProcessedFile
 from data_law.ingestion.ingestion import (
+    DataJudIngestionError,
     DataJudIngestionService,
     InitialIngestionRequiredError,
 )
+from data_law.transformation.silver import SilverSyncReport
 
 
 class FakeClient:
@@ -226,3 +228,129 @@ def test_full_load_logs_progress_and_summary(
     assert "Ingestão Bronze concluída" in caplog.text
     assert "Checkpoint salvo" in caplog.text
     assert "Ingestão concluída:" in caplog.text
+
+
+def test_service_rejects_unknown_tribunal() -> None:
+    with pytest.raises(ValueError, match="Tribunal não configurado: tjxx"):
+        DataJudIngestionService(
+            FakeClient([]),  # type: ignore[arg-type]
+            lambda: FakeSession(),  # type: ignore[arg-type,return-value]
+            tribunal_key="tjxx",
+        )
+
+
+@pytest.mark.parametrize("page_size", [0, -1])
+def test_service_rejects_non_positive_page_size(page_size: int) -> None:
+    with pytest.raises(ValueError, match="page_size"):
+        DataJudIngestionService(
+            FakeClient([]),  # type: ignore[arg-type]
+            lambda: FakeSession(),  # type: ignore[arg-type,return-value]
+            page_size=page_size,
+        )
+
+
+def test_page_without_selected_processes_is_saved_but_not_persisted(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    now = datetime.now(UTC)
+    unfinished = _source(
+        "unfinished",
+        [{"codigo": 970, "dataHora": (now - timedelta(days=1)).isoformat()}],
+        timestamp=now,
+    )
+    client = FakeClient([_response(unfinished)])
+    session = FakeSession()
+    service, calls = _service(monkeypatch, tmp_path, client, session)
+
+    report = service.run_full()
+
+    assert report.pages == 1
+    assert report.candidates == 1
+    assert report.persisted == 0
+    assert report.changed == 0
+    assert calls == []
+    assert session.state is not None
+
+
+def test_full_load_runs_silver_sync_and_reports_its_totals(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    now = datetime.now(UTC)
+    source = _source(
+        "completed",
+        [{"codigo": 246, "dataHora": (now - timedelta(days=1)).isoformat()}],
+        timestamp=now,
+    )
+    service, _ = _service(
+        monkeypatch, tmp_path, FakeClient([_response(source)]), FakeSession()
+    )
+    service.silver_sync = lambda: SilverSyncReport(
+        found=1, synced=1, movements=4, warnings=2
+    )
+
+    report = service.run_full()
+
+    assert report.silver_synced == 1
+    assert report.silver_movements == 4
+    assert report.silver_warnings == 2
+
+
+def test_full_load_stops_when_datajud_times_out(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    session = FakeSession()
+    service, _ = _service(
+        monkeypatch,
+        tmp_path,
+        FakeClient([{"timed_out": True, "hits": {"hits": []}}]),
+        session,
+    )
+
+    with pytest.raises(DataJudIngestionError, match="tempo limite"):
+        service.run_full()
+
+    assert session.state is None
+
+
+def test_full_page_without_sort_cursor_stops_pagination(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    now = datetime.now(UTC)
+    response = _response(
+        _source("a", [], timestamp=now),
+        _source("b", [], timestamp=now),
+    )
+    del response["hits"]["hits"][-1]["sort"]
+    session = FakeSession()
+    service, _ = _service(monkeypatch, tmp_path, FakeClient([response]), session)
+
+    with pytest.raises(DataJudIngestionError, match="cursor de paginação"):
+        service.run_full()
+
+    assert session.state is None
+
+
+def test_incremental_load_keeps_naive_checkpoint_as_utc(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    checkpoint = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
+    state = BronzeDataJudIngestionState(
+        tribunal_alias="api_publica_tjsp",
+        tribunal_sigla="TJSP",
+        last_successful_at=checkpoint,
+    )
+    client = FakeClient([_response()])
+    service, _ = _service(monkeypatch, tmp_path, client, FakeSession(state))
+
+    service.run_incremental()
+
+    date_filter = client.bodies[0]["query"]["bool"]["filter"][1]["range"]
+    expected_start = checkpoint.replace(tzinfo=UTC) - service.incremental_overlap
+    assert date_filter["@timestamp"]["gte"] == (
+        expected_start.isoformat().replace("+00:00", "Z")
+    )

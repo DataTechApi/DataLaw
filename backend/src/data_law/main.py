@@ -9,7 +9,8 @@ from data_law.ingestion.ingestion import (
     DataJudIngestionService,
     DataJudSettings,
 )
-from data_law.transformation.silver import sync_bronze_to_silver
+from data_law.transformation.gold import GoldMaterializer
+from data_law.transformation.silver import SilverSyncReport, sync_bronze_to_silver
 
 
 def configure_logging() -> None:
@@ -18,6 +19,26 @@ def configure_logging() -> None:
         level=os.getenv("LOG_LEVEL", "INFO").upper(),
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+
+
+def _sync_silver_and_gold(session_factory: object) -> SilverSyncReport:
+    """Synchronize Silver layer and trigger Gold materialization in cascade."""
+    # Ensure all gold recipes are registered
+    import data_law.transformation.gold_recipes  # noqa: F401
+
+    silver_report = sync_bronze_to_silver(session_factory)  # type: ignore[arg-type]
+
+    try:
+        gold_report = GoldMaterializer().run()
+        logging.getLogger(__name__).info(
+            "Camada Gold materializada com sucesso: %d tabela(s).",
+            gold_report.count,
+        )
+    except Exception:
+        logging.getLogger(__name__).exception("Falha ao materializar a camada Gold")
+        raise
+
+    return silver_report
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -35,7 +56,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     service = DataJudIngestionService(
         DataJudClient(settings),
         session_factory,
-        silver_sync=lambda: sync_bronze_to_silver(session_factory),
+        silver_sync=lambda: _sync_silver_and_gold(session_factory),
     )
     try:
         report = service.run_full() if arguments.full else service.run_incremental()

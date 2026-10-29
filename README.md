@@ -130,12 +130,9 @@ uv run ruff check src tests
 | RF06 | Open data extraction | Extract data from open government data portals |
 | RF07 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
 | RF08 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
-| RF09 | Semantic indexing | Semantically index documents to enable meaning-based search |
-| RF10 | Semantic search | Support search by meaning/context, not only by keyword |
-| RF11 | OLAP queries | Support multidimensional queries by court, topic and period |
-| RF12 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
-| RF13 | Source & reliability | Display the original source and a reliability indicator with every result |
-| RF14 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) via NLP |
+| RF09 | Semantic search | Support search by meaning/context, not only by keyword |
+| RF10 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
+| RF11 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) |
 
 </details>
 
@@ -146,8 +143,8 @@ uv run ruff check src tests
 |---|---|---|
 | RNF01 | Data model documentation | Conceptual, logical and physical dimensional model, plus a data dictionary |
 | RNF02 | API documentation | All API endpoints must be documented |
-| RNF03 | Language | Built in Python |
-| RNF04 | Framework | Built with Django |
+| RNF03 | Backend Language | Built in Python |
+| RNF04 | Frontend Language | Built with Java |
 | RNF05 | Unit/integration tests | Automated unit and/or integration tests to ensure data integrity |
 | RNF06 | Functional tests | Automated functional tests at API and UI level |
 | RNF07 | Static analysis | Continuous static code analysis |
@@ -339,107 +336,107 @@ DoR Checklist
 ### **Sprint 2: Planning and Execution**
 
 * **Sprint Goal:** Expand DataLaw from a volumetric judicial dashboard into a legal intelligence platform by increasing court coverage, introducing analytical metrics and providing the first jurisprudence-based insights.
-* **Estimated Capacity:** 34 story points
+* **Estimated Capacity:** 29 story points
 
 | Rank | Priority | User Story | Points |
 | --- | --- | --- | --- |
-| 2.1 | High | As a Legal Manager, I want to analyze case volume across multiple courts, so that I can identify where a legal topic is most concentrated. | 5 |
-| 2.2 | High | As a Legal Manager, I want to view the average case processing time by court and legal topic, so that I can evaluate judicial efficiency. | 5 | 
-| 2.3 | High | As a Strategic Lawyer, I want to view the courts with the highest concentration of a topic, so that I can identify regional legal trends. | 3 |
-| 2.4 | High | As a Strategic Lawyer, I want to view the evolution of a legal topic over time, so that I can identify growth or reduction patterns. | 5 |
-| 2.5 | High | As a Legal Manager, I want to view adherence indicators for a selected topic, so that I can evaluate how strongly the topic appears within the analyzed dataset. | 8 | 
-| 2.8 | High | As a Strategic Lawyer, I want to access related jurisprudence references for a searched topic, so that I can deepen my legal research. | 5 | 
-| 2.9 | Medium | As a User, I want dashboards to display data source and reliability information, so that I can trust the generated indicators. | 3 | 
+| 2.1 | Highest | As a user, I want to view a Topic Adherence Indicator. | 5 |
+| 2.2 | Highest | As a user, I want to access Topic-Related Jurisprudence. | 5 | 
+| 2.3 | High | As a user, I want to view Precedent Associations. | 3 |
+| 2.4 | High | As a user, I want to access Doctrine References. | 5 |
+| 2.5 | Medium | As a user, I want to analyze data from an Expanded Set of Courts. | 3 | 
+| 2.6 | High | As a user, I want to view Case Volume by Court. | 5 | 
+| 2.7 | Medium | As a user, I want to view the Average Case Processing Time. | 3 | 
 
 <details>
   
-<summary><strong>US2.1 — Analyze case volume across multiple courts</strong></summary>
+<summary><strong>US2.1 — Topic Adherence Indicator</strong></summary>
  
 DoR Checklist
 
-- Business rules defined: participating courts and aggregation criteria documented.
+- Business rules defined: adherence calculation criteria and indicator thresholds documented.
  
-- Data available: court datasets validated and available in the warehouse.
+- Data available: legal topic datasets validated and available in the warehouse
  
-- Prototype approved: volume comparison visualization defined.
+- Prototype approved: adherence indicator visualization defined.
  
 </details>
  
 <details>
-<summary><strong>US2.2 — View average case processing time by court and legal topic</strong></summary>
+<summary><strong>US2.2 — Topic-Related Jurisprudence</strong></summary>
  
 DoR Checklist
   
-- Business rules defined: processing time calculation formula documented.
+- Business rules defined: jurisprudence retrieval and association criteria documented.
  
-- Data available: ajuizamento and closing/archive dates validated.
+- Data available: jurisprudence database validated and accessible.
  
-- Prototype approved: KPI and chart layout approved.
+- Prototype approved: jurisprudence reference listing and navigation defined.
  
 </details>
  
 <details>
-<summary><strong>US2.3 — View courts with the highest concentration of a legal topic</strong></summary>
+<summary><strong>US2.3 — Precedent Associations</strong></summary>
  
 DoR Checklist
 
-- Business rules defined: topic concentration calculation documented.
+- Business rules defined: precedent association criteria and relevance rules documented.
  
-- Data available: court and topic dimensions validated.
+- Data available: precedent datasets validated and available in the warehouse.
  
-- Prototype approved: ranking visualization approved.
+- Prototype approved: precedent association visualization defined.
  
 </details>
  
 <details>
-<summary><strong>US2.4 — View evolution of a legal topic over time</strong></summary>
+<summary><strong>US2.4 — Doctrine References</strong></summary>
  
 DoR Checklist
   
-- Business rules defined: temporal aggregation period documented (monthly, quarterly, yearly).
+- Business rules defined: doctrine reference retrieval and classification criteria documented
 
-- Data available: historical process dates validated.
+- Data available: doctrinal reference datasets validated and available.
 
-- Prototype approved: timeline chart mockup approved.
-
-</details>
- 
-<details>
-<summary><strong>US2.5 — View adherence indicators for a selected topic</strong></summary>
- 
-DoR Checklist
-  
-- Business rules defined: adherence concept aligned with stakeholders.
- 
-- Data available: topic classification and related process data available.
- 
-- Prototype approved: adherence indicator visualization approved.
- 
-</details>
- 
-<details>
-<summary><strong>US2.8 — Access related jurisprudence references</strong></summary>
- 
-DoR Checklist
-  
-- Business rules defined: jurisprudence sources and association criteria documented.
- 
-- Data available: access to jurisprudence repositories validated.
- 
-- Prototype approved: jurisprudence reference component approved. 
+- Prototype approved: doctrine reference presentation defined.
 
 </details>
  
 <details>
-<summary><strong>US2.9 — Display source and reliability information in dashboards</strong></summary>
+<summary><strong>US2.5 — Expanded Set of Courts</strong></summary>
  
 DoR Checklist
   
-- Business rules defined: reliability score calculation documented.
+- Business rules defined: court inclusion criteria and scope documented.
  
-- Data available: source metadata available in the warehouse.
+- Data available: additional court datasets validated and available in the warehouse.
  
-- Prototype approved: source and reliability widgets approved.
+- Prototype approved: multi-court analysis interface defined.
+ 
+</details>
+ 
+<details>
+<summary><strong>US2.6 — Case Volume by Court</strong></summary>
+ 
+DoR Checklist
+  
+- Business rules defined: court aggregation and case counting criteria documented.
+ 
+- Data available: court case datasets validated and available in the warehouse.
+ 
+- Prototype approved: case volume visualization by court defined.
+
+</details>
+ 
+<details>
+<summary><strong>US2.7 — Average Case Processing Time</strong></summary>
+ 
+DoR Checklist
+  
+- Business rules defined: processing time calculation methodology documented.
+ 
+- Data available: case lifecycle dates validated and available in the warehouse.
+ 
+- Prototype approved: average processing time dashboard visualization defined.
 
 </details>
 
@@ -633,6 +630,10 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 <div align="center">
   <p>Full technical documentation (data model, dictionary, API reference, deployment guide) will be published in the project's documentation repository as it becomes available.</p>
 </div>
+
+| Document | Description |
+|---|---|
+| [Test Cases](docs/testing/test-cases.md) | Test strategy, coverage and catalogue of the automated test cases (backend and frontend) |
 
 <br>
 

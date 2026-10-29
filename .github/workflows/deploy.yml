@@ -8,10 +8,88 @@ on:
     branches:
       - main
 
+# ─────────────────────────────────────────────────────────────────────────────
+# JOB 1 – Testes automatizados (CI)
+# Roda em todo push e pull_request. Os jobs de deploy só avançam se este
+# job for concluído com sucesso.
+# ─────────────────────────────────────────────────────────────────────────────
 jobs:
+  test:
+    name: Testes Automatizados (CI)
+    runs-on: ubuntu-latest
+
+    # Banco de dados PostgreSQL para os testes marcados como `integration`
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: datalaw
+          POSTGRES_PASSWORD: datalaw
+          POSTGRES_DB: datalaw_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U datalaw -d datalaw_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+
+      - name: Instalar dependências (incluindo dev)
+        run: uv sync --all-groups
+
+      - name: Lint (ruff)
+        run: uv run ruff check src tests
+
+      - name: Verificar formatação (ruff format)
+        run: uv run ruff format --check src tests
+
+      - name: Executar testes unitários
+        run: uv run pytest -m "not integration" --tb=short
+        env:
+          DATABASE_URL: postgresql+psycopg://datalaw:datalaw@localhost:5432/datalaw_db
+          DATAJUD_API_KEY: ${{ secrets.DATAJUD_API_KEY }}
+
+      - name: Aplicar migrações no banco de testes
+        run: uv run alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+psycopg://datalaw:datalaw@localhost:5432/datalaw_db
+
+      - name: Executar testes de integração
+        run: uv run pytest -m "integration" --tb=short
+        env:
+          DATABASE_URL: postgresql+psycopg://datalaw:datalaw@localhost:5432/datalaw_db
+          DATAJUD_API_KEY: ${{ secrets.DATAJUD_API_KEY }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JOB 2 – Deploy do Frontend (Java/Maven)
+# Só executa após o job `test` passar E apenas em push direto para main.
+# ─────────────────────────────────────────────────────────────────────────────
   build-and-deploy-frontend:
     name: Build e Deploy Frontend na Nova VM
     runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -23,16 +101,21 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build da aplicação Java (Maven)
+      - name: Executar testes do Frontend (Maven)
         run: |
           cd frontend
           chmod +x mvnw
-          ./mvnw clean package -DskipTests
+          ./mvnw test
+
+      - name: Build da aplicação Java (Maven)
+        run: |
+          cd frontend
+          # -DskipTests porque os testes já foram executados no step anterior
+          ./mvnw package -DskipTests
           # Identifica o jar gerado e renomeia para datalaw.jar na pasta target
           find target/ -maxdepth 1 -name "*.jar" -type f -size +1M -exec cp {} target/datalaw.jar \;
 
       - name: Preparar ambiente e fazer backup na VM
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AZURE_FRONTEND_VM_HOST }}
@@ -47,7 +130,6 @@ jobs:
             fi
 
       - name: Copiar datalaw.jar para a VM
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.AZURE_FRONTEND_VM_HOST }}
@@ -58,7 +140,6 @@ jobs:
           strip_components: 2
 
       - name: Configurar e reiniciar serviço na VM
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AZURE_FRONTEND_VM_HOST }}
@@ -66,7 +147,7 @@ jobs:
           key: ${{ secrets.AZURE_FRONTEND_VM_SSH_KEY }}
           script: |
             SERVICE_FILE="/etc/systemd/system/datalaw.service"
-            
+
             # Criação do arquivo de serviço systemd se não existir
             if [ ! -f "$SERVICE_FILE" ]; then
               echo "Criando serviço systemd datalaw.service..."
@@ -95,15 +176,21 @@ jobs:
             sudo systemctl status datalaw.service --no-pager
             echo "Deploy Frontend concluído com sucesso!"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# JOB 3 – Deploy do Backend (Python/uv)
+# Só executa após o job `test` passar E apenas em push direto para main.
+# ─────────────────────────────────────────────────────────────────────────────
   deploy-backend:
     name: Deploy Backend na VM Atual
     runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
 
       - name: Copiar arquivos do backend para a VM
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.AZURE_VM_HOST }}
@@ -113,8 +200,7 @@ jobs:
           target: "/home/azureuser/backend/"
           strip_components: 1
 
-      - name: Configurar e reiniciar serviço do backend na VM
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      - name: Aplicar migrações e reiniciar serviço do backend na VM
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AZURE_VM_HOST }}
@@ -123,12 +209,15 @@ jobs:
           script: |
             cd /home/azureuser/backend
             chmod +x start.sh
-            
-            # Executa o uv sync
-            uv sync || echo "UV não instalado ou falha no sync. Verifique a instalação do UV."
-            
+
+            echo "Sincronizando dependências..."
+            uv sync || echo "Aviso: falha no uv sync. Verifique a instalação do uv."
+
+            echo "Aplicando migrações do banco de dados..."
+            uv run alembic upgrade head
+
             SERVICE_FILE="/etc/systemd/system/datalaw-backend.service"
-            
+
             if [ ! -f "$SERVICE_FILE" ]; then
               echo "Criando serviço systemd datalaw-backend.service..."
               sudo bash -c 'cat <<EOF > /etc/systemd/system/datalaw-backend.service

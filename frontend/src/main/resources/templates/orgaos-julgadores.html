@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLaw · Processos por Órgão Julgador</title>
+    <title>DataLaw · Processos por Órgão Julgador e Tema</title>
     <style>
         :root {
             --primary: #4F46E5;
@@ -15,6 +15,7 @@
             --text-muted: #94A3B8;
             --border: #334155;
             --gold: #FBBF24;
+            --emerald: #34D399;
         }
 
         body {
@@ -31,7 +32,7 @@
 
         .container {
             width: 100%;
-            max-width: 1300px;
+            max-width: 1350px;
         }
 
         .brand-header {
@@ -73,7 +74,7 @@
         }
 
         .header {
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
             text-align: center;
         }
 
@@ -100,13 +101,14 @@
         .search-form {
             display: flex;
             width: 100%;
-            max-width: 600px;
+            max-width: 780px;
             background-color: var(--surface);
             border: 1px solid var(--border);
             border-radius: 9999px;
-            padding: 0.5rem;
+            padding: 0.4rem 0.6rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             transition: border-color 0.3s ease;
+            align-items: center;
         }
 
         .search-form:focus-within {
@@ -114,18 +116,29 @@
         }
 
         .search-input {
-            flex: 1;
+            flex: 1.4;
             background: transparent;
             border: none;
             color: var(--text-main);
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
             outline: none;
             font-family: inherit;
         }
 
+        .search-input-secondary {
+            flex: 1;
+        }
+
         .search-input::placeholder {
             color: var(--text-muted);
+        }
+
+        .search-divider {
+            width: 1px;
+            height: 28px;
+            background-color: var(--border);
+            margin: 0 0.25rem;
         }
 
         .search-button {
@@ -133,21 +146,34 @@
             color: white;
             border: none;
             border-radius: 9999px;
-            padding: 0.75rem 2rem;
-            font-size: 1rem;
+            padding: 0.75rem 1.75rem;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.2s ease, transform 0.1s ease;
             outline: none;
             font-family: inherit;
+            white-space: nowrap;
         }
 
         .search-button:hover { opacity: 0.9; }
         .search-button:active { transform: scale(0.98); }
 
+        .clear-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.2s ease;
+        }
+        .clear-button:hover { color: var(--gold); }
+
         .charts-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             align-items: stretch;
             gap: 1.5rem;
             margin-bottom: 2.5rem;
@@ -155,6 +181,10 @@
 
         @media (max-width: 900px) {
             .charts-grid { grid-template-columns: 1fr; }
+            .search-form { flex-direction: column; border-radius: 16px; padding: 1rem; }
+            .search-divider { display: none; }
+            .search-input { width: 100%; margin-bottom: 0.5rem; }
+            .search-button { width: 100%; }
         }
 
         .chart-card {
@@ -170,7 +200,7 @@
 
         .chart-card h3 {
             margin: 0 0 1.25rem;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -179,8 +209,8 @@
 
         .chart-wrap {
             position: relative;
-            min-height: 250px;
-            max-height: 400px;
+            min-height: 260px;
+            max-height: 420px;
             overflow-y: auto;
             padding-right: 5px;
             flex: 1;
@@ -195,7 +225,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 250px;
+            height: 260px;
             color: var(--text-muted);
             font-size: 0.9rem;
             text-align: center;
@@ -308,14 +338,17 @@
     </div>
 
     <div class="header">
-        <h2 th:text="${classeNome != null and !classeNome.isEmpty() ? classeNome : 'Todos os processos'}">Processos</h2>
-        <p>Quantidade de processos classificados por Órgão Julgador</p>
+        <h2 th:text="${(assuntoNome != null and !assuntoNome.isEmpty()) ? 'Tema: ' + assuntoNome + (classeNome != null and !classeNome.isEmpty() ? ' · Classe: ' + classeNome : '') : (classeNome != null and !classeNome.isEmpty() ? 'Classe: ' + classeNome : 'Visão Geral dos Processos')}">Processos</h2>
+        <p>Distribuição coordenada por Classe, Tema e Órgão Julgador</p>
     </div>
 
     <div class="search-container">
         <form class="search-form" method="get" action="/processos/orgaos-julgadores">
-            <input type="text" name="classeNome" class="search-input" th:value="${classeNome}" placeholder="Digite a classe (ex: Execução Fiscal)">
+            <input type="text" name="assuntoNome" class="search-input" th:value="${assuntoNome}" placeholder="Pesquisar Tema / Assunto (ex: Dano Moral, IPTU)">
+            <div class="search-divider"></div>
+            <input type="text" name="classeNome" class="search-input search-input-secondary" th:value="${classeNome}" placeholder="Classe (ex: Comum Cível)">
             <button type="submit" class="search-button">Buscar</button>
+            <a th:if="${(assuntoNome != null and !assuntoNome.isEmpty()) or (classeNome != null and !classeNome.isEmpty())}" href="/processos/orgaos-julgadores" class="clear-button" title="Limpar filtros">✕</a>
         </form>
     </div>
 
@@ -328,21 +361,34 @@
                 </div>
             </div>
             <div class="chart-empty" th:if="${processosPorClasse == null or #lists.isEmpty(processosPorClasse)}">
-                Sem dados de classe para exibir.
+                Sem dados de classe para o filtro selecionado.
             </div>
         </div>
+
+        <div class="chart-card">
+            <h3>Processos por Tema / Assunto (TPU)</h3>
+            <div class="chart-wrap" th:if="${processosPorAssunto != null and not #lists.isEmpty(processosPorAssunto)}">
+                <div class="chart-inner" id="inner-chartAssunto">
+                    <canvas id="chartAssunto"></canvas>
+                </div>
+            </div>
+            <div class="chart-empty" th:if="${processosPorAssunto == null or #lists.isEmpty(processosPorAssunto)}">
+                Sem dados de tema/assunto para o filtro selecionado.
+            </div>
+        </div>
+
         <div class="chart-card">
             <h3>Processos por Órgão Julgador</h3>
-            <div class="chart-wrap" th:if="${classeNome != null and !classeNome.isEmpty() and not #lists.isEmpty(processos)}">
+            <div class="chart-wrap" th:if="${((classeNome != null and !classeNome.isEmpty()) or (assuntoNome != null and !assuntoNome.isEmpty())) and not #lists.isEmpty(processos)}">
                 <div class="chart-inner" id="inner-chartOrgao">
                     <canvas id="chartOrgao"></canvas>
                 </div>
             </div>
-            <div class="chart-empty" th:if="${classeNome == null or classeNome.isEmpty()}">
-                Faça uma busca acima para ver os processos por órgão julgador.
+            <div class="chart-empty" th:if="${(classeNome == null or classeNome.isEmpty()) and (assuntoNome == null or assuntoNome.isEmpty())}">
+                Pesquise por um Tema ou Classe acima para visualizar a distribuição por órgão julgador.
             </div>
-            <div class="chart-empty" th:if="${classeNome != null and !classeNome.isEmpty() and #lists.isEmpty(processos)}">
-                Sem dados de órgão julgador para exibir.
+            <div class="chart-empty" th:if="${((classeNome != null and !classeNome.isEmpty()) or (assuntoNome != null and !assuntoNome.isEmpty())) and #lists.isEmpty(processos)}">
+                Sem dados de órgão julgador para o filtro selecionado.
             </div>
         </div>
     </div>
@@ -358,30 +404,41 @@
             <canvas id="gaugeChart"></canvas>
             <div class="gauge-text" id="gaugeText">0%</div>
         </div>
+        <div id="precedentesContainer" style="margin-top: 20px; display: none; text-align: left; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="font-size: 0.85rem; text-transform: uppercase; color: #34D399; margin: 0 0 8px 0; letter-spacing: 0.05em;">Jurisprudência e Precedentes Vinculantes</h4>
+            <div id="precedentesList"></div>
+        </div>
     </div>
 </div>
 
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function () {
-        // Não usamos "x != null ? x : {}" no Thymeleaf: quando x é null,
-        // isso serializa como {} (objeto), e {}.map() quebra o JS inteiro
-        // e derruba os DOIS gráficos. Em vez disso, pegamos o valor cru
-        // (pode vir null) e normalizamos para array aqui no JS.
         /*<![CDATA[*/
         const rawOrgaoData = /*[[${processos}]]*/ null;
         const rawClasseData = /*[[${processosPorClasse}]]*/ null;
+        const rawAssuntoData = /*[[${processosPorAssunto}]]*/ null;
+        const currentClasseNome = /*[[${classeNome}]]*/ '';
+        const currentAssuntoNome = /*[[${assuntoNome}]]*/ '';
         /*]]>*/
 
         const orgaoData = Array.isArray(rawOrgaoData) ? rawOrgaoData : [];
         let classeData = Array.isArray(rawClasseData) ? rawClasseData : [];
+        let assuntoData = Array.isArray(rawAssuntoData) ? rawAssuntoData : [];
 
-        // Filtrar classes com mais de 30 processos
-        classeData = classeData.filter(p => Number(p[1] ?? 0) > 30);
+        // Só filtra corte de 30 na visão global sem filtros para evitar poluição visual
+        const hasFilter = (currentClasseNome && currentClasseNome.trim() !== '') || (currentAssuntoNome && currentAssuntoNome.trim() !== '');
+        if (!hasFilter) {
+            classeData = classeData.filter(p => Number(p[1] ?? 0) >= 30);
+            assuntoData = assuntoData.filter(p => Number(p[1] ?? 0) >= 30);
+        }
+        assuntoData = assuntoData.filter(p => p[0] && String(p[0]).trim() !== '');
 
         const orgaoLabels = orgaoData.map(p => String(p[0] ?? 'N/A'));
         const orgaoValues = orgaoData.map(p => Number(p[1] ?? 0));
         const classeLabels = classeData.map(p => String(p[0] ?? 'N/A'));
         const classeValues = classeData.map(p => Number(p[1] ?? 0));
+        const assuntoLabels = assuntoData.map(p => String(p[0] ?? 'N/A'));
+        const assuntoValues = assuntoData.map(p => Number(p[1] ?? 0));
 
         const chartTheme = {
             grid: 'rgba(148, 163, 184, 0.1)',
@@ -391,37 +448,16 @@
             barBorder: '#818CF8'
         };
 
-        // Cada busca recarrega a página (form GET), então "processos" e
-        // "processosPorClasse" já chegam atualizados do Thymeleaf a cada
-        // pesquisa — os gráficos são reconstruídos do zero com os dados
-        // atuais toda vez que a página carrega. A altura também se ajusta
-        // dinamicamente à quantidade de itens retornados pela busca.
-        //
-        // clickType controla o que acontece ao clicar numa barra:
-        //   'classe' -> abre o modal de Taxa de Sucesso (busca no backend)
-        //   'orgao'  -> abre o modal de Participação no Total (calculado no cliente)
-        //   null     -> barra não é clicável
         function buildBarChart(canvasId, labels, values, barColor, clickType = null) {
             try {
                 const el = document.getElementById(canvasId);
-                if (!el) {
-                    console.warn('[DataLaw] canvas não encontrado:', canvasId);
-                    return;
-                }
-                if (!labels || labels.length === 0) {
-                    console.warn('[DataLaw] sem dados para', canvasId);
-                    return;
-                }
-                if (typeof Chart === 'undefined') {
-                    console.error('[DataLaw] Chart.js não carregou (verifique bloqueio de rede/adblock/CSP).');
-                    return;
-                }
+                if (!el) return;
+                if (!labels || labels.length === 0) return;
+                if (typeof Chart === 'undefined') return;
 
-                // altura dinâmica: mais itens => mais espaço,
-                // aplicado ao container interno para que o chart-wrap faça o scroll
                 const innerWrap = document.getElementById('inner-' + canvasId);
                 if (innerWrap) {
-                    const dynamicHeight = Math.max(250, labels.length * 20);
+                    const dynamicHeight = Math.max(260, labels.length * 22);
                     innerWrap.style.height = dynamicHeight + 'px';
                 }
 
@@ -453,6 +489,8 @@
 
                             if (clickType === 'classe') {
                                 openTaxaSucessoModal(label);
+                            } else if (clickType === 'assunto') {
+                                openTaxaSucessoTemaModal(label);
                             } else if (clickType === 'orgao') {
                                 openParticipacaoModal(label, value, total);
                             }
@@ -487,6 +525,7 @@
         }
 
         buildBarChart('chartClasse', classeLabels, classeValues, 'rgba(192, 132, 252, 0.75)', 'classe');
+        buildBarChart('chartAssunto', assuntoLabels, assuntoValues, 'rgba(52, 211, 153, 0.75)', 'assunto');
         buildBarChart('chartOrgao', orgaoLabels, orgaoValues, chartTheme.bar, 'orgao');
 
         let gaugeChartInstance = null;
@@ -519,10 +558,10 @@
             });
         }
 
-        // Modal de Taxa de Sucesso (clique no gráfico de Classe) — busca no backend
         window.openTaxaSucessoModal = function(classeNome) {
+            document.getElementById('precedentesContainer').style.display = 'none';
             document.getElementById('successModal').classList.add('active');
-            document.getElementById('modalTitle').innerText = 'Decisão Favorável (Ouro)';
+            document.getElementById('modalTitle').innerText = 'Decisão Favorável por Classe (Ouro)';
             document.getElementById('modalSubtitle').innerText = classeNome;
             document.getElementById('gaugeText').innerText = '...';
 
@@ -539,8 +578,56 @@
                 });
         };
 
-        // Modal de Participação no Total (clique no gráfico de Órgão Julgador) — calculado no cliente
+        window.openTaxaSucessoTemaModal = function(assuntoNome) {
+            document.getElementById('successModal').classList.add('active');
+            document.getElementById('modalTitle').innerText = 'Decisão Favorável por Tema (Ouro)';
+            document.getElementById('modalSubtitle').innerText = assuntoNome;
+            document.getElementById('gaugeText').innerText = '...';
+            const precContainer = document.getElementById('precedentesContainer');
+            const precList = document.getElementById('precedentesList');
+            precContainer.style.display = 'none';
+            precList.innerHTML = '';
+
+            fetch(`/processos/taxa-sucesso-tema?assuntoNome=${encodeURIComponent(assuntoNome)}`)
+                .then(r => r.json())
+                .then(data => {
+                    const taxa = data.taxa || 0;
+                    document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
+                    renderGauge(taxa, '#34D399');
+
+                    if (data.precedentes && data.precedentes.length > 0) {
+                        precContainer.style.display = 'block';
+                        data.precedentes.forEach(p => {
+                            const trib = p[0] || '';
+                            const ident = p[1] || '';
+                            const tit = p[2] || '';
+                            const tese = p[3] || '';
+                            const em = p[4] || '';
+
+                            const itemDiv = document.createElement('div');
+                            itemDiv.style.marginBottom = '12px';
+                            itemDiv.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+                            itemDiv.style.paddingBottom = '8px';
+                            itemDiv.innerHTML = `
+                                <div style="font-weight: 600; color: #F8FAFC; font-size: 0.88rem;">
+                                    <span style="background: rgba(52, 211, 153, 0.2); color: #34D399; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">${trib}</span>
+                                    ${ident}: ${tit}
+                                </div>
+                                ${tese ? `<div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 4px;"><strong>Tese:</strong> ${tese}</div>` : ''}
+                                <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">${em}</div>
+                            `;
+                            precList.appendChild(itemDiv);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('Erro ao buscar taxa de sucesso do tema', err);
+                    document.getElementById('gaugeText').innerText = 'Erro';
+                });
+        };
+
         window.openParticipacaoModal = function(orgaoNome, quantidade, total) {
+            document.getElementById('precedentesContainer').style.display = 'none';
             document.getElementById('successModal').classList.add('active');
             document.getElementById('modalTitle').innerText = 'Participação no Total de Processos';
             document.getElementById('modalSubtitle').innerText = orgaoNome;
