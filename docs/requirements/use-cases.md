@@ -6,7 +6,7 @@
 |---|---|
 | Requested by | Client, through the definition of a favorable decision |
 | Primary actor | Data pipeline |
-| Requirements | RF11, RF12, RF13 |
+| Requirements | RF09, RF10 |
 | Story | US3.1 |
 | Preconditions | Silver is up to date and the thesis direction is recorded |
 | Postcondition | Each decision with a result has an adherence classification |
@@ -33,7 +33,7 @@
 |---|---|
 | Requested by | Client: "highest-value metric" |
 | Primary actor | Data pipeline |
-| Requirements | RF14, RNF14 |
+| Requirements | RF11, RNF14 |
 | Story | US3.2 |
 | Preconditions | UC-01 is complete |
 | Postcondition | Index materialized by court, topic and precedent |
@@ -52,13 +52,37 @@
 - **No decisions with a result:** the index is null.
 - **Recipe failure:** the previous table is kept.
 
-## UC-03 — View a topic's Adherence Index
+ ## UC-03 — View results by party
+
+| Field | Description |
+|---|---|
+| Requested by | Product Owner, pending client validation |
+| Primary actor | Strategic Lawyer |
+| Requirements | RF08 |
+| Story | US3.3 |
+| Preconditions | Gold is up to date, a topic is selected and the client has validated the rule (P1) |
+| Postcondition | The user knows how results split between plaintiff and defendant in the topic |
+| Existing code | `gold/topic_results.py`, `ProcessoRepository.java`, `orgaos-julgadores.html` |
+| Planned code | Party query, endpoint field and dashboard display |
+| Existing tests | TC-GLD-007 |
+
+**Happy path**
+1. The lawyer selects a topic.
+2. The system reads the topic's decisions with a result.
+3. The system counts 219 for the plaintiff and 220 for the defendant, and treats 221 as partial.
+4. The system shows both percentages with the sample size.
+
+**Alternative paths**
+- **No decisions with a result:** shows "Insufficient data".
+- **Small sample:** shows a low-reliability warning.
+
+## UC-04 — View a topic's Adherence Index
 
 | Field | Description |
 |---|---|
 | Requested by | Client; serves the Strategic Lawyer and the Legal Manager |
 | Primary actor | Strategic Lawyer |
-| Requirements | RF02, RF15, RF16, RF18 (conditional) |
+| Requirements | RF12, RF13|
 | Story | US3.3 |
 | Preconditions | Gold is up to date and the user is on the dashboard |
 | Postcondition | The user knows the index, sample and reliability |
@@ -78,7 +102,7 @@
 - **Topic without a precedent with direction:** states that no curated thesis exists.
 - **Small sample:** shows a low-reliability warning.
 
-## UC-04 — View the evidence behind the index
+## UC-05 — View the evidence behind the index
 
 | Field | Description |
 |---|---|
@@ -102,7 +126,7 @@
 - **Confidential case:** it is neither shown nor counted.
 - **No evidence:** shows a message and keeps the index unavailable.
 
-## UC-05 — Consult the indicator documentation
+## UC-06 — Consult the indicator documentation
 
 | Field | Description |
 |---|---|
