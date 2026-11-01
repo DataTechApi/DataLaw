@@ -29,10 +29,19 @@ These statements drive Sprint 3 priorities. They are translated from Portuguese;
 
 ### 3.1 Highest-value requirements (Sprint 3)
 
-#### RF08 — Classify the decision against the thesis
+#### RF08 — Display the view by party
+
+- **Requested by:** Product Owner, pending client validation
+- **Priority:** Highest
+- **Status:** Conditional (see P1)
+- **Description:** the system may show how results split between plaintiff and defendant in the selected topic.
+- **Proposed rule:** movement 219 favors the plaintiff, 220 favors the defendant and 221 is partial. The calculation does not need to identify the parties.
+- **Acceptance criterion:** the view is a complement and does not replace the Adherence Index.
+
+#### RF09 — Classify the decision against the thesis
 
 - **Requested by:** client
-- **Priority:** Critical
+- **Priority:** High
 - **Status:** Planned
 - **Description:** the system must classify each decision with a result as adherent, partially adherent or non-adherent to the analyzed thesis.
 - **Acceptance criteria:**
@@ -42,10 +51,10 @@ These statements drive Sprint 3 priorities. They are translated from Portuguese;
   - A thesis with `undefined` direction is left out of the calculation.
   - A case without a merit movement stays out of the denominator.
 
-#### RF09 — Record the thesis direction
+#### RF10 — Record the thesis direction
 
 - **Requested by:** team, to enable the client's definition
-- **Priority:** Critical
+- **Priority:** High
 - **Status:** Planned
 - **Description:** each precedent used in the index must have its thesis direction recorded, with curator and date.
 - **Reason:** the sampled DataJud payload has no decision text, and the BNP data in use does not state which party a thesis benefits.
@@ -54,10 +63,10 @@ These statements drive Sprint 3 priorities. They are translated from Portuguese;
   - The record stores curator and date.
   - A precedent without curation is treated as `undefined`.
 
-#### RF10 — Calculate the Adherence Index
+#### RF11 — Calculate the Adherence Index
 
 - **Requested by:** client
-- **Priority:** Critical
+- **Priority:** High
 - **Status:** Planned
 - **Description:** the system must calculate the Adherence Index by court, topic and precedent in the Gold layer.
 - **Proposed formula:**
@@ -71,7 +80,7 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
   - With no decisions with a result, the index is null, not 0%.
   - The client has validated the 0.5 weight for partial decisions (see P2).
 
-#### RF11 — Display the Adherence Index as the main indicator
+#### RF12 — Display the Adherence Index as the main indicator
 
 - **Requested by:** client
 - **Priority:** High
@@ -82,10 +91,10 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
   - The comparison sorts judging bodies by index.
   - A topic without data shows "Insufficient data", never 0%.
 
-#### RF12 — Show indicator source and reliability
+#### RF13 — Show indicator source and reliability
 
 - **Requested by:** client (story 1.4)
-- **Priority:** High
+- **Priority:** Medium
 - **Status:** Planned
 - **Description:** the index must show source, update date, sample size and coverage.
 - **Acceptance criteria:**
@@ -93,10 +102,10 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
   - Shows coverage: decisions with a result ÷ closed cases.
   - A sample below the RNF14 minimum shows a low-reliability warning.
 
-#### RF13 — Display the evidence behind the index
+#### RF14 — Display the evidence behind the index
 
 - **Requested by:** client (story 3.5)
-- **Priority:** High
+- **Priority:** Medium
 - **Status:** Planned
 - **Description:** from the index, the user must be able to open the cases and the precedent that support the calculation.
 - **Acceptance criteria:**
@@ -104,15 +113,6 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
   - Shows the thesis and direction used in the calculation.
   - The list totals match the value shown in the indicator.
   - No case with `nivel_sigilo > 0` appears.
-
-#### RF14 — Display the view by party
-
-- **Requested by:** Product Owner, pending client validation
-- **Priority:** Medium
-- **Status:** Conditional (see P1)
-- **Description:** the system may show how results split between plaintiff and defendant in the selected topic.
-- **Proposed rule:** movement 219 favors the plaintiff, 220 favors the defendant and 221 is partial. The calculation does not need to identify the parties.
-- **Acceptance criterion:** the view is a complement and does not replace the Adherence Index.
 
 ### 3.2 Revised original requirements
 
