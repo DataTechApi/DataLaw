@@ -419,10 +419,10 @@ DoR Checklist
 
 | Rank | Priority | User Story | Requirements | Use Case | Points |
 | --- | --- | --- | --- | --- | --- |
-| 3.1 | High | Classify decisions in relation to the thesis | RF11, RF12, RF13 | UC-01 | 5 |
-| 3.2 | High | Calculate the Adherence Index | RF14, RNF13, RNF14 | UC-02 | 5 |
-| 3.3 | High | Display the index with reliability and comparison by judging body | RF02, RF15, RF16 | UC-03 | 3 |
-| 3.4 | Medium | Provide evidence linked to the index | RF17, RNF13 | UC-04 | 3 |
+| 3.1 | High | Classify decisions in relation to the thesis | RF09, RF10 | UC-01 | 5 |
+| 3.2 | High | Calculate the Adherence Index | RF11, RNF13, RNF14 | UC-02 | 5 |
+| 3.3 | Highest | Display the index with reliability, view by party and comparison by judging body | RF08, RF12, RF13 | UC-03, UC-06 | 3 |
+| 3.4 | Medium | Provide evidence linked to the index | RF14, RNF13 | UC-04 | 3 |
 | 3.5 | Low | Document indicators and traceability | RNF10, RNF12 | UC-05 | 3 |
 
 <details>
