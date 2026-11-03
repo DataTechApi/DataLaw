@@ -52,15 +52,15 @@
 - **No decisions with a result:** the index is null.
 - **Recipe failure:** the previous table is kept.
 
- ## UC-03 — View results by party
+## UC-03 — View results by party
 
 | Field | Description |
 |---|---|
-| Requested by | Product Owner, pending client validation |
+| Requested by | Client (highest-priority view), rule pending validation (P6) |
 | Primary actor | Strategic Lawyer |
 | Requirements | RF08 |
-| Story | US3.3 |
-| Preconditions | Gold is up to date, a topic is selected and the client has validated the rule (P1) |
+| Story | US3.6 |
+| Preconditions | Gold is up to date, a topic is selected and the client has validated the rule (P6) |
 | Postcondition | The user knows how results split between plaintiff and defendant in the topic |
 | Existing code | `gold/topic_results.py`, `ProcessoRepository.java`, `orgaos-julgadores.html` |
 | Planned code | Party query, endpoint field and dashboard display |
@@ -82,7 +82,7 @@
 |---|---|
 | Requested by | Client; serves the Strategic Lawyer and the Legal Manager |
 | Primary actor | Strategic Lawyer |
-| Requirements | RF12, RF13|
+| Requirements | RF12, RF13 |
 | Story | US3.3 |
 | Preconditions | Gold is up to date and the user is on the dashboard |
 | Postcondition | The user knows the index, sample and reliability |
@@ -106,11 +106,11 @@
 
 | Field | Description |
 |---|---|
-| Requested by | Client, through stories 1.4 and 3.5 |
+| Requested by | Client, through stories 1.4 and 3.4 |
 | Primary actor | Legal Manager |
-| Requirements | RF17, RNF13 |
+| Requirements | RF14, RNF13 |
 | Story | US3.4 |
-| Preconditions | Index displayed (UC-03) |
+| Preconditions | Index displayed (UC-04) |
 | Postcondition | The user understands how the number was formed |
 | Existing code | `findPrecedentesPorAssunto` in `ProcessoRepository.java` |
 | Planned code | Query and evidence section in the template |
@@ -130,7 +130,7 @@
 
 | Field | Description |
 |---|---|
-| Requested by | Legal Manager (story 3.3) and the DevOps professor |
+| Requested by | Legal Manager (story 3.5) and the DevOps professor |
 | Primary actor | Legal Manager |
 | Requirements | RNF10, RNF12 |
 | Story | US3.5 |
