@@ -1,6 +1,6 @@
 # Requirements Specification — DataLaw
 
-Sprint 3 revision. IDs RF01–RF11 and RNF01–RNF11 were kept to preserve history.
+Sprint 3 revision. Functional requirements were renumbered in this revision: RF01–RF07 are the revised original requirements and RF08–RF14 are the Sprint 3 requirements. Non-functional IDs RNF01–RNF11 were kept.
 
 ## 1. Client definitions
 
@@ -31,12 +31,16 @@ These statements drive Sprint 3 priorities. They are translated from Portuguese;
 
 #### RF08 — Display the view by party
 
-- **Requested by:** Product Owner, pending client validation
+- **Requested by:** client (highest-priority view), rule pending validation (see P6)
 - **Priority:** Highest
-- **Status:** Conditional (see P1)
-- **Description:** the system may show how results split between plaintiff and defendant in the selected topic.
-- **Proposed rule:** movement 219 favors the plaintiff, 220 favors the defendant and 221 is partial. The calculation does not need to identify the parties.
-- **Acceptance criterion:** the view is a complement and does not replace the Adherence Index.
+- **Status:** Planned
+- **Description:** the system must show how results split between plaintiff and defendant in the selected topic.
+- **Proposed rule:** movement 219 favors the plaintiff, 220 favors the defendant and 221 counts as half for each. The calculation does not need to identify the parties.
+- **Acceptance criteria:**
+  - A topic with 60 movements 219, 20 of 221 and 20 of 220 shows 70% for the plaintiff and 30% for the defendant.
+  - The sample size is shown next to the percentages.
+  - A topic without decisions with a result shows "Insufficient data", never 0%.
+  - The client has validated the movement rule (see P6).
 
 #### RF09 — Classify the decision against the thesis
 
@@ -104,7 +108,7 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
 
 #### RF14 — Display the evidence behind the index
 
-- **Requested by:** client (story 3.5)
+- **Requested by:** client (story 3.4)
 - **Priority:** Medium
 - **Status:** Planned
 - **Description:** from the index, the user must be able to open the cases and the precedent that support the calculation.
@@ -118,13 +122,13 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
 
 | ID | Requirement | Priority | Status | Current code |
 |---|---|---|---|---|
-| RF01 | Single-screen metrics | High | Partial | Volumes and a rate in a modal; adherence comes through RF11 |
+| RF01 | Single-screen metrics | High | Partial | Volumes and a rate in a modal; adherence comes through RF12 |
 | RF02 | DataJud extraction | Critical | Implemented | Only TJSP is configured |
 | RF03 | Open data extraction | High | Partial | BNP integration exists |
 | RF04 | Cleaning and standardization | Critical | Implemented | Bronze and Silver layers |
 | RF05 | Dimensional storage | High | Partial | Aggregated Gold tables exist; no fact and dimension tables |
 | RF06 | Indicator dashboards | High | Partial | Volume dashboard exists; processing time is not displayed |
-| RF07 | Outcome classification | Critical | Partial | Claim outcome is classified; adherence is detailed in RF08 |
+| RF07 | Outcome classification | Critical | Partial | Claim outcome is classified; adherence is detailed in RF09 |
 
 ## 4. Non-functional requirements
 
@@ -138,7 +142,7 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
 | RNF06 | Functional tests | Medium | Partial | Controller tests exist; no UI tests |
 | RNF07 | Continuous static analysis | Medium | Partial | `ruff` runs in CI; `mypy` is manual; no SonarQube configuration in the repository |
 | RNF08 | CI/CD | High | Implemented | `.github/workflows/deploy.yml` |
-| RNF09 | Civil law scope | High | Partial | No area filter in code; tax topics appear in the documents (see P5) |
+| RNF09 | Civil law scope | High | Partial | No area filter in code; tax topics appear in the documents |
 | RNF10 | Traceability | High | Partial | [Matrix](traceability.md) updated in each PR |
 | RNF11 | Version control | Critical | Implemented | Git and GitHub |
 | RNF12 | Indicator documentation | High | Planned | Formula, assumptions and example for each indicator |
