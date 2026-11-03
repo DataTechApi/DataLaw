@@ -142,6 +142,7 @@ uv run ruff check src tests
 | 3.3 | High | As a Strategic Lawyer, I want the Adherence Index as the main dashboard indicator, with sample size and reliability, compared by judging body, so that I can assess where a thesis is accepted. | 3 | 3 |
 | 3.4 | High | As a Legal Manager, I want evidence linked to the Adherence Index, so that I can verify how the result was calculated. | 3 | 3 |
 | 3.5 | Medium | As a Legal Manager, I want complete documentation of indicators, calculations and requirements traceability, so that I can trust the platform results. | 3 | 3 |
+| 3.6 | Highest | As a Strategic Lawyer, I want to see the percentage of results favorable to the plaintiff and to the defendant in a topic, so that I can assess which side is more likely to succeed. | 1 | 3 |
 
 ### **Global Definition of Done (DoD)**
 
@@ -410,8 +411,8 @@ DoR Checklist
 
 ### **Sprint 3: Planning and Execution**
 
-* **Sprint Goal:** Deliver a reliable, traceable Adherence Index (%) by topic and precedent, the metric the client identified as the core of Legal Analytics.
-* **Estimated Capacity:** 19 story points
+* **Sprint Goal:** Deliver the plaintiff and defendant view by topic and a reliable, traceable Adherence Index (%) by topic and precedent, the metrics the client identified as the core of Legal Analytics.
+* **Estimated Capacity:** 20 story points
 * **Client definition:** a decision is favorable when it accepts the analyzed thesis, regardless of plaintiff or defendant. Average time and archival rate are secondary.
 * **Blocking dependency:** the open decisions in [docs/requirements/open-items.md](docs/requirements/open-items.md) must be validated with the client.
 * **Requirements and traceability:** see [docs/requirements](docs/requirements/README.md).
@@ -420,10 +421,10 @@ DoR Checklist
 | --- | --- | --- | --- | --- | --- |
 | 3.1 | High | Classify decisions in relation to the thesis | RF09, RF10 | UC-01 | 5 |
 | 3.2 | High | Calculate the Adherence Index | RF11, RNF13, RNF14 | UC-02 | 5 |
-| 3.3 | Highest | Display the index with reliability, view by party and comparison by judging body | RF08, RF12, RF13 | UC-03, UC-06 | 3 |
-| 3.4 | Medium | Provide evidence linked to the index | RF14, RNF13 | UC-04 | 3 |
-| 3.5 | Low | Document indicators and traceability | RNF10, RNF12 | UC-05 | 3 |
-| 3.6 | Highest | Compare plaintiff and defendant results by topic | RF08 | UC-06 | 1 |
+| 3.3 | High | Display the index with reliability and comparison by judging body | RF12, RF13 | UC-04 | 3 |
+| 3.4 | Medium | Provide evidence linked to the index | RF14, RNF13 | UC-05 | 3 |
+| 3.5 | Low | Document indicators and traceability | RNF10, RNF12 | UC-06 | 3 |
+| 3.6 | Highest | Compare plaintiff and defendant results by topic | RF08 | UC-03 | 1 |
 
 <details>
 
@@ -500,7 +501,7 @@ DoR Checklist
 
 DoR Checklist
 
-- Business rules defined: movement 219 counts for the plaintiff, 220 for the defendant and 221 as partial, validated with the client.
+- Business rules defined: movement 219 counts for the plaintiff, 220 for the defendant and 221 as half for each, validated with the client (P6).
 
 - Data available: merit movements of closed cases available in the Gold layer.
 
