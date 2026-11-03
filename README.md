@@ -142,7 +142,6 @@ uv run ruff check src tests
 | 3.3 | High | As a Strategic Lawyer, I want the Adherence Index as the main dashboard indicator, with sample size and reliability, compared by judging body, so that I can assess where a thesis is accepted. | 3 | 3 |
 | 3.4 | High | As a Legal Manager, I want evidence linked to the Adherence Index, so that I can verify how the result was calculated. | 3 | 3 |
 | 3.5 | Medium | As a Legal Manager, I want complete documentation of indicators, calculations and requirements traceability, so that I can trust the platform results. | 3 | 3 |
-| — | Out of scope | Unified interface with doctrine, general visual improvements and performance tuning. Deferred after the client confirmed the Adherence Index as the highest-value metric. | 13 | — |
 
 ### **Global Definition of Done (DoD)**
 
@@ -424,6 +423,7 @@ DoR Checklist
 | 3.3 | Highest | Display the index with reliability, view by party and comparison by judging body | RF08, RF12, RF13 | UC-03, UC-06 | 3 |
 | 3.4 | Medium | Provide evidence linked to the index | RF14, RNF13 | UC-04 | 3 |
 | 3.5 | Low | Document indicators and traceability | RNF10, RNF12 | UC-05 | 3 |
+| 3.6 | Highest | Compare plaintiff and defendant results by topic | RF08 | UC-06 | 1 |
 
 <details>
 
@@ -492,6 +492,19 @@ DoR Checklist
 - Data available: final indicators validated by the Product Owner.
 
 - Prototype approved: documentation structure reviewed and approved.
+
+</details>
+<details>
+
+<summary><strong>US3.6 — Compare plaintiff and defendant results by topic</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: movement 219 counts for the plaintiff, 220 for the defendant and 221 as partial, validated with the client.
+
+- Data available: merit movements of closed cases available in the Gold layer.
+
+- Prototype approved: plaintiff and defendant view placed next to the Adherence Index on the dashboard.
 
 </details>
 </details>
@@ -602,7 +615,6 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 | [Code Governance](docs/governance/code-governance.md) | Branching, commits, reviews and quality gates |
 | [Infrastructure](docs/infrastructure/infrastructure.md) | Environments, CI/CD, secrets and operations runbook |
 | [Code Guide](docs/code/code-guide.md) | Code structure, business rules, endpoints and extension guides |
-| [Test Strategy](docs/testing/test-strategy.md) | Test levels, rules and coverage priorities |
 | [Test Cases](docs/testing/test-cases.md) | Test strategy, coverage and catalogue of the automated test cases (backend and frontend) |
 
 <br>
