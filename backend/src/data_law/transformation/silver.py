@@ -42,10 +42,13 @@ def sync_bronze_to_silver(
     subjects = 0
     warnings = 0
 
+    pending_args: dict[str, str] = (
+        {"tribunal_sigla": tribunal_sigla} if tribunal_sigla is not None else {}
+    )
     while bronze_ids := _pending_bronze_ids(
         session_factory,
         batch_size,
-        tribunal_sigla=tribunal_sigla,
+        **pending_args,
     ):
         found += len(bronze_ids)
         for bronze_id in bronze_ids:
