@@ -4,6 +4,7 @@ import os
 from collections.abc import Sequence
 
 from data_law.infra.database.session import create_session_factory
+from data_law.ingestion.bronze import TRIBUNAL_METADATA
 from data_law.ingestion.ingestion import (
     DataJudClient,
     DataJudIngestionService,
@@ -21,12 +22,17 @@ def configure_logging() -> None:
     )
 
 
-def _sync_silver_and_gold(session_factory: object) -> SilverSyncReport:
+def _sync_silver_and_gold(
+    session_factory: object, tribunal_sigla: str
+) -> SilverSyncReport:
     """Synchronize Silver layer and trigger Gold materialization in cascade."""
     # Ensure all gold recipes are registered
     import data_law.transformation.gold_recipes  # noqa: F401
 
-    silver_report = sync_bronze_to_silver(session_factory)  # type: ignore[arg-type]
+    silver_report = sync_bronze_to_silver(  # type: ignore[arg-type]
+        session_factory,
+        tribunal_sigla=tribunal_sigla,
+    )
 
     try:
         gold_report = GoldMaterializer().run()
@@ -43,26 +49,48 @@ def _sync_silver_and_gold(session_factory: object) -> SilverSyncReport:
 
 def main(argv: Sequence[str] | None = None) -> None:
     configure_logging()
-    parser = argparse.ArgumentParser(description="Ingestão DataJud do TJSP")
+    parser = argparse.ArgumentParser(description="Ingestão DataJud por tribunal")
     parser.add_argument(
+        "--tribunal",
+        choices=tuple(TRIBUNAL_METADATA),
+        default="tjsp",
+        help="tribunal a ingerir (padrão: tjsp)",
+    )
+    operation = parser.add_mutually_exclusive_group()
+    operation.add_argument(
         "--full",
         action="store_true",
         help="executa a carga histórica a partir de março de 2026",
+    )
+    operation.add_argument(
+        "--resume",
+        metavar="RUN_ID",
+        help="retoma uma execução interrompida do tribunal informado",
     )
     arguments = parser.parse_args(argv)
 
     settings = DataJudSettings()  # type: ignore[call-arg]
     session_factory = create_session_factory()
+    tribunal_sigla = TRIBUNAL_METADATA[arguments.tribunal].sigla
+    client = DataJudClient(settings)
     service = DataJudIngestionService(
-        DataJudClient(settings),
+        client,
         session_factory,
-        silver_sync=lambda: _sync_silver_and_gold(session_factory),
+        silver_sync=lambda: _sync_silver_and_gold(session_factory, tribunal_sigla),
+        tribunal_key=arguments.tribunal,
     )
     try:
-        report = service.run_full() if arguments.full else service.run_incremental()
+        if arguments.resume:
+            report = service.resume_run(arguments.resume)
+        elif arguments.full:
+            report = service.run_full()
+        else:
+            report = service.run_incremental()
     except Exception:
         logging.getLogger(__name__).exception("Ingestão interrompida por erro")
         raise
+    finally:
+        client.close()
 
     print(
         f"Ingestão {report.mode} concluída: {report.pages} página(s), "

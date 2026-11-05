@@ -9,6 +9,7 @@ venv/
 
 # Dados gerados pela ingestão
 data/raw/
+backend/data/raw/
 
 # Cache e artefatos Python
 __pycache__/

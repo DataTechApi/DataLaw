@@ -27,6 +27,8 @@ class TribunalMetadata:
 
 TRIBUNAL_METADATA = {
     "tjsp": TribunalMetadata(alias="api_publica_tjsp", sigla="TJSP"),
+    "stj": TribunalMetadata(alias="api_publica_stj", sigla="STJ"),
+    "tst": TribunalMetadata(alias="api_publica_tst", sigla="TST"),
 }
 
 

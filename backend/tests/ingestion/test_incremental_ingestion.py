@@ -1,3 +1,4 @@
+import json
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -13,7 +14,9 @@ from data_law.ingestion.ingestion import (
     DataJudIngestionError,
     DataJudIngestionService,
     InitialIngestionRequiredError,
+    _RunProgress,
 )
+from data_law.ingestion.storage import save_raw_response as persist_raw_response
 from data_law.transformation.silver import SilverSyncReport
 
 
@@ -91,8 +94,23 @@ def _service(
 ) -> tuple[DataJudIngestionService, list[set[str]]]:
     calls: list[set[str]] = []
 
-    def save_raw(*args: object, **kwargs: object) -> Path:
-        return tmp_path / "data" / "raw" / "tjsp" / "page.json.gz"
+    def save_raw(
+        tribunal: str,
+        payload: dict[str, Any],
+        *,
+        run_id: str,
+        page: int,
+        ingestion_date: str,
+        raw_directory: Path,
+    ) -> Path:
+        return persist_raw_response(
+            tribunal,
+            payload,
+            run_id=run_id,
+            page=page,
+            ingestion_date=ingestion_date,
+            raw_directory=raw_directory,
+        )
 
     def process_raw(
         file_path: Path,
@@ -113,7 +131,7 @@ def _service(
             client,  # type: ignore[arg-type]
             lambda: session,  # type: ignore[arg-type]
             raw_directory=tmp_path / "data" / "raw",
-            page_size=2,
+            page_size=100,
         ),
         calls,
     )
@@ -151,7 +169,7 @@ def test_full_load_persists_only_completion_in_the_same_movement(
     date_filter = client.bodies[0]["query"]["bool"]["filter"][1]["range"]
     assert "movimentos.dataHora" in date_filter
     assert date_filter["movimentos.dataHora"]["gte"] == "2026-03-01T00:00:00Z"
-    assert "search_after" in client.bodies[1]
+    assert len(client.bodies) == 1
 
 
 def test_incremental_load_updates_known_process_and_new_completion(
@@ -224,8 +242,8 @@ def test_full_load_logs_progress_and_summary(
         service.run_full()
 
     assert "Iniciando ingestão histórica" in caplog.text
-    assert "Página processada: página=1 candidatos=1 selecionados=1" in caplog.text
-    assert "Ingestão Bronze concluída" in caplog.text
+    assert "Página Bronze concluída:" in caplog.text
+    assert "Extração Bronze concluída" in caplog.text
     assert "Checkpoint salvo" in caplog.text
     assert "Ingestão concluída:" in caplog.text
 
@@ -321,8 +339,7 @@ def test_full_page_without_sort_cursor_stops_pagination(
 ) -> None:
     now = datetime.now(UTC)
     response = _response(
-        _source("a", [], timestamp=now),
-        _source("b", [], timestamp=now),
+        *[_source(str(index), [], timestamp=now) for index in range(100)]
     )
     del response["hits"]["hits"][-1]["sort"]
     session = FakeSession()
@@ -354,3 +371,102 @@ def test_incremental_load_keeps_naive_checkpoint_as_utc(
     assert date_filter["@timestamp"]["gte"] == (
         expected_start.isoformat().replace("+00:00", "Z")
     )
+
+
+def test_monthly_windows_use_distinct_raw_page_numbers(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    march_start = datetime(2026, 3, 1, tzinfo=UTC)
+    april_start = datetime(2026, 4, 1, tzinfo=UTC)
+    may_start = datetime(2026, 5, 1, tzinfo=UTC)
+    march_source = _source(
+        "march",
+        [{"codigo": 22, "dataHora": datetime(2026, 3, 15, tzinfo=UTC).isoformat()}],
+        timestamp=datetime(2026, 3, 15, tzinfo=UTC),
+    )
+    april_source = _source(
+        "april",
+        [{"codigo": 22, "dataHora": datetime(2026, 4, 15, tzinfo=UTC).isoformat()}],
+        timestamp=datetime(2026, 4, 15, tzinfo=UTC),
+    )
+    client = FakeClient([_response(march_source), _response(april_source)])
+    service, calls = _service(monkeypatch, tmp_path, client, FakeSession())
+    progress = _RunProgress(
+        run_id="20260501T000000Z-12345678",
+        tribunal_key="tjsp",
+        mode="full",
+        tribunal="TJSP",
+        run_started_at=may_start,
+        query_start=march_start,
+        query_end=may_start,
+        completion_window_start=march_start,
+        strategy="monthly",
+        windows=[
+            (march_start, april_start, True),
+            (april_start, may_start, False),
+        ],
+        page_size=100,
+    )
+
+    report = service._run(progress)
+
+    run_directory = (
+        tmp_path
+        / "data/raw/tjsp/ingestion_date=2026-05-01"
+        / f"run_id={progress.run_id}"
+    )
+    raw_files = sorted(run_directory.glob("page-*.json.gz"))
+    assert report.pages == 2
+    assert calls == [{"march"}, {"april"}]
+    assert [path.name for path in raw_files] == [
+        "page-000001.json.gz",
+        "page-000002.json.gz",
+    ]
+    assert len(client.bodies) == 2
+
+
+def test_resume_reprocesses_saved_raw_page_without_a_new_request(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    now = datetime.now(UTC)
+    source = _source(
+        "completed",
+        [{"codigo": 22, "dataHora": (now - timedelta(days=1)).isoformat()}],
+        timestamp=now,
+    )
+    client = FakeClient([_response(source)])
+    service, calls = _service(monkeypatch, tmp_path, client, FakeSession())
+
+    def fail_processing(*args: object, **kwargs: object) -> ProcessedFile:
+        raise RuntimeError("interrupção simulada")
+
+    monkeypatch.setattr(
+        "data_law.ingestion.ingestion.process_raw_file", fail_processing
+    )
+    with pytest.raises(RuntimeError, match="interrupção simulada"):
+        service.run_full()
+
+    state_path = next((tmp_path / "data/raw/tjsp").glob("**/.progress.state"))
+    run_id = json.loads(state_path.read_text(encoding="utf-8"))["run_id"]
+    requests_before_resume = len(client.bodies)
+
+    def process_raw(
+        file_path: Path,
+        database_session: FakeSession,
+        **kwargs: object,
+    ) -> ProcessedFile:
+        included = kwargs["included_datajud_ids"]
+        assert isinstance(included, set)
+        calls.append(included)
+        return ProcessedFile(
+            source_file=str(file_path), total=len(included), changed=len(included)
+        )
+
+    monkeypatch.setattr("data_law.ingestion.ingestion.process_raw_file", process_raw)
+    report = service.resume_run(run_id)
+
+    assert report.persisted == 1
+    assert calls == [{"completed"}]
+    assert len(client.bodies) == requests_before_resume
