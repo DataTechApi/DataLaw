@@ -115,43 +115,6 @@ data/raw/tjsp/
 uv run ruff format src tests
 uv run ruff check src tests
 ```
-<h1 id="white_check_mark-requirements">✅ Requirements</h1>
-
-<details>
-  <summary>Functional Requirements (RF)</summary>
-
-| ID | Title | Description |
-|---|---|---|
-| RF01 | Simplified Query	| Allow natural language questions that return direct indicators |
-| RF02 | Single-screen Metrics | Display adherence, processing time, and case volume in one unified interface |
-| RF03 | Basic Filters | Enable filtering by court, topic, and period without complex navigation |
-| RF04 | Semantic Search | Support meaning-based search to find related precedents |
-| RF05 | DataJud extraction | Extract decisions from the DataJud (CNJ) API |
-| RF06 | Open data extraction | Extract data from open government data portals |
-| RF07 | Data cleaning | Clean and standardize data extracted from heterogeneous sources |
-| RF08 | Dimensional storage | Store data in a dimensional model (Fact: Decision/Case; Dimensions: Court, Topic, Author, Document Type, Period) |
-| RF09 | Semantic search | Support search by meaning/context, not only by keyword |
-| RF10 | Indicator dashboards | Display dashboards with adherence, processing time and volume indicators |
-| RF11 | Outcome classification | Classify the outcome of each decision (favorable/unfavorable, adherent/non-adherent to precedent) |
-
-</details>
-
-<details>
-  <summary>Non-Functional Requirements (RNF)</summary>
-
-| ID | Title | Description |
-|---|---|---|
-| RNF01 | Data model documentation | Conceptual, logical and physical dimensional model, plus a data dictionary |
-| RNF02 | API documentation | All API endpoints must be documented |
-| RNF03 | Backend Language | Built in Python |
-| RNF04 | Frontend Language | Built with Java |
-| RNF05 | Unit/integration tests | Automated unit and/or integration tests to ensure data integrity |
-| RNF06 | Functional tests | Automated functional tests at API and UI level |
-| RNF07 | Static analysis | Continuous static code analysis |
-| RNF08 | DevOps / CI-CD | CI/CD pipeline with technically justified tooling |
-| RNF09 | Scope restriction | Data scope restricted to civil law across all covered courts (STF, STJ, TJ) |
-| RNF10 | Traceability | Full traceability between requirement, backlog and delivery, managed via Jira |
-| RNF11 | Version control | Source code versioned in Git |
 
 </details>
 
@@ -174,11 +137,12 @@ uv run ruff check src tests
 | 2.5 | High | As a Legal Manager, I want to view adherence indicators for a selected topic, so that I can evaluate how strongly the topic appears within the analyzed dataset. | 8 | 2 |
 | 2.8 | High | As a Strategic Lawyer, I want to access related jurisprudence references for a searched topic, so that I can deepen my legal research. | 5 | 2 |
 | 2.9 | Medium | As a User, I want dashboards to display data source and reliability information, so that I can trust the generated indicators. | 3 | 2 |
-| 3.1 | Medium | As a User, I want a unified interface for jurisprudence, precedents and doctrine, so that I can navigate legal information more efficiently. | 5 | 3 |
-| 3.2 | Low | As a User, I want improved dashboard visualizations, so that legal indicators are easier to understand. | 5 | 3 |
-| 3.3 | Low | As a Legal Manager, I want complete documentation of indicators and calculations, so that I can trust the platform results. | 3 | 3 |
-| 3.4 | Low | As the system, I want dashboard and query performance improvements, so that data is displayed faster. | 3 | 3 |
-| 3.5 | Low | As a User, I want evidence sections linked to indicators, so that I can understand how each result was calculated. | 3 | 3 |
+| 3.1 | High | As a Strategic Lawyer, I want each decision classified as adherent or non-adherent to the analyzed thesis, regardless of plaintiff or defendant, so that the result reflects whether the court accepted the legal position. | 5 | 3 |
+| 3.2 | High | As a Legal Manager, I want the Adherence Index (%) by topic and precedent, so that I can base risk and litigation decisions on the platform's main metric. | 5 | 3 |
+| 3.3 | High | As a Strategic Lawyer, I want the Adherence Index as the main dashboard indicator, with sample size and reliability, compared by judging body, so that I can assess where a thesis is accepted. | 3 | 3 |
+| 3.4 | High | As a Legal Manager, I want evidence linked to the Adherence Index, so that I can verify how the result was calculated. | 3 | 3 |
+| 3.5 | Medium | As a Legal Manager, I want complete documentation of indicators, calculations and requirements traceability, so that I can trust the platform results. | 3 | 3 |
+| 3.6 | Highest | As a Strategic Lawyer, I want to see the percentage of results favorable to the plaintiff and to the defendant in a topic, so that I can assess which side is more likely to succeed. | 1 | 3 |
 
 ### **Global Definition of Done (DoD)**
 
@@ -447,88 +411,102 @@ DoR Checklist
 
 ### **Sprint 3: Planning and Execution**
 
-* **Sprint Goal:** Consolidate the user experience, improve platform reliability, refine legal analytics visualizations, and finalize documentation, testing and performance optimizations.
-* **Estimated Capacity:** 19 story points
+* **Sprint Goal:** Deliver the plaintiff and defendant view by topic and a reliable, traceable Adherence Index (%) by topic and precedent, the metrics the client identified as the core of Legal Analytics.
+* **Estimated Capacity:** 20 story points
+* **Client definition:** a decision is favorable when it accepts the analyzed thesis, regardless of plaintiff or defendant. Average time and archival rate are secondary.
+* **Blocking dependency:** the open decisions in [docs/requirements/open-items.md](docs/requirements/open-items.md) must be validated with the client.
+* **Requirements and traceability:** see [docs/requirements](docs/requirements/README.md).
 
-| Rank | Priority | User Story | Points |
-| --- | --- | --- | --- |
-| 3.1 | Medium | As a User, I want a unified interface for jurisprudence, precedents and doctrine, so that I can navigate legal information more efficiently. | 5 | 
-| 3.2 | Low | As a User, I want improved dashboard visualizations, so that legal indicators are easier to understand. | 5 | 
-| 3.3 | Low | As a Legal Manager, I want complete documentation of indicators and calculations, so that I can trust the platform results. | 3 | 
-| 3.4 | Low | As the system, I want dashboard and query performance improvements, so that data is displayed faster. | 3 | 
-| 3.5 | Low | As a User, I want evidence sections linked to indicators, so that I can understand how each result was calculated. | 3 | 
+| Rank | Priority | User Story | Requirements | Use Case | Points |
+| --- | --- | --- | --- | --- | --- |
+| 3.1 | High | Classify decisions in relation to the thesis | RF09, RF10 | UC-01 | 5 |
+| 3.2 | High | Calculate the Adherence Index | RF11, RNF13, RNF14 | UC-02 | 5 |
+| 3.3 | High | Display the index with reliability and comparison by judging body | RF12, RF13 | UC-04 | 3 |
+| 3.4 | Medium | Provide evidence linked to the index | RF14, RNF13 | UC-05 | 3 |
+| 3.5 | Low | Document indicators and traceability | RNF10, RNF12 | UC-06 | 3 |
+| 3.6 | Highest | Compare plaintiff and defendant results by topic | RF08 | UC-03 | 1 |
 
 <details>
- 
-<summary><strong>US3.1 — Provide a unified interface for jurisprudence, precedents and doctrine</strong></summary>
- 
-DoR Checklist
-  
-- Business rules defined: navigation flow between jurisprudence, precedents and doctrine documented.
- 
-- Data available: jurisprudence, precedent and doctrine datasets available and linked to legal topics.
- 
-- Prototype approved: unified legal intelligence interface reviewed and approved. 
 
- 
+<summary><strong>US3.1 — Classify decisions in relation to the thesis</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: classification by thesis direction validated with the client.
+
+- Data available: thesis direction registered for the pilot precedents.
+
+- Prototype approved: classification rules reviewed by the Product Owner.
+
 </details>
- 
+
 <details>
- 
-<summary><strong>US3.2 — Improve dashboard visualizations</strong></summary>
- 
+
+<summary><strong>US3.2 — Calculate the Adherence Index</strong></summary>
+
 DoR Checklist
 
-- Business rules defined: visualization improvements and UX guidelines documented.
- 
-- Data available: indicators and charts from previous sprints validated.
- 
-- Prototype approved: updated dashboard mockups reviewed with stakeholders.
- 
- 
+- Business rules defined: formula, partial decision weight and minimum sample documented.
+
+- Data available: classified decisions available in the Gold layer.
+
+- Prototype approved: expected result defined from a closed numeric example.
+
 </details>
- 
+
 <details>
- 
-<summary><strong>US3.3 — Document indicators and calculations</strong></summary>
- 
+
+<summary><strong>US3.3 — Display the index with reliability and comparison by judging body</strong></summary>
+
 DoR Checklist
-  
+
+- Business rules defined: reliability levels and insufficient-data behavior documented.
+
+- Data available: Adherence Index available by judging body.
+
+- Prototype approved: dashboard layout reviewed by the Product Owner.
+
+</details>
+
+<details>
+
+<summary><strong>US3.4 — Provide evidence linked to the index</strong></summary>
+
+DoR Checklist
+
+- Business rules defined: evidence fields and LGPD exclusions documented.
+
+- Data available: decisions and precedents used in the calculation accessible.
+
+- Prototype approved: evidence section layout reviewed and approved.
+
+</details>
+
+<details>
+
+<summary><strong>US3.5 — Document indicators and traceability</strong></summary>
+
+DoR Checklist
+
 - Business rules defined: formulas, assumptions and calculation methods documented.
- 
-- Data available: final business indicators validated by the Product Owner.
- 
+
+- Data available: final indicators validated by the Product Owner.
+
 - Prototype approved: documentation structure reviewed and approved.
 
- 
 </details>
- 
 <details>
- 
-<summary><strong>US3.4 — Improve dashboard and query performance</strong></summary>
- 
+
+<summary><strong>US3.6 — Compare plaintiff and defendant results by topic</strong></summary>
+
 DoR Checklist
-  
-- Business rules defined: performance targets and acceptable response times documented.
- 
-- Data available: representative dataset available for performance testing.
- 
-- Prototype approved: optimization approach reviewed by the team.
- 
-</details>
- 
-<details>
- 
-<summary><strong>US3.5 — Provide evidence sections linked to indicators</strong></summary>
- 
-DoR Checklist
-  
-- Business rules defined: evidence selection criteria documented.
- 
-- Data available: supporting decisions, jurisprudence references and related sources available.
- 
-- Prototype approved: evidence section layout reviewed and approved.
- 
+
+- Business rules defined: movement 219 counts for the plaintiff, 220 for the defendant and 221 as half for each, validated with the client (P6).
+
+- Data available: merit movements of closed cases available in the Gold layer.
+
+- Prototype approved: plaintiff and defendant view placed next to the Adherence Index on the dashboard.
+
 </details>
 </details>
 
@@ -540,9 +518,9 @@ DoR Checklist
 - - Discovery follow-up: additional stakeholder questions to refine the real business pain point
 - - Sprint 1 — Planning
 - - Sprint 1 — Execution
-- [x] Sprint 1 — Review / Sprint 2 Planning
-- [ ] Sprint 2 — Execution
-- [ ] Sprint 2 — Review / Sprint 3 Planning
+- - Sprint 1 — Review / Sprint 2 Planning
+- - Sprint 2 — Execution
+- [-] Sprint 2 — Review / Sprint 3 Planning
 - [ ] Sprint 3 — Execution
 - [ ] Sprint 3 — Review
 - [ ] Final presentation
@@ -633,6 +611,11 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 
 | Document | Description |
 |---|---|
+| [Handover Guide](docs/handover/README.md) | Starting point for the client team, with checklist and risk register |
+| [Requirements](docs/requirements/README.md) | Requirements specification, use cases and traceability matrix |
+| [Code Governance](docs/governance/code-governance.md) | Branching, commits, reviews and quality gates |
+| [Infrastructure](docs/infrastructure/infrastructure.md) | Environments, CI/CD, secrets and operations runbook |
+| [Code Guide](docs/code/code-guide.md) | Code structure, business rules, endpoints and extension guides |
 | [Test Cases](docs/testing/test-cases.md) | Test strategy, coverage and catalogue of the automated test cases (backend and frontend) |
 
 <br>

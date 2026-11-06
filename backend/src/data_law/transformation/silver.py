@@ -30,8 +30,9 @@ def sync_bronze_to_silver(
     session_factory: SessionFactory,
     *,
     batch_size: int = 500,
+    tribunal_sigla: str | None = None,
 ) -> SilverSyncReport:
-    """Synchronize only missing or changed Bronze extracts into the Silver layer."""
+    """Synchronize missing or changed Bronze extracts, optionally by tribunal."""
     if batch_size <= 0:
         raise ValueError("batch_size deve ser maior que zero")
 
@@ -41,7 +42,14 @@ def sync_bronze_to_silver(
     subjects = 0
     warnings = 0
 
-    while bronze_ids := _pending_bronze_ids(session_factory, batch_size):
+    pending_args: dict[str, str] = (
+        {"tribunal_sigla": tribunal_sigla} if tribunal_sigla is not None else {}
+    )
+    while bronze_ids := _pending_bronze_ids(
+        session_factory,
+        batch_size,
+        **pending_args,
+    ):
         found += len(bronze_ids)
         for bronze_id in bronze_ids:
             with session_factory() as session:
@@ -181,15 +189,20 @@ def sync_bronze_to_silver(
 def _pending_bronze_ids(
     session_factory: SessionFactory,
     batch_size: int,
+    *,
+    tribunal_sigla: str | None = None,
 ) -> list[UUID]:
     with session_factory() as session:
-        statement = (
-            select(BronzeDataJudExtract.id)
-            .outerjoin(
-                SilverDataJudProcess,
-                SilverDataJudProcess.bronze_extract_id == BronzeDataJudExtract.id,
+        statement = select(BronzeDataJudExtract.id).outerjoin(
+            SilverDataJudProcess,
+            SilverDataJudProcess.bronze_extract_id == BronzeDataJudExtract.id,
+        )
+        if tribunal_sigla is not None:
+            statement = statement.where(
+                BronzeDataJudExtract.tribunal_sigla == tribunal_sigla
             )
-            .where(
+        statement = (
+            statement.where(
                 or_(
                     SilverDataJudProcess.id.is_(None),
                     SilverDataJudProcess.source_payload_hash

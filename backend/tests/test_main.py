@@ -34,10 +34,12 @@ class FakeService:
         client: Any,
         session_factory: Any,
         silver_sync: Any = None,
+        tribunal_key: str = "tjsp",
     ) -> None:
         self.client = client
         self.session_factory = session_factory
         self.silver_sync = silver_sync
+        self.tribunal_key = tribunal_key
         self.calls: list[str] = []
         FakeService.instances.append(self)
 
@@ -46,6 +48,10 @@ class FakeService:
 
     def run_incremental(self) -> IngestionReport:
         return self._run("incremental")
+
+    def resume_run(self, run_id: str) -> IngestionReport:
+        self.calls.append(f"resume:{run_id}")
+        return replace(REPORT, mode="full")
 
     def _run(self, mode: str) -> IngestionReport:
         self.calls.append(mode)
@@ -64,26 +70,42 @@ class FakeGoldMaterializer:
         return GoldRunReport(materializations=())
 
 
+class FakeClient:
+    def __init__(self, settings: object) -> None:
+        self.settings = settings
+        self.closed = False
+
+    def close(self) -> None:
+        self.closed = True
+
+
 @pytest.fixture
 def fake_cli(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     FakeService.instances = []
     FakeService.fail_with = None
     FakeGoldMaterializer.runs = 0
     session_factory = object()
+    client = FakeClient("settings")
     synced: list[object] = []
 
-    def fake_sync(factory: object) -> SilverSyncReport:
+    def fake_sync(
+        factory: object, *, tribunal_sigla: str | None = None
+    ) -> SilverSyncReport:
         synced.append(factory)
         return SilverSyncReport(found=0, synced=0, movements=0, warnings=0)
 
     monkeypatch.setattr(cli, "DataJudSettings", lambda: "settings")
-    monkeypatch.setattr(cli, "DataJudClient", lambda settings: ("client", settings))
+    monkeypatch.setattr(cli, "DataJudClient", lambda settings: client)
     monkeypatch.setattr(cli, "create_session_factory", lambda: session_factory)
     monkeypatch.setattr(cli, "DataJudIngestionService", FakeService)
     monkeypatch.setattr(cli, "sync_bronze_to_silver", fake_sync)
     monkeypatch.setattr(cli, "GoldMaterializer", FakeGoldMaterializer)
     monkeypatch.setattr(cli, "configure_logging", lambda: None)
-    return {"session_factory": session_factory, "synced": synced}
+    return {
+        "session_factory": session_factory,
+        "synced": synced,
+        "client": client,
+    }
 
 
 def test_main_runs_incremental_ingestion_by_default(
@@ -94,7 +116,7 @@ def test_main_runs_incremental_ingestion_by_default(
 
     service = FakeService.instances[0]
     assert service.calls == ["incremental"]
-    assert service.client == ("client", "settings")
+    assert service.client is fake_cli["client"]
     assert service.session_factory is fake_cli["session_factory"]
     output = capsys.readouterr().out
     assert "Ingestão incremental concluída: 2 página(s)" in output
@@ -148,3 +170,17 @@ def test_configure_logging_uses_log_level_from_environment(
     cli.configure_logging()
 
     assert calls[0]["level"] == "DEBUG"
+
+
+def test_main_resumes_the_requested_run_and_closes_the_client(
+    fake_cli: dict[str, Any], capsys: pytest.CaptureFixture[str]
+) -> None:
+    run_id = "20261022T233929Z-2d4ac216"
+
+    cli.main(["--tribunal", "tjsp", "--resume", run_id])
+
+    service = FakeService.instances[0]
+    assert service.calls == [f"resume:{run_id}"]
+    assert service.tribunal_key == "tjsp"
+    assert fake_cli["client"].closed is True
+    assert "Ingestão full concluída" in capsys.readouterr().out

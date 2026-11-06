@@ -2,7 +2,6 @@
 name = "datalaw"
 version = "0.1.0"
 description = "Ingestão e processamento de dados para o projeto DataLaw."
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.20.0",
@@ -64,4 +63,9 @@ bronze-load = "python -m data_law.ingestion.bronze"
 silver-load = "python -m data_law.transformation.silver"
 gold-load = "python -m data_law.transformation.gold"
 full-ingest = "python -m data_law.main --full"
+full-ingest-stj = "python -m data_law.main --tribunal stj --full"
+full-ingest-tst = "python -m data_law.main --tribunal tst --full"
+ingest-tjsp = "python -m data_law.main --tribunal tjsp"
+ingest-stj = "python -m data_law.main --tribunal stj"
+ingest-tst = "python -m data_law.main --tribunal tst"
 db-shell = "docker exec -it datalaw_db psql -U datalaw -d datalaw_db"

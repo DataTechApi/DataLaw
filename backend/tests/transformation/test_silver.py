@@ -2,6 +2,7 @@ import uuid
 from datetime import UTC, date, datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -14,6 +15,7 @@ from data_law.transformation.silver import (
     _movement_values,
     _parse_process_date,
     _parse_timestamp,
+    _pending_bronze_ids,
     _process_values,
     _string,
     _subject_values,
@@ -349,3 +351,17 @@ def test_process_values_tolerates_missing_and_malformed_fields() -> None:
     ):
         assert values[field] is None, field
     assert values["datajud_id"] == "TJSP_JE_00000001020268260100"
+
+
+def test_pending_bronze_ids_filters_by_tribunal_when_requested() -> None:
+    session = MagicMock()
+    session.scalars.return_value = []
+    session_factory = MagicMock(return_value=session)
+    session.__enter__.return_value = session
+
+    _pending_bronze_ids(session_factory, 50, tribunal_sigla="STJ")
+
+    statement = session.scalars.call_args.args[0]
+    compiled = statement.compile()
+    assert "bronze.datajud_extract.tribunal_sigla" in str(compiled)
+    assert "STJ" in compiled.params.values()
