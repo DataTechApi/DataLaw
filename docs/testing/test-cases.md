@@ -2,7 +2,7 @@
 
 # TEST CASES
 ### DataLaw — Automated Test Documentation
-#### Sprint 2
+#### Sprint 3
 
 </div>
 
@@ -10,11 +10,12 @@
   <a href="#memo-overview">Overview</a> •
   <a href="#arrow_forward-how-to-run">How to Run</a> •
   <a href="#dart-test-strategy">Test Strategy</a> •
+  <a href="#arrows_counterclockwise-test-flow">Test Flow</a> •
   <a href="#bar_chart-coverage-summary">Coverage</a> •
   <a href="#test_tube-backend-test-cases">Backend Test Cases</a> •
   <a href="#test_tube-frontend-test-cases">Frontend Test Cases</a> •
-  <a href="#warning-known-gaps">Known Gaps</a> •
-  <a href="#robot-continuous-integration">CI</a>
+  <a href="#robot-continuous-integration">CI</a> •
+  <a href="#clipboard-execution-report">Execution Report</a>
 </p>
 
 <br>
@@ -22,26 +23,26 @@
 <h1 id="memo-overview">📝 Overview</h1>
 
 <p align="justify">
-This document describes the automated test strategy of DataLaw and lists every test case currently implemented. Each test case shows the scenario being exercised and the expected result, so it can be reviewed without reading the test code. It supports the requirements <b>RNF05 — Unit/integration tests</b> and <b>RNF06 — Functional tests</b>, and the backlog items <b>SCRUM-131</b>, <b>SCRUM-133</b> and <b>SCRUM-134</b>.
+This document describes the automated test strategy of DataLaw and lists every test case currently implemented. Each test case shows the scenario being exercised and the expected result, so it can be reviewed without reading the test code. It supports the requirements <b>RNF05 — Unit/integration tests</b> and <b>RNF06 — Functional tests</b>, and the backlog items <b>SCRUM-127</b> (Sprint 2 tests: SCRUM-129 to SCRUM-136) and <b>SCRUM-163</b> (Sprint 3 test documentation). Requirement-to-test links are kept in the <a href="../requirements/traceability.md">traceability matrix</a>.
 </p>
 
 | Area | Framework | Test cases | Executions | Result |
 |---|---|---|---|---|
-| Backend (`backend/tests`) | pytest | 143 | 252 (parametrized) | 251 passed, 1 skipped |
+| Backend (`backend/tests`) | pytest | 148 | 257 (parametrized) | 256 passed, 1 skipped |
 | Frontend (`frontend/src/test`) | JUnit 5, Mockito, Spring MockMvc | 14 | 14 | 14 passed |
-| **Total** | | **157** | **266** | **265 passed, 1 skipped** |
+| **Total** | | **162** | **271** | **270 passed, 1 skipped** |
 
 <p align="justify">
-The skipped test is the PostgreSQL integration test <code>test_postgres_merge_updates_only_changed_process</code>. It only runs when the <code>DATABASE_URL</code> environment variable is set.
+The skipped test is the PostgreSQL integration test <code>test_postgres_merge_updates_only_changed_process</code>. It is skipped when the <code>DATABASE_URL</code> environment variable is not set. Locally it runs against the PostgreSQL started with Docker Compose, and in CI against the PostgreSQL service container of the <code>test</code> job.
 </p>
 
 ## **Test Levels**
 
 | Level | Status | Description |
 |---|---|---|
-| Unit | Implemented | Functions, services and controllers tested in isolation with fakes and mocks. No database, network or Docker required. |
-| Integration | Planned | Real PostgreSQL (Testcontainers) for migrations, SQL Gold recipes and `ProcessoRepository` native queries. |
-| End-to-end | Planned | Raw files → Bronze → Silver → Gold → dashboard. |
+| Unit | Implemented | Functions, methods, services and controllers tested in isolation with fakes and mocks. No database, network or Docker required. |
+| Integration | Partial | One test (`TC-BRZ-014`) runs against a real PostgreSQL database: the local Docker Compose database or the CI service container. Still planned: SQL Gold recipes, `ProcessoRepository` native queries and the tribunal filter of the Silver sync. |
+| End-to-end | Not planned for Sprint 3 | Raw files → Bronze → Silver → Gold → dashboard. |
 
 <br>
 
@@ -49,10 +50,16 @@ The skipped test is the PostgreSQL integration test <code>test_postgres_merge_up
 
 ## **Backend**
 
-```bash
-cd backend
-uv run task test
-```
+| Goal | Command (inside `backend/`) |
+|---|---|
+| Full suite (regression) | `uv run task test` |
+| Unit tests only | `uv run pytest -m "not integration"` |
+| Integration tests only | See [Integration tests locally](#integration-tests-locally) below |
+| One file or one test | `uv run pytest tests/ingestion/test_bronze.py -v` |
+| Lint and formatting | `uv run ruff check src tests` and `uv run ruff format --check src tests` |
+
+> **Windows:** if Windows App Control blocks the executables created in `.venv` (`os error 4551`), run the suite with the system Python in a separate environment:
+> `$env:UV_PROJECT_ENVIRONMENT="$HOME\datalaw-venv"` and then `uv run --python <path-to-system-python.exe> --all-groups python -m pytest`.
 
 With the coverage report (installs `pytest-cov` only for this execution):
 
@@ -75,17 +82,51 @@ With the JaCoCo coverage report (the plugin is called from the command line, so 
 
 The report is generated at `frontend/target/site/jacoco/index.html`. On Windows PowerShell use `.\mvnw.cmd` instead of `./mvnw`.
 
-> **Warning:** never export the `DATABASE_URL` from the project `.env` before running the tests. It points to the production database, and the integration test writes and deletes rows in `bronze.datajud_extract`.
+## **Integration tests locally**
+
+The integration tests use the same local environment described in [DevOps — Ambiente Local de Desenvolvimento](../architecture/Devops.md#ambiente-local-de-desenvolvimento):
+
+1. Start the local PostgreSQL 18 from the repository root: `docker compose up -d` (container `datalaw_db`).
+2. In `backend/.env`, set `DATABASE_URL=postgresql+psycopg://datalaw:<password>@localhost:5432/datalaw_db`.
+3. Create the schemas and tables: `uv run alembic upgrade head` (inside `backend/`).
+4. Run the tests: `uv run pytest -m integration`.
+
+> **Warning:** the integration test writes and deletes rows in `bronze.datajud_extract`. Run it only against the local Docker database or the CI service container, never with a `DATABASE_URL` pointing to a shared or production database.
 
 <br>
 
 <h1 id="dart-test-strategy">🎯 Test Strategy</h1>
+
+## **Unit of Test**
+
+<p align="justify">
+The smallest unit analyzed is the <b>function</b> in Python and the <b>method</b> in Java. It is the smallest piece of code with verifiable behavior: inputs, processing and an observable output. When a unit test fails, it points to the exact function that broke. Larger units, such as a whole service with every external dependency replaced by test doubles (for example <code>DataJudIngestionService.run_full()</code>), are also tested at the unit level.
+</p>
+
+## **Why Unit Tests First**
+
+- **Independence from the environment:** unit tests run without Docker, PostgreSQL or a configured `.env`, so they never write to a database by accident and run the same way on any machine.
+- **Speed:** the whole unit suite runs in seconds, so it can run on every change and work as the regression suite.
+- **Precision:** a failure identifies the function that broke instead of a whole pipeline.
+- **Where the logic lives:** most business rules are small, deterministic functions (response validation, date windows, type conversion, change detection by hash).
+
+## **Scenarios per Unit**
+
+| Scenario | Purpose | Example |
+|---|---|---|
+| Positive (happy path) | Valid input produces the expected output | 2026-09-15 minus 6 months → 2026-03-15 (`TC-ING-020`) |
+| Negative | Invalid input or failure is handled safely | DataJud timeout stops the run and the checkpoint is not saved (`TC-ING-009`) |
+| Edge case | Valid input at the limit, where bugs usually hide | 2026-08-31 minus 6 months → 2026-02-28, and 2028-02-29 in a leap year (`TC-ING-020`) |
+
+## **Practices**
 
 - **Isolation:** external dependencies are replaced by test doubles — in-memory fake sessions and engines for PostgreSQL, `monkeypatch`/`unittest.mock` for the DataJud and BNP HTTP APIs, `tmp_path` for raw files, and `@MockitoBean` / `@Mock` for Spring beans.
 - **Determinism:** dates are fixed or computed relative to `now`, and no test depends on execution order or on data stored in a real database.
 - **Parametrization:** a single test case may run several times with different inputs (`@pytest.mark.parametrize`). The number of inputs is shown in the **Inputs** column.
 - **Naming:** test names describe the behavior being verified (`test_<unit>_<expected_behavior>` in Python, descriptive method names in Java).
 - **Markers:** tests that need PostgreSQL are marked with `@pytest.mark.integration` and skip automatically when no database is configured.
+- **Regression:** there is no separate regression suite. Every existing test is part of it, and the full suite runs before each push and on every Pull Request to `main`.
+- **Validating a new test:** a new test must fail when the code it covers is broken on purpose, and pass again when the change is reverted.
 
 <details>
   <summary><b>Test Case ID Convention</b></summary>
@@ -114,12 +155,31 @@ Every test case is identified as `TC-<AREA>-<NUMBER>`.
 
 <br>
 
+<h1 id="arrows_counterclockwise-test-flow">🔄 Test Flow</h1>
+
+1. **Implement** the function and its unit test (Arrange-Act-Assert, with positive, negative and edge-case scenarios, and external dependencies replaced by test doubles).
+2. **Validate the new test:** it passes with the correct code and fails when that code is broken on purpose.
+3. **Run the regression suite locally:** `uv run task test` (and `./mvnw test` when the frontend changes), so nothing that already worked is broken. Fakes that imitate a function must be updated when that function's signature changes.
+4. **Run lint and formatting:** `uv run ruff check src tests` and `uv run ruff format --check src tests`.
+5. **Commit** with the Jira task ID (`SCRUM-xxx :test_tube: test: ...`) and open a Pull Request to `main`.
+6. **CI** (GitHub Actions, clean environment): lint → unit tests → `alembic upgrade head` → integration tests against the PostgreSQL service container.
+7. **Result:**
+   - ❌ Failure → deploy is blocked → fix and push again (CI runs again on the same Pull Request).
+   - ✅ Success → merge → CI runs again on `main`, including the frontend tests, and deploys.
+8. **Bug found later:** first write a test that reproduces the bug, then fix the code. The test becomes part of the regression suite.
+
+<br>
+
 <h1 id="bar_chart-coverage-summary">📊 Coverage Summary</h1>
 
-| Area | Tool | Coverage |
-|---|---|---|
-| Backend | pytest-cov (statements + branches) | **98%** — 1,058 statements, 222 branches |
-| Frontend | JaCoCo | **82%** instructions · **73%** lines · **100%** branches |
+| Area | Tool | Coverage | Measured on |
+|---|---|---|---|
+| Backend | pytest-cov (statements + branches) | **91%** — 1,279 statements, 294 branches | 2026-11-06, `sprint3` at `018b353` |
+| Frontend | JaCoCo | **82%** instructions · **73%** lines · **100%** branches | 2026-10-22 (frontend code unchanged since) |
+
+<p align="justify">
+Backend coverage went from 98% in Sprint 2 to 91% because the resumable multi-tribunal ingestion (SCRUM-162) added about 400 statements to <code>ingestion/ingestion.py</code>, and only part of them is exercised by the current tests. Coverage shows which code was executed, not which behavior was verified, so it complements the scenario review above.
+</p>
 
 <details>
   <summary><b>Backend coverage by module</b></summary>
@@ -127,11 +187,11 @@ Every test case is identified as `TC-<AREA>-<NUMBER>`.
 | Backend module | Coverage |
 |---|---|
 | `transformation/silver.py` | 99% |
-| `ingestion/ingestion.py` | 99% |
 | `ingestion/bronze.py` | 98% |
 | `transformation/gold.py` | 97% |
-| `ingestion/jurisprudencia.py` | 95% |
-| `main.py` | 93% |
+| `ingestion/jurisprudencia.py` | 94% |
+| `main.py` | 91% |
+| `ingestion/ingestion.py` | 77% |
 | `warehouse/postgres.py`, `ingestion/storage.py`, `infra/database/*`, Gold recipes | 100% |
 
 </details>
@@ -199,16 +259,16 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 </details>
 
 <details>
-  <summary><b>DataJud Ingestion</b> (25 test cases)</summary>
+  <summary><b>DataJud Ingestion</b> (28 test cases)</summary>
 
 **Files:** `tests/ingestion/test_incremental_ingestion.py`, `tests/ingestion/test_ingestion_helpers.py`, `tests/ingestion/test_ingestion.py`  
 
 | ID | Test | Scenario | Expected Result | Inputs |
 |---|---|---|---|---|
-| TC-ING-001 | `test_full_load_persists_only_completion_in_the_same_movement` | Historical load with one real completion and one false positive | Only the process with a completion movement in the window is persisted; date filter starts on 2026-03-01; pagination uses `search_after` | 1 |
+| TC-ING-001 | `test_full_load_persists_only_completion_in_the_same_movement` | Historical load with one real completion and one false positive | Only the process with a completion movement in the window is persisted; date filter starts on 2026-03-01; a page smaller than the page size ends the window with a single request | 1 |
 | TC-ING-002 | `test_incremental_load_updates_known_process_and_new_completion` | Incremental load with a known process and a new completion | Both are persisted; filter on `@timestamp`; checkpoint advances | 1 |
 | TC-ING-003 | `test_incremental_load_requires_a_completed_historical_load` | Incremental load without a checkpoint | `InitialIngestionRequiredError` asking for `full-ingest` | 1 |
-| TC-ING-004 | `test_full_load_logs_progress_and_summary` | Run a historical load with logging enabled | Start, page progress, Bronze summary, checkpoint and final summary are logged | 1 |
+| TC-ING-004 | `test_full_load_logs_progress_and_summary` | Run a historical load with logging enabled | Start, completed Bronze page, Bronze extraction summary, checkpoint and final summary are logged | 1 |
 | TC-ING-005 | `test_service_rejects_unknown_tribunal` | Create the service for an unmapped tribunal | `ValueError` "Tribunal não configurado" | 1 |
 | TC-ING-006 | `test_service_rejects_non_positive_page_size` | Create the service with page size 0 or negative | `ValueError` | 2 |
 | TC-ING-007 | `test_page_without_selected_processes_is_saved_but_not_persisted` | Page whose processes have no completion | Page counted, nothing persisted, checkpoint saved | 1 |
@@ -228,8 +288,11 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 | TC-ING-021 | `test_as_utc_assumes_utc_for_naive_values` | Datetime without timezone | Same instant with UTC timezone | 1 |
 | TC-ING-022 | `test_as_utc_converts_aware_values` | Datetime in UTC-3 | Converted to UTC | 1 |
 | TC-ING-023 | `test_ingestion_report_counts_unchanged_processes` | Report with persisted and changed totals | `unchanged = persisted − changed` | 1 |
-| TC-API-001 | `test_ingest_returns_json_and_calls_correct_url` | Call the DataJud client | POST to `/<tribunal>/_search` with API key header and 90 s timeout; JSON returned | 1 |
+| TC-ING-024 | `test_monthly_windows_use_distinct_raw_page_numbers` | Historical run split into monthly windows (March and April) | One request per window; raw pages numbered `page-000001` and `page-000002` without overwriting each other | 1 |
+| TC-ING-025 | `test_resume_reprocesses_saved_raw_page_without_a_new_request` | Run interrupted while persisting a saved raw page, then resumed by `run_id` | Saved page is reprocessed from disk; no new DataJud request; process persisted | 1 |
+| TC-API-001 | `test_ingest_returns_json_and_calls_correct_url` | Call the DataJud client | Reused HTTP session with the API key header; POST to `/<tribunal>/_search` with 90 s timeout; JSON returned | 1 |
 | TC-API-002 | `test_ingest_retries_after_failure_and_then_succeeds` | First request fails with a network error | Request is retried and succeeds | 1 |
+| TC-API-003 | `test_close_closes_the_http_session` | Close the DataJud client | Underlying HTTP session is closed | 1 |
 
 </details>
 
@@ -274,7 +337,7 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 </details>
 
 <details>
-  <summary><b>Command-Line Entry Point</b> (5 test cases)</summary>
+  <summary><b>Command-Line Entry Point</b> (6 test cases)</summary>
 
 **File:** `tests/test_main.py`  
 
@@ -285,11 +348,12 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 | TC-CLI-003 | `test_main_wires_silver_sync_to_the_same_session_factory` | Trigger the configured Silver sync | Silver sync uses the same session factory as the ingestion | 1 |
 | TC-CLI-004 | `test_main_logs_and_reraises_ingestion_errors` | Ingestion raises an error | Error logged and re-raised; no summary printed | 1 |
 | TC-CLI-005 | `test_configure_logging_uses_log_level_from_environment` | `LOG_LEVEL=debug` | Logging configured with level `DEBUG` | 1 |
+| TC-CLI-006 | `test_main_resumes_the_requested_run_and_closes_the_client` | Run with `--tribunal tjsp --resume <run_id>` | The requested run is resumed for the given tribunal and the DataJud client is closed | 1 |
 
 </details>
 
 <details>
-  <summary><b>Silver Layer Transformations</b> (23 test cases)</summary>
+  <summary><b>Silver Layer Transformations</b> (24 test cases)</summary>
 
 **Files:** `tests/transformation/test_silver.py`, `tests/transformation/test_gold.py` (subject extraction)  
 
@@ -318,6 +382,7 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 | TC-SLV-021 | `test_subject_values_rejects_non_list` | `assuntos` is not a list | Empty list and warning | 1 |
 | TC-SLV-022 | `test_subject_values_accepts_only_boolean_principal` | `principal` with boolean and non-boolean values | Only booleans kept; others become `None` | 1 |
 | TC-SLV-023 | `test_subject_extraction_and_canonical_hashing` | Subjects with duplicates, numeric-string code and an invalid item | Two unique subjects, code converted, one warning, canonical hash | 1 |
+| TC-SLV-024 | `test_pending_bronze_ids_filters_by_tribunal_when_requested` | Look up pending Bronze extracts for `STJ` | Query filters `bronze.datajud_extract.tribunal_sigla` by the given tribunal | 1 |
 
 </details>
 
@@ -458,39 +523,43 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 
 <br>
 
-<h1 id="warning-known-gaps">⚠️ Known Gaps</h1>
-
-<p align="justify">
-The items below are not covered by the current unit tests. Most of them depend on a real PostgreSQL database and are planned as integration tests.
-</p>
-
-| Item | Reason | Planned Coverage |
-|---|---|---|
-| SQL of the Gold recipes (`process_results`, `topic_results`, `topic_precedents`) | Executed only by PostgreSQL; unit tests validate registration and safety rules | Integration tests with Testcontainers |
-| Native queries of `ProcessoRepository` (frontend) | The repository is mocked in unit tests | `@DataJpaTest` with Testcontainers |
-| Alembic migrations | Require a real database | Integration tests |
-| `test_postgres_merge_updates_only_changed_process` | Skipped when `DATABASE_URL` is not set | Run against a disposable database only |
-| Conditional states of the `orgaos-julgadores` template (title with a single filter, empty-state messages, "clear filters" button, HTML escaping) | Not asserted by the current controller tests | Additional `@WebMvcTest` cases |
-| Success-rate endpoints when Gold has no data (`taxa: null`, empty precedent list) | Not asserted by the current controller tests | Additional `@WebMvcTest` cases |
-| Frontend getters/setters (`Processo`, `ProcessoDTOResponse`) and `DatalawApplication.main` | No business logic | Not planned |
-
-<br>
-
 <h1 id="robot-continuous-integration">🤖 Continuous Integration</h1>
 
 <p align="justify">
-The test suites were validated in Linux containers matching the CI runner (<code>ubuntu-latest</code>):
+Since SCRUM-137 the automated tests are part of the GitHub Actions pipeline (<code>.github/workflows/deploy.yml</code>). The deploy jobs depend on the <code>test</code> job (<code>needs: test</code>), so no backend or frontend deploy happens when the backend tests fail. Pipeline details are described in <a href="../architecture/Devops.md">DevOps</a>.
 </p>
 
-| Check | Environment | Result |
+| Step (job `test`) | Command | Runs on |
 |---|---|---|
-| `uv run pytest` | Python 3.12 | Passes (skipped tests do not fail the build) |
-| `./mvnw test` | JDK 21 | Passes |
-| `./mvnw clean package -DskipTests` (current CI step) | JDK 21 | Passes |
+| Lint | `uv run ruff check src tests` | Pull Request and push to `main` |
+| Formatting | `uv run ruff format --check src tests` | Pull Request and push to `main` |
+| Unit tests | `uv run pytest -m "not integration"` | Pull Request and push to `main` |
+| Migrations | `uv run alembic upgrade head` | Pull Request and push to `main` |
+| Integration tests | `uv run pytest -m integration` | Pull Request and push to `main` |
+| Frontend tests | `./mvnw test` (inside the frontend deploy job) | Push to `main` only |
 
 <p align="justify">
-When the tests are added to the pipeline, the job must <b>not</b> define <code>DATABASE_URL</code>, so the integration test is skipped instead of writing to a shared database.
+In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<code>services: postgres</code>), with the same image and credentials as the local Docker Compose database. The job waits for the <code>pg_isready</code> health check, and <code>DATABASE_URL</code> points to this container at <code>localhost:5432</code>. The container exists only during the run, so the integration test never touches a shared or production database.
 </p>
+
+**Current limitations**
+
+- The pipeline does not run on pushes to sprint branches (`sprint3`); tests run only when a Pull Request to `main` is opened. The regression suite must therefore be run locally before each push.
+- Frontend tests run only after the merge, so a Pull Request that breaks a Java test is not blocked, and the backend deploy does not depend on the frontend tests.
+- Coverage is measured manually; it is not calculated by the pipeline.
+
+<br>
+
+<h1 id="clipboard-execution-report">📋 Execution Report</h1>
+
+| Date | Branch / commit | Where | Backend | Frontend | Notes |
+|---|---|---|---|---|---|
+| 2026-10-22 | `sprint2` | Local (Linux container, Python 3.12) | 251 passed, 1 skipped | 14 passed | Baseline for SCRUM-136 |
+| 2026-10-29 | `sprint2` / `98b8ce5` | CI, Pull Request (run `40963430591`) | ❌ Unit tests failed | Not run | Regression: `main.py` started calling the real `GoldMaterializer`, so `TC-CLI-003` depended on a database; deploy blocked |
+| 2026-10-29 | `sprint2` / `1f30b82` | CI, Pull Request (run `40973453429`) | ✅ Passed | Not run | Fix: `FakeGoldMaterializer` isolates the CLI unit tests from the database |
+| 2026-10-29 | `main` / `3e12214` | CI, push after merge of PR #10 (run `40976164745`) | ✅ Passed | ✅ Passed | Backend and frontend deployed |
+| 2026-11-05 | `sprint3` / `ffde0e1` | Local (Python 3.13) | ❌ 11 failed, 245 passed, 1 skipped | Not run | Regression: `_pending_bronze_ids` gained `tribunal_sigla`, but the fake in `test_silver_sync.py` kept the old signature (`TC-SYN-*`). Not detected by CI, which does not run on `sprint3` |
+| 2026-11-06 | `sprint3` / `018b353` | Local (Python 3.13) | ✅ 256 passed, 1 skipped | Not run | Production code adjusted to keep the old call when no tribunal is given; the tribunal filter of the Silver sync remains untested |
 
 <br>
 
