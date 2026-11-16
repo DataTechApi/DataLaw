@@ -25,6 +25,7 @@ register_sql(
         JOIN ultimo_movimento AS u
             ON u.processo_id = p.id
         WHERE u.codigo IN (22, 246)
+          AND COALESCE(p.nivel_sigilo, 0) = 0
     ),
     ultimo_julgamento AS (
         SELECT DISTINCT ON (p.processo_id)
