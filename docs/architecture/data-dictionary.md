@@ -277,6 +277,24 @@ Stores normalized legal subjects (TPU Assuntos / Temas) associated with each law
 
 ---
 
+### 5.4. Table: `silver.precedente_direcao`
+
+Stores the curated party that a precedent's thesis benefits. The public sources do not provide this information.
+
+| Column Name | Data Type | Nullable? | Key | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `id` | `UUID` | No | **PK** | Surrogate key. |
+| `jurisprudencia_id` | `UUID` | No | **FK, UK** | References `silver.jurisprudencia(id)` (`ON DELETE CASCADE`). One direction per precedent. |
+| `direcao` | `TEXT` | No | - | `autor`, `reu` or `indefinida`. |
+| `curador` | `TEXT` | No | - | Person who recorded the direction. |
+| `curado_em` | `TIMESTAMPTZ` | No | - | Recording time (default `now()`). |
+
+* **Constraints:**
+  - `uq_silver_precedente_direcao_jurisprudencia_id`: `UNIQUE (jurisprudencia_id)`
+  - `ck_silver_precedente_direcao_direcao`: `CHECK (direcao IN ('autor', 'reu', 'indefinida'))`
+
+---
+
 ## 6. Gold Layer (PostgreSQL — Schema `gold`)
 
 The Gold layer houses physical analytical tables materialized via registered Python/SQL recipes ([`src/data_law/transformation/gold_recipes.py`](file:///C:/FATEC/DataLaw/src/data_law/transformation/gold_recipes.py)). Queries are pre-validated by [`pglast`](file:///C:/FATEC/DataLaw/src/data_law/transformation/gold.py) to enforce read-only isolation and schema safety.
@@ -316,6 +334,72 @@ Analytical mart computing weighted success rates and case volumes grouped by leg
 | `desfavoraveis` | `BIGINT` | No | Unfavorable judgments (TPU `220`, weight 0.0). |
 | `sem_resultado_de_merito` | `BIGINT` | No | Closed cases without a recognized merits judgment. |
 | `taxa_sucesso_ponderada_pct` | `NUMERIC(5,2)` | Yes | Primary KPI: Weighted success percentage for this topic. |
+
+---
+
+### 6.3. Table: `gold.topic_party_results`
+
+Split of merit results between plaintiff and defendant by court and topic. Confidential cases are excluded.
+
+| Column Name | Data Type | Nullable? | Description |
+| :--- | :--- | :---: | :--- |
+| `tribunal_sigla` | `TEXT` | No | Court acronym. |
+| `assunto_codigo` | `INTEGER` | Yes | TPU subject code. |
+| `assunto_nome` | `TEXT` | Yes | TPU subject name. |
+| `processos_encerrados` | `BIGINT` | No | Closed cases (TPU `22` or `246`). |
+| `decisoes_com_resultado` | `BIGINT` | No | Closed cases with a merit judgment (`219`, `220` or `221`). |
+| `procedentes` | `BIGINT` | No | Judgments `219`, counted for the plaintiff. |
+| `parciais` | `BIGINT` | No | Judgments `221`, counted half for each side. |
+| `improcedentes` | `BIGINT` | No | Judgments `220`, counted for the defendant. |
+| `autor_pct` | `NUMERIC` | Yes | `100 × (procedentes + 0.5 × parciais) / decisoes_com_resultado`; null without decisions. |
+| `reu_pct` | `NUMERIC` | Yes | `100 × (improcedentes + 0.5 × parciais) / decisoes_com_resultado`; null without decisions. |
+| `atualizado_em` | `TIMESTAMPTZ` | No | Materialization time. |
+
+---
+
+### 6.4. Table: `gold.topic_adherence`
+
+Adherence Index by court, judging body, topic and curated precedent. Each closed case is compared with every curated precedent of its TPU subject. Precedents without a direction, or with `indefinida`, are left out. Confidential cases are excluded.
+
+| Column Name | Data Type | Nullable? | Description |
+| :--- | :--- | :---: | :--- |
+| `tribunal_sigla` | `TEXT` | No | Court of the cases. |
+| `orgao_julgador_nome` | `TEXT` | Yes | Judging body of the cases. |
+| `assunto_codigo` | `INTEGER` | Yes | TPU subject code. |
+| `assunto_nome` | `TEXT` | Yes | TPU subject name. |
+| `jurisprudencia_id` | `UUID` | No | Precedent in `silver.jurisprudencia`. |
+| `tribunal_precedente` | `TEXT` | No | Court that issued the precedent. |
+| `identificador_precedente` | `TEXT` | Yes | Precedent identifier (e.g. theme number). |
+| `precedente_titulo` | `TEXT` | No | Precedent title. |
+| `direcao` | `TEXT` | No | `autor` or `reu`. |
+| `processos_encerrados` | `BIGINT` | No | Closed cases compared with the precedent. |
+| `decisoes_com_resultado` | `BIGINT` | No | Closed cases with a merit judgment. |
+| `aderentes` | `BIGINT` | No | `219` with a plaintiff thesis, or `220` with a defendant thesis. |
+| `parciais` | `BIGINT` | No | Judgments `221`. |
+| `nao_aderentes` | `BIGINT` | No | Remaining judgments. |
+| `indice_adesao_pct` | `NUMERIC` | Yes | `100 × (aderentes + 0.5 × parciais) / decisoes_com_resultado`; null without decisions. |
+| `atualizado_em` | `TIMESTAMPTZ` | No | Materialization time. |
+
+---
+
+### 6.5. Table: `gold.topic_adherence_evidence`
+
+Decisions behind the Adherence Index: one row per decision with a merit result and per curated precedent of its subject. It uses the same classification as `gold.topic_adherence`, so the rows of a precedent add up to its `decisoes_com_resultado`. Confidential cases are excluded and no party data is stored.
+
+| Column Name | Data Type | Nullable? | Description |
+| :--- | :--- | :---: | :--- |
+| `tribunal_sigla` | `TEXT` | No | Court of the case. |
+| `orgao_julgador_nome` | `TEXT` | Yes | Judging body of the case. |
+| `assunto_codigo` | `INTEGER` | Yes | TPU subject code. |
+| `assunto_nome` | `TEXT` | Yes | TPU subject name. |
+| `jurisprudencia_id` | `UUID` | No | Precedent the decision was compared with. |
+| `direcao` | `TEXT` | No | `autor` or `reu`. |
+| `numero_processo` | `TEXT` | Yes | CNJ case number (public). |
+| `codigo_resultado` | `INTEGER` | No | Merit movement: `219`, `220` or `221`. |
+| `movimento_nome` | `TEXT` | Yes | Movement name. |
+| `data_julgamento` | `TIMESTAMPTZ` | Yes | Date of the merit movement. |
+| `classificacao` | `TEXT` | No | `aderente`, `parcial` or `nao_aderente`. |
+| `atualizado_em` | `TIMESTAMPTZ` | No | Materialization time. |
 
 ---
 
