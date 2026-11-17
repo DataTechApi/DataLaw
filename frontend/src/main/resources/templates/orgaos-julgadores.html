@@ -304,6 +304,234 @@
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        /* Topic indicators (Sprint 3) */
+        .indicators {
+            margin-bottom: 2.5rem;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .indicators-grid { grid-template-columns: 1fr; }
+        }
+
+        .indicator-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.75rem 2rem;
+        }
+
+        .indicator-card h3 {
+            margin: 0 0 1rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .indicator-value {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--emerald);
+        }
+
+        .indicator-value.empty {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .indicator-caption {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0.35rem 0 1rem;
+        }
+
+        .indicator-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem 1rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .indicator-meta strong {
+            display: block;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-ADEQUADA { background: rgba(52, 211, 153, 0.18); color: var(--emerald); }
+        .badge-BAIXA { background: rgba(251, 191, 36, 0.18); color: var(--gold); }
+        .badge-INSUFICIENTE { background: rgba(148, 163, 184, 0.18); color: var(--text-muted); }
+
+        .party-split {
+            display: flex;
+            height: 14px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: var(--border);
+            margin: 0.75rem 0;
+        }
+
+        .party-split .autor { background: #818CF8; }
+        .party-split .reu { background: var(--gold); }
+
+        .party-values {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .party-values .value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .party-values .autor { color: #818CF8; }
+        .party-values .reu { color: var(--gold); text-align: right; }
+
+        .rank-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 70px;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.45rem 0;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .rank-row .name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rank-row .bar {
+            height: 10px;
+            border-radius: 999px;
+            background: var(--border);
+            overflow: hidden;
+        }
+
+        .rank-row .bar span {
+            display: block;
+            height: 100%;
+            background: var(--emerald);
+        }
+
+        .rank-row .pct {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .rank-sub {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        .indicator-empty {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 1rem 0;
+        }
+
+        .evidence-card {
+            margin-bottom: 1.5rem;
+        }
+
+        .evidence-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.25rem;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
+
+        .evidence-summary strong {
+            color: var(--text-main);
+        }
+
+        .evidence-check-ok { color: var(--emerald); }
+        .evidence-check-fail { color: var(--gold); }
+
+        .evidence-table-wrap {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .evidence-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .evidence-table th,
+        .evidence-table td {
+            text-align: left;
+            padding: 0.6rem 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            white-space: nowrap;
+        }
+
+        .evidence-table th {
+            position: sticky;
+            top: 0;
+            background: var(--surface-hover);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.72rem;
+        }
+
+        .evidence-table td.mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .badge-ADERENTE { background: rgba(52, 211, 153, 0.18); color: var(--emerald); }
+        .badge-PARCIAL { background: rgba(251, 191, 36, 0.18); color: var(--gold); }
+        .badge-NAO_ADERENTE { background: rgba(248, 113, 113, 0.18); color: #F87171; }
+
+        .evidence-link {
+            color: #818CF8;
+            font-size: 0.78rem;
+            text-decoration: none;
+        }
+
+        .evidence-link:hover { text-decoration: underline; }
+
+        .section-note {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin: 0 0 2.5rem;
+            text-align: center;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -351,6 +579,134 @@
             <a th:if="${(assuntoNome != null and !assuntoNome.isEmpty()) or (classeNome != null and !classeNome.isEmpty())}" href="/processos/orgaos-julgadores" class="clear-button" title="Limpar filtros">✕</a>
         </form>
     </div>
+
+    <section class="indicators" th:if="${indicadores != null}">
+        <div class="indicators-grid">
+            <div class="indicator-card" id="card-adesao">
+                <h3>Índice de Adesão à Tese</h3>
+                <p class="indicator-caption" th:if="${indicadores.adesao.possuiTeseCurada()}" style="margin-top: 0;">
+                    Tese principal (maior amostra):
+                    <strong style="color: var(--text-main);" th:text="${indicadores.adesao.tese}">Tema 1234</strong>
+                    <span th:text="${(indicadores.adesao.tribunalTese != null ? '(' + indicadores.adesao.tribunalTese + ') ' : '') + '· favorece o ' + (indicadores.adesao.direcao == 'autor' ? 'autor' : 'réu')}">(STJ) · favorece o autor</span>
+                </p>
+                <div th:if="${indicadores.adesao.indice != null}">
+                    <div class="indicator-value" th:text="${#numbers.formatDecimal(indicadores.adesao.indice, 1, 1, 'COMMA') + '%'}">70,0%</div>
+                    <p class="indicator-caption">das decisões com resultado acolheram esta tese</p>
+                </div>
+                <div th:if="${indicadores.adesao.indice == null}">
+                    <div class="indicator-value empty">Dados insuficientes</div>
+                    <p class="indicator-caption" th:if="${!indicadores.adesao.possuiTeseCurada()}">Nenhuma tese com direção registrada para este tema.</p>
+                    <p class="indicator-caption" th:if="${indicadores.adesao.possuiTeseCurada()}">Nenhuma decisão com resultado de mérito para as teses do tema.</p>
+                </div>
+                <div class="indicator-meta">
+                    <div>Amostra<strong th:text="${indicadores.adesao.decisoesComResultado + ' decisões'}">0</strong></div>
+                    <div>Cobertura<strong th:text="${indicadores.adesao.cobertura != null ? #numbers.formatDecimal(indicadores.adesao.cobertura, 1, 1, 'COMMA') + '%' : '—'}">—</strong></div>
+                    <div>Confiabilidade<strong><span th:class="${'badge badge-' + indicadores.adesao.confiabilidade.name()}" th:text="${indicadores.adesao.confiabilidade.rotulo}">Baixa</span></strong></div>
+                    <div>Atualizado em<strong th:text="${indicadores.adesao.atualizadoEm != null ? #temporals.format(indicadores.adesao.atualizadoEm, 'dd/MM/yyyy HH:mm') : '—'}">—</strong></div>
+                </div>
+                <p class="indicator-caption" style="margin-top: 0.75rem;">Fonte: DataJud (CNJ) e Banco Nacional de Precedentes.</p>
+            </div>
+
+            <div class="indicator-card" id="card-polo">
+                <h3>Resultados por Polo</h3>
+                <div th:if="${indicadores.polo.autorPct != null}">
+                    <div class="party-values">
+                        <div><span class="rank-sub">Autor</span><span class="value autor" th:text="${#numbers.formatDecimal(indicadores.polo.autorPct, 1, 1, 'COMMA') + '%'}">70,0%</span></div>
+                        <div class="reu"><span class="rank-sub">Réu</span><span class="value reu" th:text="${#numbers.formatDecimal(indicadores.polo.reuPct, 1, 1, 'COMMA') + '%'}">30,0%</span></div>
+                    </div>
+                    <div class="party-split">
+                        <span class="autor" th:style="${'width:' + indicadores.polo.autorPct + '%'}"></span>
+                        <span class="reu" th:style="${'width:' + indicadores.polo.reuPct + '%'}"></span>
+                    </div>
+                    <p class="indicator-caption">Procedência conta para o autor, improcedência para o réu e procedência em parte vale metade para cada lado.</p>
+                </div>
+                <div th:if="${indicadores.polo.autorPct == null}">
+                    <div class="indicator-value empty">Dados insuficientes</div>
+                    <p class="indicator-caption">Nenhuma decisão com resultado de mérito para este tema.</p>
+                </div>
+                <div class="indicator-meta">
+                    <div>Procedentes<strong th:text="${indicadores.polo.procedentes}">0</strong></div>
+                    <div>Parciais<strong th:text="${indicadores.polo.parciais}">0</strong></div>
+                    <div>Improcedentes<strong th:text="${indicadores.polo.improcedentes}">0</strong></div>
+                    <div>Confiabilidade<strong><span th:class="${'badge badge-' + indicadores.polo.confiabilidade.name()}" th:text="${indicadores.polo.confiabilidade.rotulo}">Baixa</span></strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="indicators-grid">
+            <div class="indicator-card" id="card-orgaos">
+                <h3>Adesão à Tese Principal por Órgão Julgador</h3>
+                <div th:if="${#lists.isEmpty(indicadores.adesaoPorOrgao)}" class="indicator-empty">Sem decisões com resultado para comparar os órgãos julgadores.</div>
+                <div class="rank-row" th:each="orgao : ${indicadores.adesaoPorOrgao}">
+                    <span class="name" th:title="${orgao.nome}">
+                        <span th:text="${orgao.nome}">1ª Vara Cível</span>
+                        <span class="rank-sub" th:text="${orgao.decisoesComResultado + ' decisões · confiabilidade ' + #strings.toLowerCase(orgao.confiabilidade.rotulo)}">10 decisões</span>
+                    </span>
+                    <span class="bar"><span th:style="${'width:' + (orgao.indice != null ? orgao.indice : 0) + '%'}"></span></span>
+                    <span class="pct" th:text="${orgao.indice != null ? #numbers.formatDecimal(orgao.indice, 1, 1, 'COMMA') + '%' : '—'}">70,0%</span>
+                </div>
+            </div>
+
+            <div class="indicator-card" id="card-teses">
+                <h3>Teses Consideradas</h3>
+                <div th:if="${#lists.isEmpty(indicadores.adesaoPorTese)}" class="indicator-empty">Nenhuma tese com direção registrada para este tema.</div>
+                <div class="rank-row" th:each="tese : ${indicadores.adesaoPorTese}">
+                    <span class="name" th:title="${tese.nome}">
+                        <span th:text="${tese.nome}">Tema 1234</span>
+                        <span class="rank-sub" th:text="${(tese.detalhe != null ? tese.detalhe + ' · ' : '') + 'favorece o ' + (tese.direcao == 'autor' ? 'autor' : 'réu') + ' · ' + tese.decisoesComResultado + ' decisões'}">STJ · favorece o autor</span>
+                        <a class="evidence-link" th:href="@{/processos/orgaos-julgadores(assuntoNome=${assuntoNome}, teseId=${tese.id})} + '#evidencias'">Ver evidências</a>
+                    </span>
+                    <span class="bar"><span th:style="${'width:' + (tese.indice != null ? tese.indice : 0) + '%'}"></span></span>
+                    <span class="pct" th:text="${tese.indice != null ? #numbers.formatDecimal(tese.indice, 1, 1, 'COMMA') + '%' : '—'}">70,0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="indicator-card evidence-card" id="evidencias">
+            <h3>Evidências do Índice</h3>
+            <div th:if="${indicadores.evidencias == null}" class="indicator-empty">Nenhuma tese com direção registrada para este tema, portanto não há decisões avaliadas.</div>
+            <div th:if="${indicadores.evidencias != null}" th:with="ev=${indicadores.evidencias}">
+                <p class="indicator-caption" style="margin-top: 0;">
+                    Tese:
+                    <strong style="color: var(--text-main);" th:text="${ev.tese}">Tema 1234</strong>
+                    <span th:text="${(ev.tribunalTese != null ? '(' + ev.tribunalTese + ') ' : '') + '· favorece o ' + (ev.direcao == 'autor' ? 'autor' : 'réu')}">(STJ) · favorece o autor</span>
+                </p>
+                <div class="evidence-summary">
+                    <span><strong th:text="${ev.total}">10</strong> decisões com resultado</span>
+                    <span><strong th:text="${ev.aderentes}">6</strong> aderentes</span>
+                    <span><strong th:text="${ev.parciais}">2</strong> parciais</span>
+                    <span><strong th:text="${ev.naoAderentes}">2</strong> não aderentes</span>
+                    <span th:if="${ev.conferemComIndice}" class="evidence-check-ok">✓ Totais conferem com o índice</span>
+                    <span th:if="${!ev.conferemComIndice}" class="evidence-check-fail">⚠ Totais divergem do índice: atualize a camada Gold</span>
+                </div>
+                <div th:if="${#lists.isEmpty(ev.decisoes)}" class="indicator-empty">Nenhuma decisão com resultado de mérito para esta tese.</div>
+                <div class="evidence-table-wrap" th:if="${!#lists.isEmpty(ev.decisoes)}">
+                    <table class="evidence-table">
+                        <thead>
+                        <tr>
+                            <th>Processo</th>
+                            <th>Órgão julgador</th>
+                            <th>Movimento</th>
+                            <th>Data</th>
+                            <th>Classificação</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="decisao : ${ev.decisoes}">
+                            <td class="mono" th:text="${decisao.numeroProcesso}">0000000-00.2026.8.26.0000</td>
+                            <td th:text="${decisao.orgaoJulgador}">1ª Vara Cível</td>
+                            <td th:text="${decisao.movimento}">Procedência</td>
+                            <td th:text="${decisao.dataJulgamento != null ? #temporals.format(decisao.dataJulgamento, 'dd/MM/yyyy') : '—'}">01/06/2026</td>
+                            <td><span th:class="${'badge badge-' + decisao.classificacao.name()}" th:text="${decisao.classificacao.rotulo}">Aderente</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="indicator-caption" style="margin: 0.75rem 0 0;" th:if="${ev.listaParcial()}" th:text="${'Mostrando as ' + ev.decisoes.size() + ' decisões mais recentes de ' + ev.total + '. Os totais acima consideram todas.'}">Mostrando as 50 decisões mais recentes.</p>
+                <p class="indicator-caption" style="margin: 0.75rem 0 0;">Processos sigilosos não são exibidos nem contados.</p>
+            </div>
+        </div>
+    </section>
 
     <div class="charts-grid">
         <div class="chart-card">
@@ -568,9 +924,13 @@
             fetch(`/processos/taxa-sucesso?classeNome=${encodeURIComponent(classeNome)}`)
                 .then(r => r.json())
                 .then(data => {
-                    const taxa = data.taxa || 0;
-                    document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
-                    renderGauge(taxa, '#FBBF24');
+                    if (data.taxa === null || data.taxa === undefined) {
+                        document.getElementById('gaugeText').innerText = 'Dados insuficientes';
+                        renderGauge(0, '#FBBF24');
+                        return;
+                    }
+                    document.getElementById('gaugeText').innerText = data.taxa.toFixed(1) + '%';
+                    renderGauge(data.taxa, '#FBBF24');
                 })
                 .catch(err => {
                     console.error('Erro ao buscar taxa de sucesso', err);
@@ -591,9 +951,9 @@
             fetch(`/processos/taxa-sucesso-tema?assuntoNome=${encodeURIComponent(assuntoNome)}`)
                 .then(r => r.json())
                 .then(data => {
-                    const taxa = data.taxa || 0;
-                    document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
-                    renderGauge(taxa, '#34D399');
+                    const semDados = data.taxa === null || data.taxa === undefined;
+                    document.getElementById('gaugeText').innerText = semDados ? 'Dados insuficientes' : data.taxa.toFixed(1) + '%';
+                    renderGauge(semDados ? 0 : data.taxa, '#34D399');
 
                     if (data.precedentes && data.precedentes.length > 0) {
                         precContainer.style.display = 'block';

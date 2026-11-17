@@ -1,5 +1,12 @@
 package com.datatech.datalaw.controller;
 
+import com.datatech.datalaw.entity.dto.AdesaoPorGrupo;
+import com.datatech.datalaw.entity.dto.Confiabilidade;
+import com.datatech.datalaw.entity.dto.EvidenciaDecisao;
+import com.datatech.datalaw.entity.dto.EvidenciasTese;
+import com.datatech.datalaw.entity.dto.IndicadorAdesao;
+import com.datatech.datalaw.entity.dto.IndicadoresTema;
+import com.datatech.datalaw.entity.dto.ResultadoPorPolo;
 import com.datatech.datalaw.service.ProcessoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,9 +14,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -137,5 +149,132 @@ class ProcessoControllerTest {
 
         verify(processoService, never()).obterTaxaSucessoPorAssunto(anyString());
         verify(processoService, never()).obterPrecedentesPorAssunto(anyString());
+    }
+
+    private static IndicadoresTema indicadoresComDados() {
+        return new IndicadoresTema(
+                new IndicadorAdesao("Tema Repetitivo 1234", "STJ", "autor", 70.0, 6, 2, 2, 10, 20, 50.0,
+                        Confiabilidade.BAIXA, OffsetDateTime.parse("2026-11-13T10:00:00Z")),
+                new ResultadoPorPolo(70.0, 30.0, 60, 20, 20, 100, 120, Confiabilidade.ADEQUADA,
+                        OffsetDateTime.parse("2026-11-13T10:00:00Z")),
+                List.of(new AdesaoPorGrupo(null, "2ª Vara Cível", null, null, 80.0, 5, Confiabilidade.BAIXA)),
+                List.of(new AdesaoPorGrupo("tese-1", "Tema Repetitivo 1234", "STJ", "autor", 70.0, 10,
+                        Confiabilidade.BAIXA)),
+                new EvidenciasTese("tese-1", "Tema Repetitivo 1234", "STJ", "autor",
+                        List.of(new EvidenciaDecisao("0004584-44.2021.8.26.0562", "2ª Vara Cível", "Procedência",
+                                LocalDate.of(2026, 6, 1), EvidenciaDecisao.Classificacao.ADERENTE)),
+                        10, 6, 2, 2, true, 50));
+    }
+
+    private static IndicadoresTema indicadoresSemDados() {
+        return new IndicadoresTema(
+                IndicadorAdesao.semTeseCurada(),
+                new ResultadoPorPolo(null, null, 0, 0, 0, 0, 3, Confiabilidade.INSUFICIENTE, null),
+                List.of(),
+                List.of(),
+                null);
+    }
+
+    private void semGraficosDeVolume() {
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador(anyString(), anyString())).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorClasse(anyString())).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorAssunto(anyString(), anyString())).thenReturn(List.of());
+    }
+
+    @Test
+    void temaSelecionadoMostraAdesaoPoloOrgaosETeses() throws Exception {
+        semGraficosDeVolume();
+        when(processoService.obterIndicadoresTema("Dano Moral", null)).thenReturn(indicadoresComDados());
+
+        mockMvc.perform(get("/processos/orgaos-julgadores").param("assuntoNome", " Dano Moral "))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("indicadores"))
+                .andExpect(content().string(containsString("Índice de Adesão à Tese")))
+                .andExpect(content().string(containsString("Tese principal (maior amostra):")))
+                .andExpect(content().string(containsString("70,0%")))
+                .andExpect(content().string(containsString("30,0%")))
+                .andExpect(content().string(containsString("Resultados por Polo")))
+                .andExpect(content().string(containsString("2ª Vara Cível")))
+                .andExpect(content().string(containsString("Tema Repetitivo 1234")))
+                .andExpect(content().string(containsString("favorece o autor")))
+                .andExpect(content().string(containsString("13/11/2026")))
+                .andExpect(content().string(containsString("Evidências do Índice")))
+                .andExpect(content().string(containsString("0004584-44.2021.8.26.0562")))
+                .andExpect(content().string(containsString("01/06/2026")))
+                .andExpect(content().string(containsString("Totais conferem com o índice")))
+                .andExpect(content().string(containsString("teseId=tese-1")));
+
+        verify(processoService).obterIndicadoresTema("Dano Moral", null);
+    }
+
+    @Test
+    void temaSemDadosMostraDadosInsuficientesENuncaZero() throws Exception {
+        semGraficosDeVolume();
+        when(processoService.obterIndicadoresTema("Tema vazio", null)).thenReturn(indicadoresSemDados());
+
+        mockMvc.perform(get("/processos/orgaos-julgadores").param("assuntoNome", "Tema vazio"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Dados insuficientes")))
+                .andExpect(content().string(containsString("Nenhuma tese com direção registrada para este tema.")))
+                .andExpect(content().string(containsString("não há decisões avaliadas")))
+                .andExpect(content().string(not(containsString("0,0%"))));
+    }
+
+    @Test
+    void semTemaNaoCalculaIndicadores() throws Exception {
+        semGraficosDeVolume();
+
+        mockMvc.perform(get("/processos/orgaos-julgadores").param("classeNome", "Execução Fiscal"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("indicadores"))
+                .andExpect(content().string(not(containsString("Índice de Adesão à Tese"))));
+
+        verify(processoService, never()).obterIndicadoresTema(anyString(), any());
+    }
+
+    @Test
+    void indicadoresTemaRetornaJson() throws Exception {
+        when(processoService.obterIndicadoresTema("Dano Moral", null)).thenReturn(indicadoresComDados());
+
+        mockMvc.perform(get("/processos/indicadores-tema").param("assuntoNome", "Dano Moral"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.adesao.indice").value(70.0))
+                .andExpect(jsonPath("$.polo.autorPct").value(70.0))
+                .andExpect(jsonPath("$.polo.reuPct").value(30.0))
+                .andExpect(jsonPath("$.adesaoPorOrgao[0].nome").value("2ª Vara Cível"))
+                .andExpect(jsonPath("$.evidencias.total").value(10))
+                .andExpect(jsonPath("$.evidencias.decisoes[0].classificacao").value("ADERENTE"));
+    }
+
+    @Test
+    void indicadoresTemaSemAssuntoRetornaBadRequest() throws Exception {
+        mockMvc.perform(get("/processos/indicadores-tema"))
+                .andExpect(status().isBadRequest());
+
+        verify(processoService, never()).obterIndicadoresTema(anyString(), any());
+    }
+
+    @Test
+    void taxaSucessoSemDadosRetornaNuloENaoZero() throws Exception {
+        when(processoService.obterTaxaSucessoPorAssunto("Tema vazio")).thenReturn(null);
+        when(processoService.obterPrecedentesPorAssunto("Tema vazio")).thenReturn(List.of());
+
+        mockMvc.perform(get("/processos/taxa-sucesso-tema").param("assuntoNome", "Tema vazio"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.taxa").value(nullValue()));
+    }
+
+    @Test
+    void teseSelecionadaERepassadaParaAsEvidencias() throws Exception {
+        semGraficosDeVolume();
+        when(processoService.obterIndicadoresTema("Dano Moral", "tese-1")).thenReturn(indicadoresComDados());
+
+        mockMvc.perform(get("/processos/orgaos-julgadores")
+                        .param("assuntoNome", "Dano Moral")
+                        .param("teseId", "tese-1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Evidências do Índice")));
+
+        verify(processoService).obterIndicadoresTema("Dano Moral", "tese-1");
     }
 }
