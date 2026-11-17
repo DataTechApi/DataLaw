@@ -414,7 +414,7 @@ DoR Checklist
 * **Sprint Goal:** Deliver the plaintiff and defendant view by topic and a reliable, traceable Adherence Index (%) by topic and precedent, the metrics the client identified as the core of Legal Analytics.
 * **Estimated Capacity:** 20 story points
 * **Client definition:** a decision is favorable when it accepts the analyzed thesis, regardless of plaintiff or defendant. Average time and archival rate are secondary.
-* **Blocking dependency:** the open decisions in [docs/requirements/open-items.md](docs/requirements/open-items.md) must be validated with the client.
+* **Pending client validation:** the movement rule of the party view and the 0.5 weight of partial decisions.
 * **Requirements and traceability:** see [docs/requirements](docs/requirements/README.md).
 
 | Rank | Priority | User Story | Requirements | Use Case | Points |
@@ -501,7 +501,7 @@ DoR Checklist
 
 DoR Checklist
 
-- Business rules defined: movement 219 counts for the plaintiff, 220 for the defendant and 221 as half for each, validated with the client (P6).
+- Business rules defined: movement 219 counts for the plaintiff, 220 for the defendant and 221 as half for each, pending client validation.
 
 - Data available: merit movements of closed cases available in the Gold layer.
 
