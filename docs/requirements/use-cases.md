@@ -137,16 +137,20 @@
 | Primary actor | Legal Manager |
 | Requirements | RNF10, RNF12 |
 | Story | US3.5 |
-| Preconditions | Formulas validated by the client |
+| Preconditions | Documentation is available; client formula validation remains a prerequisite for business acceptance and is still pending |
 | Postcondition | Each indicator has a formula, assumptions and an example |
-| Existing code | `docs/architecture/gold.md`, `docs/requirements/` |
-| Planned code | `docs/architecture/indicators.md` |
-| Existing tests | Not applicable |
+| Existing documentation | [Indicator guide](../architecture/indicators.md), [traceability matrix](traceability.md), `docs/architecture/gold.md` |
+| Verification | Existing implementation tests are mapped in the matrix; no dedicated document acceptance test |
+| Acceptance | Product Owner review pending; synthetic examples do not establish client approval |
 
 **Happy path**
 1. The manager opens the documentation.
 2. The manager finds the Adherence Index formula.
 3. The manager reproduces the example and reaches the same result.
+4. The manager follows the requirement, implementation and verification links,
+   distinguishing illustrative calculations from existing test scenarios.
 
 **Alternative path**
 - **Formula changed:** the documentation changes in the same pull request.
+- **Validation pending:** the manager can inspect the implemented rule and its
+  limitations, but the documentation does not present it as client-approved.

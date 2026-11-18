@@ -154,6 +154,6 @@ Adherence Index (%) = 100 × (adherent + 0.5 × partial) / decisions with a resu
 | RNF09 | Civil law scope | High | Partial | No area filter in code; tax topics appear in the documents |
 | RNF10 | Traceability | High | Partial | [Matrix](traceability.md) updated in each PR |
 | RNF11 | Version control | Critical | Implemented | Git and GitHub |
-| RNF12 | Indicator documentation | High | Planned | Formula, assumptions and example for each indicator |
+| RNF12 | Indicator documentation | High | Documented; acceptance pending | [Indicator guide](../architecture/indicators.md): purpose, definition, formula, population, source, labeled synthetic examples, limitations and traceability; Product Owner review pending |
 | RNF13 | LGPD compliance | Critical | Implemented | Gold recipes and dashboard queries exclude `nivel_sigilo > 0` (TC-GLD-011, TC-GLD-012, TC-GLD-013) |
 | RNF14 | Minimum sample | High | Partial | The new indicators require 30 decisions **with a result** for adequate reliability; `topic_results` still cuts on 30 closed cases |
