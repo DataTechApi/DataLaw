@@ -28,12 +28,12 @@ This document describes the automated test strategy of DataLaw and lists every t
 
 | Area | Framework | Test cases | Executions | Result |
 |---|---|---|---|---|
-| Backend (`backend/tests`) | pytest | 158 | 272 (parametrized) | Latest explorer check: 267 passed; 5 integration tests not run |
+| Backend (`backend/tests`) | pytest | 158 | 272 (parametrized) | Latest check (2026-11-19): 267 passed; 5 integration tests not run |
 | Frontend (`frontend/src/test`) | JUnit 5, Mockito, Spring MockMvc | 42 | 42 | 42 passed |
-| **Total** | | **200** | **314** | **309 passed; 5 integration tests not run in the latest explorer check** |
+| **Total** | | **200** | **314** | **309 passed; 5 integration tests not run in the latest check** |
 
 <p align="justify">
-The five PostgreSQL integration tests (<code>TC-BRZ-014</code>, <code>TC-GLD-012</code> to <code>TC-GLD-014</code> and <code>TC-GLD-016</code>) belong to the full suite but were excluded from the latest explorer check with <code>-m "not integration"</code>. They are skipped when the <code>DATABASE_URL</code> environment variable is not set. Use a disposable local or CI PostgreSQL database for them.
+The five PostgreSQL integration tests (<code>TC-BRZ-014</code>, <code>TC-GLD-012</code> to <code>TC-GLD-014</code> and <code>TC-GLD-016</code>) belong to the full suite but were excluded from the latest check with <code>-m "not integration"</code>. They are skipped when the <code>DATABASE_URL</code> environment variable is not set. Use a disposable local or CI PostgreSQL database for them.
 </p>
 
 ## **Test Levels**
@@ -162,10 +162,12 @@ Every test case is identified as `TC-<AREA>-<NUMBER>`.
 3. **Run the regression suite locally:** `uv run task test` (and `./mvnw test` when the frontend changes), so nothing that already worked is broken. Fakes that imitate a function must be updated when that function's signature changes.
 4. **Run lint and formatting:** `uv run ruff check src tests` and `uv run ruff format --check src tests`.
 5. **Commit** with the Jira task ID (`SCRUM-xxx :test_tube: test: ...`) and open a Pull Request to `main`.
-6. **CI** (GitHub Actions, clean environment): lint → unit tests → `alembic upgrade head` → integration tests against the PostgreSQL service container.
+6. **CI** (GitHub Actions, clean environment), two jobs in parallel:
+   - `test` (backend): lint → formatting → unit tests → `alembic upgrade head` → integration tests against the PostgreSQL service container;
+   - `test-frontend`: `./mvnw -B verify` (compiles, runs the JUnit tests and validates the packaging).
 7. **Result:**
-   - ❌ Failure → deploy is blocked → fix and push again (CI runs again on the same Pull Request).
-   - ✅ Success → merge → CI runs again on `main`, including the frontend tests, and deploys.
+   - ❌ Failure in either job → deploy is blocked → fix and push again (CI runs again on the same Pull Request).
+   - ✅ Success → merge → CI runs again on `main` and deploys.
 8. **Bug found later:** first write a test that reproduces the bug, then fix the code. The test becomes part of the regression suite.
 
 <br>
@@ -569,17 +571,17 @@ verification in addition to this suite.
 <h1 id="robot-continuous-integration">🤖 Continuous Integration</h1>
 
 <p align="justify">
-Since SCRUM-137 the automated tests are part of the GitHub Actions pipeline (<code>.github/workflows/deploy.yml</code>). The deploy jobs depend on the <code>test</code> job (<code>needs: test</code>), so no backend or frontend deploy happens when the backend tests fail. Pipeline details are described in <a href="../architecture/Devops.md">DevOps</a>.
+Since SCRUM-137 the automated tests are part of the GitHub Actions pipeline (<code>.github/workflows/deploy.yml</code>). The deploy jobs depend on the <code>test</code> and <code>test-frontend</code> jobs (<code>needs: [test, test-frontend]</code>), so no backend or frontend deploy happens when the backend or the frontend tests fail. Pipeline details are described in <a href="../architecture/Devops.md">DevOps</a>.
 </p>
 
-| Step (job `test`) | Command | Runs on |
-|---|---|---|
-| Lint | `uv run ruff check src tests` | Pull Request and push to `main` |
-| Formatting | `uv run ruff format --check src tests` | Pull Request and push to `main` |
-| Unit tests | `uv run pytest -m "not integration"` | Pull Request and push to `main` |
-| Migrations | `uv run alembic upgrade head` | Pull Request and push to `main` |
-| Integration tests | `uv run pytest -m integration` | Pull Request and push to `main` |
-| Frontend tests | `./mvnw test` (inside the frontend deploy job) | Push to `main` only |
+| Job | Step | Command | Runs on |
+|---|---|---|---|
+| `test` | Lint | `uv run ruff check src tests` | Pull Request and push to `main` |
+| `test` | Formatting | `uv run ruff format --check src tests` | Pull Request and push to `main` |
+| `test` | Unit tests | `uv run pytest -m "not integration"` | Pull Request and push to `main` |
+| `test` | Migrations | `uv run alembic upgrade head` | Pull Request and push to `main` |
+| `test` | Integration tests | `uv run pytest -m integration` | Pull Request and push to `main` |
+| `test-frontend` | Build and frontend tests | `./mvnw -B verify` | Pull Request and push to `main` (in parallel with `test`) |
 
 <p align="justify">
 In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<code>services: postgres</code>), with the same image and credentials as the local Docker Compose database. The job waits for the <code>pg_isready</code> health check, and <code>DATABASE_URL</code> points to this container at <code>localhost:5432</code>. The container exists only during the run, so the integration test never touches a shared or production database.
@@ -588,7 +590,6 @@ In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<co
 **Current limitations**
 
 - The pipeline does not run on pushes to sprint branches (`sprint3`); tests run only when a Pull Request to `main` is opened. The regression suite must therefore be run locally before each push.
-- Frontend tests run only after the merge, so a Pull Request that breaks a Java test is not blocked, and the backend deploy does not depend on the frontend tests.
 - Coverage is measured manually; it is not calculated by the pipeline.
 
 <br>
@@ -605,6 +606,7 @@ In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<co
 | 2026-11-06 | `sprint3` / `018b353` | Local (Python 3.13) | ✅ 256 passed, 1 skipped | Not run | Production code adjusted to keep the old call when no tribunal is given; the tribunal filter of the Silver sync remains untested |
 | 2026-11-13 | `sprint3` / `9131043` + local changes | Local (Python 3.13, JDK 21, Docker PostgreSQL 18) | ✅ 269 passed | ✅ 31 passed | Sprint 3 indicators (US3.2, US3.3, US3.6); integration tests ran against the local database |
 | 2026-11-13 | `sprint3` / `9131043` + local changes | Local (Python 3.13, JDK 21, Docker PostgreSQL 18) | ✅ 272 passed | ✅ 38 passed | Evidence of the index (US3.4) |
+| 2026-11-19 | `sprint3` / `fe937d1` | Local (Python 3.13, JDK 25, no database) | ✅ 267 passed, 5 integration tests not run | ✅ 42 passed | Check after the topic explorer (SCRUM-140); unit suite run with `-m "not integration"` |
 
 <br>
 

@@ -58,8 +58,7 @@ Every pull request must:
 **Recommended branch protection for `main`:**
 
 - require a pull request and at least one approval;
-- require the `Testes Automatizados (CI)` check;
-- require a frontend test check, after adding it (risk R4 in the [handover guide](../handover/README.md));
+- require the `Testes Backend (CI)` and `Testes Frontend (CI)` checks;
 - block force pushes and branch deletion.
 
 ## Review checklist
@@ -82,7 +81,7 @@ Every pull request must:
 | Migrations | `uv run alembic upgrade head` | Yes |
 | Backend integration tests | `uv run pytest -m "integration"` | Yes |
 | Type check | `uv run mypy src` | No, run manually |
-| Frontend tests | `./mvnw test` | No, only on the deploy job |
+| Frontend build and tests | `./mvnw -B verify` | Yes |
 
 ## Definition of Done
 
