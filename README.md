@@ -613,6 +613,8 @@ git commit -m "SCRUM-1 feat(etl): add datajud extraction client"
 |---|---|
 | [Handover Guide](docs/handover/README.md) | Starting point for the client team, with checklist and risk register |
 | [Requirements](docs/requirements/README.md) | Requirements specification, use cases and traceability matrix |
+| [Indicator Guide](docs/architecture/indicators.md) | Business definitions, formulas, filters, worked examples and interpretation limits |
+| [Indicator Traceability](docs/requirements/traceability.md#indicator-rules-and-verification) | Requirement-to-rule, implementation and verification mapping, with pending acceptance decisions |
 | [Code Governance](docs/governance/code-governance.md) | Branching, commits, reviews and quality gates |
 | [Infrastructure](docs/infrastructure/infrastructure.md) | Environments, CI/CD, secrets and operations runbook |
 | [Code Guide](docs/code/code-guide.md) | Code structure, business rules, endpoints and extension guides |

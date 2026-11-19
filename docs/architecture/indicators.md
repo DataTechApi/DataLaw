@@ -94,7 +94,7 @@ classifiable result to the selected thesis index.
 **Definition and formula.** D is decisions with a result and E is closed cases
 for the same thesis and scope. **Coverage (%) = 100 × D / E.**
 
-**Population and filters.** Use the selected thesis and subject scope of the
+**Population and filters.** Use the main thesis and subject scope of the
 Adherence Index. Closed cases without a result remain in E.
 
 **Data source and implementation.** `gold.topic_adherence.decisoes_com_resultado`
@@ -279,8 +279,8 @@ distinct public cases qualifies; B with 29 does not.
 
 **Limitations and validation.** Grouping by name can combine courts or codes.
 A process can contribute once to several subject groups. Summing bars does
-not guarantee a distinct total; display limits can omit groups. No qualifying
-groups result in an empty list. These examples do not establish client approval.
+not guarantee a distinct total; display limits can omit groups. If no groups
+qualify, the result is an empty list. These examples do not establish client approval.
 
 **Traceability.** RF01/RF06 (broad dashboard scope); TC-FE-SVC-001/002/003
 verify forwarding only. Native query counting and filtering lack database
@@ -348,3 +348,5 @@ weight have outstanding validation work. Documentation and traceability review
 by the Product Owner remain pending. This guide establishes no release,
 deployment, defect closure or client approval record; those must link actual
 artifacts in the [traceability matrix](../requirements/traceability.md).
+The [Product Owner review checklist](../requirements/traceability.md#product-owner-review)
+identifies the business decisions and acceptance evidence still required.

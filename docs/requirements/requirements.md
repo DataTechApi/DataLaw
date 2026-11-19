@@ -25,9 +25,9 @@ These statements drive Sprint 3 priorities. They are translated from Portuguese;
 | Topic | Subject in the Unified Procedural Table (TPU) |
 | Precedent | Qualified thesis from STJ, STF or TJs |
 | Thesis direction | Party the thesis benefits: `plaintiff`, `defendant` or `undefined` |
-| Decision with a result | Closed case with merit movement 219, 220 or 221 |
-| Adherent decision | Decision whose result matches the thesis direction |
-| Adherence Index | Percentage of adherent decisions among decisions with a result |
+| Decision with a result | Closed case whose selected result is the latest movement 219, 220 or 221 dated on or before closure |
+| Adherent decision | Decision whose selected claim outcome matches the curated thesis direction; an outcome-based proxy, not a check of the decision text |
+| Adherence Index | Weighted percentage: `100 × (adherent + 0.5 × partial) / decisions with a result`; see the [indicator guide](../architecture/indicators.md#adherence-index) |
 
 ## 3. Functional requirements
 

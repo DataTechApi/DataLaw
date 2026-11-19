@@ -30,9 +30,13 @@ docs/                       Project documentation
 DataJud API → raw .json.gz files → bronze.datajud_extract
             → silver.processo, silver.movimento, silver.processo_assunto
             → gold.process_results, gold.topic_results, gold.topic_precedents
+              gold.topic_party_results, gold.topic_adherence,
+              gold.topic_adherence_evidence
             → Spring Boot dashboard
 
 BNP API → silver.jurisprudencia → gold.topic_precedents
+Curated direction → silver.precedente_direcao → gold.topic_adherence,
+                                               gold.topic_adherence_evidence
 ```
 
 ## Layer rules
@@ -61,7 +65,7 @@ BNP API → silver.jurisprudencia → gold.topic_precedents
 
 | Rule | Location |
 |---|---|
-| Closed case: latest movement is 22 or 246 | All Gold recipes |
+| Closed case: latest dated movement is 22 or 246; timestamp ties use the highest movement ID | All Gold recipes |
 | Confidential cases (`nivel_sigilo > 0`) are excluded | All Gold recipes, `ProcessoRepository.java` |
 | Result: 219 = 1.0, 221 = 0.5, 220 = 0.0 | `topic_results.py`, `process_results.py` |
 | Party view: 219 favors the plaintiff, 220 the defendant, 221 counts half for each | `topic_party_results.py`, `ProcessoService.java` |
@@ -71,10 +75,16 @@ BNP API → silver.jurisprudencia → gold.topic_precedents
 | Reliability: no decisions = insufficient, fewer than 30 = low, 30 or more = adequate | `Confiabilidade.java` |
 | Evidence uses the same classification as the index, and its totals are checked against the index | `topic_adherence_evidence.py`, `ProcessoService.java` |
 | Missing data is null and shown as "Dados insuficientes", never 0% | `ProcessoService.java`, `ProcessoRepository.java`, template |
-| Minimum of 30 closed cases per topic for the volume charts and `topic_results` | `topic_results.py`, `topic_precedents.py`, `ProcessoRepository.java` |
+| Subject volume bars require 30 distinct public cases per subject name; body and class volume bars have no minimum | `ProcessoRepository.java` |
+| Success rate by subject: include only court/subject groups with at least 30 closed cases | `topic_results.py` |
+| Related precedent list: show precedents only for court/subject groups with at least 30 closed cases | `topic_precedents.py` |
 | Precedent link by exact TPU code | `topic_precedents.py`, `topic_adherence.py` |
 
-`topic_results` and `process_results` measure claim outcome. The Adherence Index is in `topic_adherence`. See the [requirements](../requirements/requirements.md).
+`topic_results` and `process_results` measure claim outcome. The Adherence Index is in `topic_adherence`.
+The [indicator guide](../architecture/indicators.md) defines each metric's
+purpose, formula, population, filters, examples and limitations. The
+[traceability matrix](../requirements/traceability.md#indicator-rules-and-verification)
+connects those rules to requirements, implementation and verification evidence.
 
 ## HTTP endpoints
 
@@ -89,7 +99,12 @@ The application has no authentication layer in the repository.
 
 A missing required parameter returns status 400. When there is no data, `taxa` and the indicator percentages are `null`.
 
-On the dashboard, the topic indicators appear when `assuntoNome` is filled. The topic filter matches subject names partially (`ILIKE`), like the volume charts. `teseId` selects the thesis shown in the evidence section; an unknown id falls back to the main thesis.
+On the dashboard, the topic indicators appear when `assuntoNome` is filled.
+The adherence and party indicators use partial subject-name matching (`ILIKE`),
+like the volume charts. The success-rate endpoints instead use exact class or
+subject names. `teseId` selects the thesis shown in the evidence section;
+an unknown id falls back to the main thesis. It does not change the main
+index, coverage or body comparison.
 
 ## How to extend
 
