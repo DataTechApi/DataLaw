@@ -24,6 +24,7 @@ public class ProcessoController {
     public String listarProcessosPorOrgao(
             @RequestParam(value = "classeNome", required = false) String classeNome,
             @RequestParam(value = "assuntoNome", required = false) String assuntoNome,
+            @RequestParam(value = "temaSelecionado", required = false) String temaSelecionado,
             @RequestParam(value = "teseId", required = false) String teseId,
             Model model) {
         if (classeNome == null) {
@@ -32,6 +33,7 @@ public class ProcessoController {
         if (assuntoNome == null) {
             assuntoNome = "";
         }
+        String tema = temaSelecionado == null ? assuntoNome.trim() : temaSelecionado.trim();
         var processosPorOrgao = processoService.obterQuantidadeProcessosPorOrgaoJulgador(classeNome, assuntoNome);
         var processosPorClasse = processoService.obterQuantidadeProcessosPorClasse(assuntoNome);
         var processosPorAssunto = processoService.obterQuantidadeProcessosPorAssunto(classeNome, assuntoNome);
@@ -41,8 +43,10 @@ public class ProcessoController {
         model.addAttribute("processosPorAssunto", processosPorAssunto);
         model.addAttribute("classeNome", classeNome);
         model.addAttribute("assuntoNome", assuntoNome);
-        if (!assuntoNome.isBlank()) {
-            model.addAttribute("indicadores", processoService.obterIndicadoresTema(assuntoNome.trim(), teseId));
+        model.addAttribute("teseId", teseId);
+        model.addAttribute("temaSelecionado", tema);
+        if (!tema.isBlank()) {
+            model.addAttribute("indicadores", processoService.obterIndicadoresTema(tema, teseId));
         }
         return "orgaos-julgadores";
     }
