@@ -273,8 +273,89 @@ class ProcessoControllerTest {
                         .param("assuntoNome", "Dano Moral")
                         .param("teseId", "tese-1"))
                 .andExpect(status().isOk())
+                .andExpect(model().attribute("teseId", "tese-1"))
+                .andExpect(content().string(containsString("data-initial-section=\"evidence\"")))
                 .andExpect(content().string(containsString("Evidências do Índice")));
 
         verify(processoService).obterIndicadoresTema("Dano Moral", "tese-1");
+    }
+
+    @Test
+    void exploradorPreservaClasseAoSelecionarTemaETese() throws Exception {
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("Classe", "Dano Moral"))
+                .thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorClasse("Dano Moral"))
+                .thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorAssunto("Classe", "Dano Moral"))
+                .thenReturn(List.<Object[]>of(new Object[]{"Dano Moral", 35L}));
+        when(processoService.obterIndicadoresTema("Dano Moral", null))
+                .thenReturn(indicadoresComDados());
+
+        mockMvc.perform(get("/processos/orgaos-julgadores")
+                        .param("assuntoNome", "Dano Moral")
+                        .param("classeNome", "Classe"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("assuntoNome=Dano%20Moral&amp;classeNome=Classe")))
+                .andExpect(content().string(containsString("classeNome=Classe&amp;temaSelecionado=Dano%20Moral&amp;teseId=tese-1#evidencias")))
+                .andExpect(content().string(containsString("Não confirma a aplicação do precedente no texto da decisão.")));
+    }
+
+    @Test
+    void exploradorDisponibilizaNomesContagensETaxasSemGraficos() throws Exception {
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("", ""))
+                .thenReturn(List.<Object[]>of(new Object[]{"Vara Cível", 45L}));
+        when(processoService.obterQuantidadeProcessosPorClasse(""))
+                .thenReturn(List.<Object[]>of(new Object[]{"Execução Fiscal", 35L}));
+        when(processoService.obterQuantidadeProcessosPorAssunto("", ""))
+                .thenReturn(List.<Object[]>of(new Object[]{"Dano Moral", 40L}));
+
+        mockMvc.perform(get("/processos/orgaos-julgadores"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-name=\"Execução Fiscal\"")))
+                .andExpect(content().string(containsString("data-count=\"35\"")))
+                .andExpect(content().string(containsString("data-kind=\"classe\"")))
+                .andExpect(content().string(containsString("data-kind=\"orgao\"")))
+                .andExpect(content().string(containsString("Dano Moral")))
+                .andExpect(content().string(containsString("Selecione um tema para analisar.")))
+                .andExpect(content().string(not(containsString("<canvas"))));
+    }
+
+    @Test
+    void selecionarTemaNaoRestringeAListaDoAcervo() throws Exception {
+        semGraficosDeVolume();
+        when(processoService.obterQuantidadeProcessosPorAssunto("", ""))
+                .thenReturn(List.<Object[]>of(new Object[]{"Dano Moral", 40L}, new Object[]{"IPTU", 60L}));
+        when(processoService.obterIndicadoresTema("Dano Moral", null))
+                .thenReturn(indicadoresComDados());
+
+        mockMvc.perform(get("/processos/orgaos-julgadores").param("temaSelecionado", "Dano Moral"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("assuntoNome", ""))
+                .andExpect(model().attribute("temaSelecionado", "Dano Moral"))
+                .andExpect(content().string(containsString("IPTU")))
+                .andExpect(content().string(containsString("Ver todos os temas")))
+                .andExpect(content().string(containsString("Voltar ao acervo")))
+                .andExpect(content().string(containsString("temaSelecionado=IPTU")));
+
+        verify(processoService).obterQuantidadeProcessosPorAssunto("", "");
+        verify(processoService).obterIndicadoresTema("Dano Moral", null);
+    }
+
+    @Test
+    void buscaDoAcervoESelecaoDoTemaSaoIndependentes() throws Exception {
+        when(processoService.obterQuantidadeProcessosPorOrgaoJulgador("", "Dano")).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorClasse("Dano")).thenReturn(List.of());
+        when(processoService.obterQuantidadeProcessosPorAssunto("", "Dano")).thenReturn(List.of());
+        when(processoService.obterIndicadoresTema("Dano Moral", null)).thenReturn(indicadoresComDados());
+
+        mockMvc.perform(get("/processos/orgaos-julgadores")
+                        .param("assuntoNome", "Dano").param("temaSelecionado", "Dano Moral"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("assuntoNome", "Dano"))
+                .andExpect(model().attribute("temaSelecionado", "Dano Moral"));
+
+        verify(processoService).obterQuantidadeProcessosPorAssunto("", "Dano");
+        verify(processoService).obterIndicadoresTema("Dano Moral", null);
+        verify(processoService, never()).obterIndicadoresTema("Dano", null);
     }
 }
