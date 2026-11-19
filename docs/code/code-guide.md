@@ -20,6 +20,7 @@ frontend/
     repository/             Native SQL queries
     entity/                 JPA entity and DTO
   src/main/resources/templates/   Thymeleaf page
+  src/main/resources/static/      Explorer styles and browser navigation
   src/test/                 JUnit suites
 docs/                       Project documentation
 ```
@@ -92,19 +93,34 @@ The application has no authentication layer in the repository.
 
 | Method | Path | Parameters | Response |
 |---|---|---|---|
-| GET | `/`, `/processos/orgaos-julgadores` | Optional `classeNome`, `assuntoNome`, `teseId` | HTML dashboard |
+| GET | `/`, `/processos/orgaos-julgadores` | Optional `classeNome`, `assuntoNome`, `temaSelecionado`, `teseId` | HTML explorer |
 | GET | `/processos/taxa-sucesso` | Required `classeNome` | `{"taxa": number}` |
 | GET | `/processos/taxa-sucesso-tema` | Required `assuntoNome` | `{"taxa": number, "precedentes": [...]}` |
 | GET | `/processos/indicadores-tema` | Required `assuntoNome`; optional `teseId` | `{"adesao": {...}, "polo": {...}, "adesaoPorOrgao": [...], "adesaoPorTese": [...], "evidencias": {...}}` |
 
 A missing required parameter returns status 400. When there is no data, `taxa` and the indicator percentages are `null`.
 
-On the dashboard, the topic indicators appear when `assuntoNome` is filled.
+Topic indicators appear when a topic is selected, through `temaSelecionado`
+or an older URL with a nonempty `assuntoNome`.
 The adherence and party indicators use partial subject-name matching (`ILIKE`),
 like the volume charts. The success-rate endpoints instead use exact class or
 subject names. `teseId` selects the thesis shown in the evidence section;
 an unknown id falls back to the main thesis. It does not change the main
 index, coverage or body comparison.
+
+The explorer separates collection search (`assuntoNome`) from the selected
+topic (`temaSelecionado`). Choosing a topic row preserves the collection filters
+and changes only the indicator selection. For older URLs without
+`temaSelecionado`, the subject search is also used as the selected topic.
+Evidence links preserve both values and the class filter. `Ver todos os temas`
+clears the collection filters while retaining the topic detail; `Voltar ao acervo`
+clears both search and selection.
+
+`static/js/explorer.js` handles tabs, six-row list pagination, local name
+filtering and rate requests to the existing endpoints. Rates and related
+precedents appear in the detail panel instead of a modal. Native links and
+GET forms preserve shareable selection URLs. `static/css/explorer.css` retains
+the original palette; the original logo SVG remains in the template.
 
 ## How to extend
 

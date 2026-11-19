@@ -28,12 +28,12 @@ This document describes the automated test strategy of DataLaw and lists every t
 
 | Area | Framework | Test cases | Executions | Result |
 |---|---|---|---|---|
-| Backend (`backend/tests`) | pytest | 158 | 272 (parametrized) | 272 passed |
-| Frontend (`frontend/src/test`) | JUnit 5, Mockito, Spring MockMvc | 38 | 38 | 38 passed |
-| **Total** | | **196** | **310** | **310 passed** |
+| Backend (`backend/tests`) | pytest | 158 | 272 (parametrized) | Latest explorer check: 267 passed; 5 integration tests not run |
+| Frontend (`frontend/src/test`) | JUnit 5, Mockito, Spring MockMvc | 42 | 42 | 42 passed |
+| **Total** | | **200** | **314** | **309 passed; 5 integration tests not run in the latest explorer check** |
 
 <p align="justify">
-The five PostgreSQL integration tests (<code>TC-BRZ-014</code>, <code>TC-GLD-012</code> to <code>TC-GLD-014</code> and <code>TC-GLD-016</code>) ran in the totals above. They are skipped when the <code>DATABASE_URL</code> environment variable is not set. Locally it runs against the PostgreSQL started with Docker Compose, and in CI against the PostgreSQL service container of the <code>test</code> job.
+The five PostgreSQL integration tests (<code>TC-BRZ-014</code>, <code>TC-GLD-012</code> to <code>TC-GLD-014</code> and <code>TC-GLD-016</code>) belong to the full suite but were excluded from the latest explorer check with <code>-m "not integration"</code>. They are skipped when the <code>DATABASE_URL</code> environment variable is not set. Use a disposable local or CI PostgreSQL database for them.
 </p>
 
 ## **Test Levels**
@@ -496,7 +496,7 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 </p>
 
 <details>
-  <summary><b>Controller and View</b> (15 test cases)</summary>
+  <summary><b>Controller and View</b> (19 test cases)</summary>
 
 **File:** `frontend/src/test/java/com/datatech/datalaw/controller/ProcessoControllerTest.java`  
 **Type:** `@WebMvcTest` with `ProcessoService` mocked; the Thymeleaf template is rendered.  
@@ -517,7 +517,16 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 | TC-FE-CTL-012 | `indicadoresTemaRetornaJson` | `GET /processos/indicadores-tema?assuntoNome=Dano Moral` | JSON with adherence, party view and judging bodies |
 | TC-FE-CTL-013 | `indicadoresTemaSemAssuntoRetornaBadRequest` | Indicators without `assuntoNome` | Status 400 and the service is not called |
 | TC-FE-CTL-014 | `taxaSucessoSemDadosRetornaNuloENaoZero` | Subject success rate without data | JSON `taxa` is `null` |
-| TC-FE-CTL-015 | `teseSelecionadaERepassadaParaAsEvidencias` | Dashboard with `teseId` | The selected thesis is passed to the service and the evidence section is rendered |
+| TC-FE-CTL-015 | `teseSelecionadaERepassadaParaAsEvidencias` | Dashboard with `teseId` | The selected thesis is passed to the service and the initial section is evidence |
+| TC-FE-CTL-016 | `exploradorPreservaClasseAoSelecionarTemaETese` | Topic and class filters with a curated thesis | Topic and evidence links preserve collection filters and selected topic; interpretation limit is rendered |
+| TC-FE-CTL-017 | `exploradorDisponibilizaNomesContagensETaxasSemGraficos` | Loaded topic, class and body groups without a selected topic | Names and counts have accessible links/buttons; rate actions do not depend on canvas; empty analysis prompts selection |
+| TC-FE-CTL-018 | `selecionarTemaNaoRestringeAListaDoAcervo` | `temaSelecionado=Dano Moral` with no collection search | Collection queries retain empty filters, other topics remain available, and return actions are rendered |
+| TC-FE-CTL-019 | `buscaDoAcervoESelecaoDoTemaSaoIndependentes` | Search `Dano` with selected topic `Dano Moral` | Lists use the search while indicators use the selected topic |
+
+These tests render the server template with mocked service data. They do not
+execute browser JavaScript. Tab switching, local filtering, pagination, rate
+requests, repeated returns to topics and responsive layout require browser
+verification in addition to this suite.
 
 </details>
 
