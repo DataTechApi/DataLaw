@@ -1,5 +1,6 @@
 package com.datatech.datalaw.controller;
 
+import com.datatech.datalaw.entity.dto.IndicadoresTema;
 import com.datatech.datalaw.service.ProcessoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +24,8 @@ public class ProcessoController {
     public String listarProcessosPorOrgao(
             @RequestParam(value = "classeNome", required = false) String classeNome,
             @RequestParam(value = "assuntoNome", required = false) String assuntoNome,
+            @RequestParam(value = "temaSelecionado", required = false) String temaSelecionado,
+            @RequestParam(value = "teseId", required = false) String teseId,
             Model model) {
         if (classeNome == null) {
             classeNome = "";
@@ -30,6 +33,7 @@ public class ProcessoController {
         if (assuntoNome == null) {
             assuntoNome = "";
         }
+        String tema = temaSelecionado == null ? assuntoNome.trim() : temaSelecionado.trim();
         var processosPorOrgao = processoService.obterQuantidadeProcessosPorOrgaoJulgador(classeNome, assuntoNome);
         var processosPorClasse = processoService.obterQuantidadeProcessosPorClasse(assuntoNome);
         var processosPorAssunto = processoService.obterQuantidadeProcessosPorAssunto(classeNome, assuntoNome);
@@ -39,6 +43,11 @@ public class ProcessoController {
         model.addAttribute("processosPorAssunto", processosPorAssunto);
         model.addAttribute("classeNome", classeNome);
         model.addAttribute("assuntoNome", assuntoNome);
+        model.addAttribute("teseId", teseId);
+        model.addAttribute("temaSelecionado", tema);
+        if (!tema.isBlank()) {
+            model.addAttribute("indicadores", processoService.obterIndicadoresTema(tema, teseId));
+        }
         return "orgaos-julgadores";
     }
 
@@ -49,6 +58,13 @@ public class ProcessoController {
         Map<String, Object> response = new HashMap<>();
         response.put("taxa", taxa);
         return response;
+    }
+
+    @GetMapping("/processos/indicadores-tema")
+    @ResponseBody
+    public IndicadoresTema obterIndicadoresTema(@RequestParam("assuntoNome") String assuntoNome,
+                                                @RequestParam(value = "teseId", required = false) String teseId) {
+        return processoService.obterIndicadoresTema(assuntoNome.trim(), teseId);
     }
 
     @GetMapping("/processos/taxa-sucesso-tema")

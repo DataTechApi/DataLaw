@@ -10,7 +10,7 @@ The contractual deliverable is the **source code and the infrastructure structur
 | 2 | [Code guide](../code/code-guide.md) | Repository structure, data flow and how to extend the code |
 | 3 | [Code governance](../governance/code-governance.md) | Branches, commits, reviews, quality gates and ownership |
 | 4 | [Infrastructure guide](../infrastructure/infrastructure.md) | Environments, CI/CD, secrets and operations |
-| 5 | [Test strategy](../testing/test-strategy.md) | How the code is verified |
+| 5 | [Test strategy](../testing/test-cases.md#dart-test-strategy) | How the code is verified |
 | 6 | [Test cases](../testing/test-cases.md) | Catalogue of automated tests |
 | 7 | [Requirements](../requirements/README.md) | Requirements, use cases and traceability |
 

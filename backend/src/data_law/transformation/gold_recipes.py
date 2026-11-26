@@ -16,6 +16,9 @@ Example Polars:
 
 from data_law.infra.database.model.gold import (  # noqa: F401
     process_results,
+    topic_adherence,
+    topic_adherence_evidence,
+    topic_party_results,
     topic_precedents,
     topic_results,
 )

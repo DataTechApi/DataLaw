@@ -28,12 +28,12 @@ This document describes the automated test strategy of DataLaw and lists every t
 
 | Area | Framework | Test cases | Executions | Result |
 |---|---|---|---|---|
-| Backend (`backend/tests`) | pytest | 148 | 257 (parametrized) | 256 passed, 1 skipped |
-| Frontend (`frontend/src/test`) | JUnit 5, Mockito, Spring MockMvc | 14 | 14 | 14 passed |
-| **Total** | | **162** | **271** | **270 passed, 1 skipped** |
+| Backend (`backend/tests`) | pytest | 158 | 272 (parametrized) | Latest check (2026-11-19): 267 passed; 5 integration tests not run |
+| Frontend (`frontend/src/test`) | JUnit 5, Mockito, Spring MockMvc | 42 | 42 | 42 passed |
+| **Total** | | **200** | **314** | **309 passed; 5 integration tests not run in the latest check** |
 
 <p align="justify">
-The skipped test is the PostgreSQL integration test <code>test_postgres_merge_updates_only_changed_process</code>. It is skipped when the <code>DATABASE_URL</code> environment variable is not set. Locally it runs against the PostgreSQL started with Docker Compose, and in CI against the PostgreSQL service container of the <code>test</code> job.
+The five PostgreSQL integration tests (<code>TC-BRZ-014</code>, <code>TC-GLD-012</code> to <code>TC-GLD-014</code> and <code>TC-GLD-016</code>) belong to the full suite but were excluded from the latest check with <code>-m "not integration"</code>. They are skipped when the <code>DATABASE_URL</code> environment variable is not set. Use a disposable local or CI PostgreSQL database for them.
 </p>
 
 ## **Test Levels**
@@ -41,7 +41,7 @@ The skipped test is the PostgreSQL integration test <code>test_postgres_merge_up
 | Level | Status | Description |
 |---|---|---|
 | Unit | Implemented | Functions, methods, services and controllers tested in isolation with fakes and mocks. No database, network or Docker required. |
-| Integration | Partial | One test (`TC-BRZ-014`) runs against a real PostgreSQL database: the local Docker Compose database or the CI service container. Still planned: SQL Gold recipes, `ProcessoRepository` native queries and the tribunal filter of the Silver sync. |
+| Integration | Partial | Five tests run against a real PostgreSQL database (the local Docker Compose database or the CI service container): the Bronze upsert (`TC-BRZ-014`) and the Gold indicator recipes (`TC-GLD-012` to `TC-GLD-014`, `TC-GLD-016`). Still planned: the older Gold recipes, `ProcessoRepository` native queries and the tribunal filter of the Silver sync. |
 | End-to-end | Not planned for Sprint 3 | Raw files → Bronze → Silver → Gold → dashboard. |
 
 <br>
@@ -162,10 +162,12 @@ Every test case is identified as `TC-<AREA>-<NUMBER>`.
 3. **Run the regression suite locally:** `uv run task test` (and `./mvnw test` when the frontend changes), so nothing that already worked is broken. Fakes that imitate a function must be updated when that function's signature changes.
 4. **Run lint and formatting:** `uv run ruff check src tests` and `uv run ruff format --check src tests`.
 5. **Commit** with the Jira task ID (`SCRUM-xxx :test_tube: test: ...`) and open a Pull Request to `main`.
-6. **CI** (GitHub Actions, clean environment): lint → unit tests → `alembic upgrade head` → integration tests against the PostgreSQL service container.
+6. **CI** (GitHub Actions, clean environment), two jobs in parallel:
+   - `test` (backend): lint → formatting → unit tests → `alembic upgrade head` → integration tests against the PostgreSQL service container;
+   - `test-frontend`: `./mvnw -B verify` (compiles, runs the JUnit tests and validates the packaging).
 7. **Result:**
-   - ❌ Failure → deploy is blocked → fix and push again (CI runs again on the same Pull Request).
-   - ✅ Success → merge → CI runs again on `main`, including the frontend tests, and deploys.
+   - ❌ Failure in either job → deploy is blocked → fix and push again (CI runs again on the same Pull Request).
+   - ✅ Success → merge → CI runs again on `main` and deploys.
 8. **Bug found later:** first write a test that reproduces the bug, then fix the code. The test becomes part of the regression suite.
 
 <br>
@@ -174,8 +176,8 @@ Every test case is identified as `TC-<AREA>-<NUMBER>`.
 
 | Area | Tool | Coverage | Measured on |
 |---|---|---|---|
-| Backend | pytest-cov (statements + branches) | **91%** — 1,279 statements, 294 branches | 2026-11-06, `sprint3` at `018b353` |
-| Frontend | JaCoCo | **82%** instructions · **73%** lines · **100%** branches | 2026-10-22 (frontend code unchanged since) |
+| Backend | pytest-cov (statements + branches) | **91%** — 1,279 statements, 294 branches | 2026-11-06, `sprint3` at `018b353` (before the Sprint 3 indicators; to be measured again) |
+| Frontend | JaCoCo | **82%** instructions · **73%** lines · **100%** branches | 2026-10-22 (before the Sprint 3 indicators; to be measured again) |
 
 <p align="justify">
 Backend coverage went from 98% in Sprint 2 to 91% because the resumable multi-tribunal ingestion (SCRUM-162) added about 400 statements to <code>ingestion/ingestion.py</code>, and only part of them is exercised by the current tests. Coverage shows which code was executed, not which behavior was verified, so it complements the scenario review above.
@@ -220,7 +222,7 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 </p>
 
 <details>
-  <summary><b>Database Infrastructure</b> (5 test cases)</summary>
+  <summary><b>Database Infrastructure</b> (7 test cases)</summary>
 
 **Files:** `tests/infra/database/model/bronze/test_bronze_process.py`, `tests/infra/database/test_session.py`, `tests/test_smoke.py`  
 
@@ -230,6 +232,8 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 | TC-INF-002 | `test_ingestion_state_mapping` | Inspect the ingestion checkpoint ORM table | Table `bronze.datajud_ingestion_state` with the expected columns and `tribunal_alias` as primary key | 1 |
 | TC-INF-003 | `test_create_session_factory_uses_given_settings` | Build a session factory from explicit settings | `sessionmaker` bound to the configured URL with `expire_on_commit=False`, without connecting | 1 |
 | TC-INF-004 | `test_create_session_factory_reads_database_url_from_environment` | Build a session factory with `DATABASE_URL` set in the environment | The engine uses the URL from the environment | 1 |
+| TC-INF-005 | `test_precedent_direction_mapping` | Inspect the `SilverPrecedentDirection` ORM table | Table `silver.precedente_direcao` with the expected columns, required direction and curator, cascading foreign key and one direction per precedent | 1 |
+| TC-INF-006 | `test_precedent_direction_accepts_only_known_directions` | Inspect the check constraint | Only `autor`, `reu` and `indefinida` are accepted | 1 |
 | TC-SMK-001 | `test_smoke` | Run the test suite bootstrap | pytest discovers and runs tests | 1 |
 
 </details>
@@ -410,7 +414,7 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 </details>
 
 <details>
-  <summary><b>Gold Recipe Registry and Recipes</b> (8 test cases)</summary>
+  <summary><b>Gold Recipe Registry and Recipes</b> (16 test cases)</summary>
 
 **File:** `tests/transformation/test_gold.py`  
 
@@ -424,6 +428,14 @@ Python test suite located in <code>backend/tests</code>, executed with pytest. T
 | TC-GLD-006 | `test_success_by_class_recipe_is_registered` | Load project recipes | `process_results` registered as a SQL recipe over Silver | 1 |
 | TC-GLD-007 | `test_success_by_topic_recipe_is_registered` | Load project recipes | `topic_results` registered as SQL, reading processes, subjects and movements, with the weighted success rate and the `COUNT(*) >= 30` threshold | 1 |
 | TC-GLD-008 | `test_topic_precedents_recipe_is_registered` | Load project recipes | `topic_precedents` registered | 1 |
+| TC-GLD-009 | `test_topic_party_results_recipe_is_registered` | Load project recipes | `topic_party_results` registered as SQL with the plaintiff and defendant percentages and the half weight of `221` | 1 |
+| TC-GLD-010 | `test_topic_adherence_recipe_is_registered` | Load project recipes | `topic_adherence` registered as SQL, reading `silver.precedente_direcao` and using only `autor` and `reu` directions | 1 |
+| TC-GLD-011 | `test_gold_recipes_exclude_confidential_cases` | Inspect every project recipe | Each one filters `COALESCE(p.nivel_sigilo, 0) = 0` | 6 |
+| TC-GLD-012 | `test_topic_party_results_splits_results_between_plaintiff_and_defendant` | **Integration:** 6 × `219`, 2 × `221`, 2 × `220`, one case without a merit result and one confidential case | 11 closed cases, 10 with a result, 70% for the plaintiff and 30% for the defendant | 1 |
+| TC-GLD-013 | `test_topic_adherence_classifies_by_thesis_direction` | **Integration:** same cases with a plaintiff thesis, a defendant thesis, an `indefinida` thesis and an uncurated thesis | Only the two curated theses appear; plaintiff thesis 6/2/2 = 70%, defendant thesis 2/2/6 = 30%; confidential case excluded | 1 |
+| TC-GLD-015 | `test_topic_adherence_evidence_recipe_is_registered` | Load project recipes | `topic_adherence_evidence` registered as SQL, reading `silver.precedente_direcao`, selecting the case number and classification, only for decisions with a result | 1 |
+| TC-GLD-016 | `test_topic_adherence_evidence_matches_the_index` | **Integration:** same scenario with a plaintiff thesis and an uncurated thesis | 10 evidence rows, all for the curated thesis, with the same aderente/parcial/não aderente counts as `topic_adherence`; case number, movement name and date filled; confidential case excluded | 1 |
+| TC-GLD-014 | `test_topic_adherence_is_null_without_decisions_with_a_result` | **Integration:** a curated thesis and a case without a merit result | Index is `NULL`, not 0 | 1 |
 
 </details>
 
@@ -486,7 +498,7 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 </p>
 
 <details>
-  <summary><b>Controller and View</b> (8 test cases)</summary>
+  <summary><b>Controller and View</b> (19 test cases)</summary>
 
 **File:** `frontend/src/test/java/com/datatech/datalaw/controller/ProcessoControllerTest.java`  
 **Type:** `@WebMvcTest` with `ProcessoService` mocked; the Thymeleaf template is rendered.  
@@ -501,11 +513,27 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 | TC-FE-CTL-006 | `taxaSucessoSemClasseRetornaBadRequest` | Success rate without `classeNome` | Status 400 and the service is not called |
 | TC-FE-CTL-007 | `taxaSucessoTemaRetornaJsonComTaxaEPrecedentes` | `GET /processos/taxa-sucesso-tema?assuntoNome=Dano Moral` | JSON with the rate and the list of precedents |
 | TC-FE-CTL-008 | `taxaSucessoTemaSemAssuntoRetornaBadRequest` | Subject success rate without `assuntoNome` | Status 400 and the service is not called |
+| TC-FE-CTL-009 | `temaSelecionadoMostraAdesaoPoloOrgaosETeses` | Dashboard with a topic and indicators | Main thesis, index, plaintiff and defendant percentages, judging body, theses and update date rendered |
+| TC-FE-CTL-010 | `temaSemDadosMostraDadosInsuficientesENuncaZero` | Dashboard with a topic without data | "Dados insuficientes" and "no curated thesis" shown; no "0,0%" |
+| TC-FE-CTL-011 | `semTemaNaoCalculaIndicadores` | Dashboard filtered only by class | Indicators not calculated and not rendered |
+| TC-FE-CTL-012 | `indicadoresTemaRetornaJson` | `GET /processos/indicadores-tema?assuntoNome=Dano Moral` | JSON with adherence, party view and judging bodies |
+| TC-FE-CTL-013 | `indicadoresTemaSemAssuntoRetornaBadRequest` | Indicators without `assuntoNome` | Status 400 and the service is not called |
+| TC-FE-CTL-014 | `taxaSucessoSemDadosRetornaNuloENaoZero` | Subject success rate without data | JSON `taxa` is `null` |
+| TC-FE-CTL-015 | `teseSelecionadaERepassadaParaAsEvidencias` | Dashboard with `teseId` | The selected thesis is passed to the service and the initial section is evidence |
+| TC-FE-CTL-016 | `exploradorPreservaClasseAoSelecionarTemaETese` | Topic and class filters with a curated thesis | Topic and evidence links preserve collection filters and selected topic; interpretation limit is rendered |
+| TC-FE-CTL-017 | `exploradorDisponibilizaNomesContagensETaxasSemGraficos` | Loaded topic, class and body groups without a selected topic | Names and counts have accessible links/buttons; rate actions do not depend on canvas; empty analysis prompts selection |
+| TC-FE-CTL-018 | `selecionarTemaNaoRestringeAListaDoAcervo` | `temaSelecionado=Dano Moral` with no collection search | Collection queries retain empty filters, other topics remain available, and return actions are rendered |
+| TC-FE-CTL-019 | `buscaDoAcervoESelecaoDoTemaSaoIndependentes` | Search `Dano` with selected topic `Dano Moral` | Lists use the search while indicators use the selected topic |
+
+These tests render the server template with mocked service data. They do not
+execute browser JavaScript. Tab switching, local filtering, pagination, rate
+requests, repeated returns to topics and responsive layout require browser
+verification in addition to this suite.
 
 </details>
 
 <details>
-  <summary><b>Service</b> (6 test cases)</summary>
+  <summary><b>Service</b> (23 test cases)</summary>
 
 **File:** `frontend/src/test/java/com/datatech/datalaw/service/ProcessoServiceTest.java`  
 **Type:** Mockito unit test with `ProcessoRepository` mocked.  
@@ -518,6 +546,23 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 | TC-FE-SVC-004 | `taxaSucessoPorClasseRetornaValorDoRepositorio` | Success rate by class | Repository value returned |
 | TC-FE-SVC-005 | `taxaSucessoPorAssuntoRetornaValorDoRepositorio` | Success rate by subject | Repository value returned |
 | TC-FE-SVC-006 | `precedentesPorAssuntoRetornaResultadoDoRepositorio` | Precedents by subject | Repository result returned |
+| TC-FE-SVC-007 | `percentualPonderaParciaisPelaMetade` | 6/2/10, 2/2/10 and 1/0/3 | 70.0, 30.0 and 33.33 |
+| TC-FE-SVC-008 | `percentualSemDecisoesEhNuloENaoZero` | No decisions or closed cases | Percentage and coverage are `null` |
+| TC-FE-SVC-009 | `confiabilidadeDependeDaAmostraMinima` | 0, 29 and 30 decisions | Insufficient, low and adequate |
+| TC-FE-SVC-010 | `resultadoPorPoloDivideProcedenciaEImprocedencia` | 60 × `219`, 20 × `221`, 20 × `220` | 70% plaintiff, 30% defendant, adequate reliability, time in São Paulo time zone |
+| TC-FE-SVC-011 | `resultadoPorPoloSemDecisoesMostraDadosInsuficientes` | Topic without decisions with a result | Percentages `null`, insufficient reliability |
+| TC-FE-SVC-012 | `indicadorAdesaoCalculaIndiceCoberturaEConfiabilidade` | Thesis with 6/2/2 and 20 closed cases | Index 70%, coverage 50%, low reliability, thesis name and direction |
+| TC-FE-SVC-013 | `indicadorAdesaoSemTeseCuradaFicaSemIndice` | Topic without curated theses | No thesis, index and coverage `null` |
+| TC-FE-SVC-014 | `tesePrincipalPrefereAmostraConfiavelETesesOpostasNaoSaoSomadas` | Small thesis, plaintiff thesis and defendant thesis | Main thesis is the plaintiff one with the larger sample (92.86%); judging bodies queried only for it |
+| TC-FE-SVC-015 | `temaSemTeseCuradaNaoConsultaOrgaos` | Topic without curated theses | No judging body query; empty comparison |
+| TC-FE-SVC-016 | `adesaoPorOrgaoOrdenaPeloIndiceELimitaAQuinze` | 22 judging bodies | Sorted by index and limited to 15 |
+| TC-FE-SVC-017 | `adesaoPorTeseUsaTituloQuandoNaoHaIdentificador` | Precedent without identifier | Title used as name; direction and index kept |
+| TC-FE-SVC-018 | `evidenciasDaTesePrincipalConferemComOIndice` | Main thesis with 28 decisions and two listed | Thesis, direction and totals filled; totals match the index; CNJ number formatted; date in São Paulo time; classifications mapped |
+| TC-FE-SVC-019 | `evidenciasUsamATeseSelecionadaQuandoPertenceAoTema` | `teseId` of the defendant thesis | Evidence shows that thesis while the index card keeps the main thesis |
+| TC-FE-SVC-020 | `teseDesconhecidaVoltaParaATesePrincipal` | `teseId` not in the topic | Evidence falls back to the main thesis |
+| TC-FE-SVC-021 | `evidenciasDivergentesDoIndiceSaoSinalizadas` | Evidence totals differ from the index | `conferemComIndice` is false |
+| TC-FE-SVC-022 | `temaSemTeseCuradaNaoTemEvidencias` | Topic without curated theses | No evidence section data |
+| TC-FE-SVC-023 | `numeroCnjEhFormatado` | 20-digit number, short value and `null` | CNJ mask applied only to 20-digit numbers |
 
 </details>
 
@@ -526,17 +571,17 @@ Java test suite located in <code>frontend/src/test</code>, executed with JUnit 5
 <h1 id="robot-continuous-integration">🤖 Continuous Integration</h1>
 
 <p align="justify">
-Since SCRUM-137 the automated tests are part of the GitHub Actions pipeline (<code>.github/workflows/deploy.yml</code>). The deploy jobs depend on the <code>test</code> job (<code>needs: test</code>), so no backend or frontend deploy happens when the backend tests fail. Pipeline details are described in <a href="../architecture/Devops.md">DevOps</a>.
+Since SCRUM-137 the automated tests are part of the GitHub Actions pipeline (<code>.github/workflows/deploy.yml</code>). The deploy jobs depend on the <code>test</code> and <code>test-frontend</code> jobs (<code>needs: [test, test-frontend]</code>), so no backend or frontend deploy happens when the backend or the frontend tests fail. Pipeline details are described in <a href="../architecture/Devops.md">DevOps</a>.
 </p>
 
-| Step (job `test`) | Command | Runs on |
-|---|---|---|
-| Lint | `uv run ruff check src tests` | Pull Request and push to `main` |
-| Formatting | `uv run ruff format --check src tests` | Pull Request and push to `main` |
-| Unit tests | `uv run pytest -m "not integration"` | Pull Request and push to `main` |
-| Migrations | `uv run alembic upgrade head` | Pull Request and push to `main` |
-| Integration tests | `uv run pytest -m integration` | Pull Request and push to `main` |
-| Frontend tests | `./mvnw test` (inside the frontend deploy job) | Push to `main` only |
+| Job | Step | Command | Runs on |
+|---|---|---|---|
+| `test` | Lint | `uv run ruff check src tests` | Pull Request and push to `main` |
+| `test` | Formatting | `uv run ruff format --check src tests` | Pull Request and push to `main` |
+| `test` | Unit tests | `uv run pytest -m "not integration"` | Pull Request and push to `main` |
+| `test` | Migrations | `uv run alembic upgrade head` | Pull Request and push to `main` |
+| `test` | Integration tests | `uv run pytest -m integration` | Pull Request and push to `main` |
+| `test-frontend` | Build and frontend tests | `./mvnw -B verify` | Pull Request and push to `main` (in parallel with `test`) |
 
 <p align="justify">
 In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<code>services: postgres</code>), with the same image and credentials as the local Docker Compose database. The job waits for the <code>pg_isready</code> health check, and <code>DATABASE_URL</code> points to this container at <code>localhost:5432</code>. The container exists only during the run, so the integration test never touches a shared or production database.
@@ -545,7 +590,6 @@ In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<co
 **Current limitations**
 
 - The pipeline does not run on pushes to sprint branches (`sprint3`); tests run only when a Pull Request to `main` is opened. The regression suite must therefore be run locally before each push.
-- Frontend tests run only after the merge, so a Pull Request that breaks a Java test is not blocked, and the backend deploy does not depend on the frontend tests.
 - Coverage is measured manually; it is not calculated by the pipeline.
 
 <br>
@@ -560,6 +604,9 @@ In CI, the <code>test</code> job declares a PostgreSQL 18 service container (<co
 | 2026-10-29 | `main` / `3e12214` | CI, push after merge of PR #10 (run `40976164745`) | ✅ Passed | ✅ Passed | Backend and frontend deployed |
 | 2026-11-05 | `sprint3` / `ffde0e1` | Local (Python 3.13) | ❌ 11 failed, 245 passed, 1 skipped | Not run | Regression: `_pending_bronze_ids` gained `tribunal_sigla`, but the fake in `test_silver_sync.py` kept the old signature (`TC-SYN-*`). Not detected by CI, which does not run on `sprint3` |
 | 2026-11-06 | `sprint3` / `018b353` | Local (Python 3.13) | ✅ 256 passed, 1 skipped | Not run | Production code adjusted to keep the old call when no tribunal is given; the tribunal filter of the Silver sync remains untested |
+| 2026-11-13 | `sprint3` / `9131043` + local changes | Local (Python 3.13, JDK 21, Docker PostgreSQL 18) | ✅ 269 passed | ✅ 31 passed | Sprint 3 indicators (US3.2, US3.3, US3.6); integration tests ran against the local database |
+| 2026-11-13 | `sprint3` / `9131043` + local changes | Local (Python 3.13, JDK 21, Docker PostgreSQL 18) | ✅ 272 passed | ✅ 38 passed | Evidence of the index (US3.4) |
+| 2026-11-19 | `sprint3` / `fe937d1` | Local (Python 3.13, JDK 25, no database) | ✅ 267 passed, 5 integration tests not run | ✅ 42 passed | Check after the topic explorer (SCRUM-140); unit suite run with `-m "not integration"` |
 
 <br>
 

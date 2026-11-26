@@ -98,6 +98,65 @@ def test_topic_precedents_recipe_is_registered() -> None:
     assert "COUNT(*) >= 30" in recipe.query
 
 
+def test_topic_party_results_recipe_is_registered() -> None:
+    from data_law.transformation import gold_recipes  # noqa: F401
+
+    recipe = DEFAULT_GOLD_REGISTRY.select("topic_party_results")[0]
+
+    assert recipe.engine is GoldEngine.SQL
+    assert recipe.query is not None
+    assert "silver.processo_assunto" in recipe.query
+    assert "autor_pct" in recipe.query
+    assert "reu_pct" in recipe.query
+    assert "0.5 * COUNT(*) FILTER (WHERE j.codigo_resultado = 221)" in recipe.query
+
+
+def test_topic_adherence_recipe_is_registered() -> None:
+    from data_law.transformation import gold_recipes  # noqa: F401
+
+    recipe = DEFAULT_GOLD_REGISTRY.select("topic_adherence")[0]
+
+    assert recipe.engine is GoldEngine.SQL
+    assert recipe.query is not None
+    assert "silver.precedente_direcao" in recipe.query
+    assert "d.direcao IN ('autor', 'reu')" in recipe.query
+    assert "orgao_julgador_nome" in recipe.query
+    assert "indice_adesao_pct" in recipe.query
+
+
+def test_topic_adherence_evidence_recipe_is_registered() -> None:
+    from data_law.transformation import gold_recipes  # noqa: F401
+
+    recipe = DEFAULT_GOLD_REGISTRY.select("topic_adherence_evidence")[0]
+
+    assert recipe.engine is GoldEngine.SQL
+    assert recipe.query is not None
+    assert "silver.precedente_direcao" in recipe.query
+    assert "p.numero_processo" in recipe.query
+    assert "classificacao" in recipe.query
+    assert "JOIN ultimo_julgamento AS j" in recipe.query
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "process_results",
+        "topic_results",
+        "topic_precedents",
+        "topic_party_results",
+        "topic_adherence",
+        "topic_adherence_evidence",
+    ],
+)
+def test_gold_recipes_exclude_confidential_cases(name: str) -> None:
+    from data_law.transformation import gold_recipes  # noqa: F401
+
+    recipe = DEFAULT_GOLD_REGISTRY.select(name)[0]
+
+    assert recipe.query is not None
+    assert "COALESCE(p.nivel_sigilo, 0) = 0" in recipe.query
+
+
 def test_subject_extraction_and_canonical_hashing() -> None:
     payload = {
         "assuntos": [

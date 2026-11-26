@@ -20,6 +20,7 @@ frontend/
     repository/             Native SQL queries
     entity/                 JPA entity and DTO
   src/main/resources/templates/   Thymeleaf page
+  src/main/resources/static/      Explorer styles and browser navigation
   src/test/                 JUnit suites
 docs/                       Project documentation
 ```
@@ -30,9 +31,13 @@ docs/                       Project documentation
 DataJud API → raw .json.gz files → bronze.datajud_extract
             → silver.processo, silver.movimento, silver.processo_assunto
             → gold.process_results, gold.topic_results, gold.topic_precedents
+              gold.topic_party_results, gold.topic_adherence,
+              gold.topic_adherence_evidence
             → Spring Boot dashboard
 
 BNP API → silver.jurisprudencia → gold.topic_precedents
+Curated direction → silver.precedente_direcao → gold.topic_adherence,
+                                               gold.topic_adherence_evidence
 ```
 
 ## Layer rules
@@ -61,12 +66,26 @@ BNP API → silver.jurisprudencia → gold.topic_precedents
 
 | Rule | Location |
 |---|---|
-| Closed case: latest movement is 22 or 246 | `topic_results.py`, `process_results.py` |
+| Closed case: latest dated movement is 22 or 246; timestamp ties use the highest movement ID | All Gold recipes |
+| Confidential cases (`nivel_sigilo > 0`) are excluded | All Gold recipes, `ProcessoRepository.java` |
 | Result: 219 = 1.0, 221 = 0.5, 220 = 0.0 | `topic_results.py`, `process_results.py` |
-| Minimum of 30 closed cases per topic | `topic_results.py`, `topic_precedents.py`, `ProcessoRepository.java` |
-| Precedent link by exact TPU code | `topic_precedents.py` |
+| Party view: 219 favors the plaintiff, 220 the defendant, 221 counts half for each | `topic_party_results.py`, `ProcessoService.java` |
+| Adherence: 219 is adherent to a plaintiff thesis, 220 to a defendant thesis, 221 is partial | `topic_adherence.py` |
+| Precedents without a curated direction stay out of the Adherence Index | `topic_adherence.py` |
+| Theses with opposite directions are never summed; the dashboard shows the main thesis (largest reliable sample) | `ProcessoService.java` |
+| Reliability: no decisions = insufficient, fewer than 30 = low, 30 or more = adequate | `Confiabilidade.java` |
+| Evidence uses the same classification as the index, and its totals are checked against the index | `topic_adherence_evidence.py`, `ProcessoService.java` |
+| Missing data is null and shown as "Dados insuficientes", never 0% | `ProcessoService.java`, `ProcessoRepository.java`, template |
+| Subject volume bars require 30 distinct public cases per subject name; body and class volume bars have no minimum | `ProcessoRepository.java` |
+| Success rate by subject: include only court/subject groups with at least 30 closed cases | `topic_results.py` |
+| Related precedent list: show precedents only for court/subject groups with at least 30 closed cases | `topic_precedents.py` |
+| Precedent link by exact TPU code | `topic_precedents.py`, `topic_adherence.py` |
 
-The current rate measures claim outcome, not the Adherence Index. See the [requirements](../requirements/requirements.md).
+`topic_results` and `process_results` measure claim outcome. The Adherence Index is in `topic_adherence`.
+The [indicator guide](../architecture/indicators.md) defines each metric's
+purpose, formula, population, filters, examples and limitations. The
+[traceability matrix](../requirements/traceability.md#indicator-rules-and-verification)
+connects those rules to requirements, implementation and verification evidence.
 
 ## HTTP endpoints
 
@@ -74,11 +93,34 @@ The application has no authentication layer in the repository.
 
 | Method | Path | Parameters | Response |
 |---|---|---|---|
-| GET | `/`, `/processos/orgaos-julgadores` | Optional `classeNome`, `assuntoNome` | HTML dashboard |
+| GET | `/`, `/processos/orgaos-julgadores` | Optional `classeNome`, `assuntoNome`, `temaSelecionado`, `teseId` | HTML explorer |
 | GET | `/processos/taxa-sucesso` | Required `classeNome` | `{"taxa": number}` |
 | GET | `/processos/taxa-sucesso-tema` | Required `assuntoNome` | `{"taxa": number, "precedentes": [...]}` |
+| GET | `/processos/indicadores-tema` | Required `assuntoNome`; optional `teseId` | `{"adesao": {...}, "polo": {...}, "adesaoPorOrgao": [...], "adesaoPorTese": [...], "evidencias": {...}}` |
 
-A missing required parameter returns status 400.
+A missing required parameter returns status 400. When there is no data, `taxa` and the indicator percentages are `null`.
+
+Topic indicators appear when a topic is selected, through `temaSelecionado`
+or an older URL with a nonempty `assuntoNome`.
+The adherence and party indicators use partial subject-name matching (`ILIKE`),
+like the volume charts. The success-rate endpoints instead use exact class or
+subject names. `teseId` selects the thesis shown in the evidence section;
+an unknown id falls back to the main thesis. It does not change the main
+index, coverage or body comparison.
+
+The explorer separates collection search (`assuntoNome`) from the selected
+topic (`temaSelecionado`). Choosing a topic row preserves the collection filters
+and changes only the indicator selection. For older URLs without
+`temaSelecionado`, the subject search is also used as the selected topic.
+Evidence links preserve both values and the class filter. `Ver todos os temas`
+clears the collection filters while retaining the topic detail; `Voltar ao acervo`
+clears both search and selection.
+
+`static/js/explorer.js` handles tabs, six-row list pagination, local name
+filtering and rate requests to the existing endpoints. Rates and related
+precedents appear in the detail panel instead of a modal. Native links and
+GET forms preserve shareable selection URLs. `static/css/explorer.css` retains
+the original palette; the original logo SVG remains in the template.
 
 ## How to extend
 
@@ -115,6 +157,19 @@ Review the generated file, apply it locally and commit it with the model.
 4. Add controller and service tests.
 
 Keep null separate from zero, so that missing data is never displayed as 0%.
+
+**Record a thesis direction**
+
+The Adherence Index only uses precedents with a curated direction. Until a curation screen exists, a legal reviewer records it with SQL:
+
+```sql
+INSERT INTO silver.precedente_direcao (id, jurisprudencia_id, direcao, curador)
+VALUES (gen_random_uuid(), '<silver.jurisprudencia.id>', 'autor', '<reviewer name>')
+ON CONFLICT (jurisprudencia_id)
+DO UPDATE SET direcao = EXCLUDED.direcao, curador = EXCLUDED.curador, curado_em = now();
+```
+
+Use `autor`, `reu` or `indefinida`, then run `uv run task gold-load -- --name topic_adherence`.
 
 ## Conventions
 

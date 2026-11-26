@@ -1,0 +1,33 @@
+# ============================================================
+#  DataLaw — Terraform · Azure · terraform.tfvars.example
+#  Copie este arquivo para terraform.tfvars e preencha os valores.
+#  ATENÇÃO: NÃO versione o terraform.tfvars — ele já está no .gitignore.
+# ============================================================
+
+subscription_id = "00000000-0000-0000-0000-000000000000"   # az account show --query id
+
+project     = "datalaw"
+environment = "prod"
+location    = "brazilsouth"
+
+# ─── VMs ───────────────────────────────────────────────────
+# Mínimo:    Standard_B1ms (1 vCPU / 2 GB)  → ~$19/mês cada
+# Recomendado: Standard_B2s (2 vCPU / 4 GB) → ~$79/mês cada
+vm_frontend_size = "Standard_B2s"
+vm_backend_size  = "Standard_B2s"
+vm_admin_user    = "azureuser"
+
+# Gere com: ssh-keygen -t ed25519 -C "datalaw-deploy"
+# Depois: cat ~/.ssh/id_ed25519.pub
+ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... datalaw-deploy"
+
+# ─── PostgreSQL ────────────────────────────────────────────
+# Mínimo:    B_Standard_B1ms (1 vCPU / 2 GB) → ~$21/mês
+# Recomendado: B_Standard_B2ms (2 vCPU / 8 GB) → ~$69/mês
+db_sku            = "B_Standard_B2ms"
+db_name           = "datalaw_db"
+db_admin_user     = "datalaw"
+db_admin_password = "TROQUE_ESTA_SENHA_FORTE_123!"
+
+# ─── Aplicação ─────────────────────────────────────────────
+datajud_api_key = "cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw=="

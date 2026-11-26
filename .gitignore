@@ -30,3 +30,24 @@ htmlcov/
 
 application.properties
 **/application.properties
+
+# ─── Terraform ─────────────────────────────
+# Arquivos de state (contêm dados sensíveis)
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform/
+**/.terraform.lock.hcl
+
+# Variáveis locais com segredos — NÃO versionar
+**/terraform.tfvars
+**/*.auto.tfvars
+
+# Logs de crash do Terraform
+**/crash.log
+**/crash.*.log
+
+# Override files (uso local apenas)
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json

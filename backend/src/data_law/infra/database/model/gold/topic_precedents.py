@@ -33,6 +33,7 @@ register_sql(
             ) AS u
                 ON u.processo_id = p.id
             WHERE u.codigo IN (22, 246)
+              AND COALESCE(p.nivel_sigilo, 0) = 0
         ) AS enc
         GROUP BY tribunal_sigla, assunto_codigo, assunto_nome
         HAVING COUNT(*) >= 30

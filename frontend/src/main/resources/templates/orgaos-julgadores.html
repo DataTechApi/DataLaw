@@ -3,316 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLaw · Processos por Órgão Julgador e Tema</title>
-    <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338CA;
-            --bg-color: #0F172A;
-            --surface: #1E293B;
-            --surface-hover: #334155;
-            --text-main: #F8FAFC;
-            --text-muted: #94A3B8;
-            --border: #334155;
-            --gold: #FBBF24;
-            --emerald: #34D399;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 2rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1350px;
-        }
-
-        .brand-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
-            animation: slideUp 0.5s ease-out;
-        }
-
-        .brand-logo {
-            width: 56px;
-            height: 56px;
-            flex-shrink: 0;
-            filter: drop-shadow(0 4px 10px rgba(129, 140, 248, 0.35));
-        }
-
-        .brand-text h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin: 0;
-            line-height: 1.1;
-            background: linear-gradient(135deg, #818CF8 0%, #C084FC 60%, var(--gold) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
-        }
-
-        .brand-text span.tag {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-top: 0.15rem;
-        }
-
-        .header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .header h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0.5rem 0 0.25rem;
-            color: var(--text-main);
-        }
-
-        .header p {
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-            font-size: 1.05rem;
-        }
-
-        .search-container {
-            margin-bottom: 2.5rem;
-            display: flex;
-            justify-content: center;
-            animation: slideUp 0.5s ease-out;
-        }
-
-        .search-form {
-            display: flex;
-            width: 100%;
-            max-width: 780px;
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 9999px;
-            padding: 0.4rem 0.6rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: border-color 0.3s ease;
-            align-items: center;
-        }
-
-        .search-form:focus-within {
-            border-color: #818CF8;
-        }
-
-        .search-input {
-            flex: 1.4;
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            padding: 0.75rem 1.25rem;
-            font-size: 0.95rem;
-            outline: none;
-            font-family: inherit;
-        }
-
-        .search-input-secondary {
-            flex: 1;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-divider {
-            width: 1px;
-            height: 28px;
-            background-color: var(--border);
-            margin: 0 0.25rem;
-        }
-
-        .search-button {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            color: white;
-            border: none;
-            border-radius: 9999px;
-            padding: 0.75rem 1.75rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s ease, transform 0.1s ease;
-            outline: none;
-            font-family: inherit;
-            white-space: nowrap;
-        }
-
-        .search-button:hover { opacity: 0.9; }
-        .search-button:active { transform: scale(0.98); }
-
-        .clear-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 0.75rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: color 0.2s ease;
-        }
-        .clear-button:hover { color: var(--gold); }
-
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            align-items: stretch;
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-
-        @media (max-width: 900px) {
-            .charts-grid { grid-template-columns: 1fr; }
-            .search-form { flex-direction: column; border-radius: 16px; padding: 1rem; }
-            .search-divider { display: none; }
-            .search-input { width: 100%; margin-bottom: 0.5rem; }
-            .search-button { width: 100%; }
-        }
-
-        .chart-card {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-            animation: slideUp 0.6s ease-out;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chart-card h3 {
-            margin: 0 0 1.25rem;
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .chart-wrap {
-            position: relative;
-            min-height: 260px;
-            max-height: 420px;
-            overflow-y: auto;
-            padding-right: 5px;
-            flex: 1;
-        }
-
-        .chart-inner {
-            position: relative;
-            width: 100%;
-        }
-
-        .chart-empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 260px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 0 1rem;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-content {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-        .modal-close {
-            position: absolute;
-            top: 1rem; right: 1rem;
-            background: none; border: none;
-            color: var(--text-muted);
-            font-size: 1.5rem; cursor: pointer;
-        }
-        .modal-close:hover { color: var(--text-main); }
-        .modal-title {
-            margin: 0 0 1rem;
-            font-size: 1.25rem;
-            font-weight: 600;
-            text-align: center;
-            color: var(--gold);
-        }
-        .gauge-container {
-            position: relative;
-            height: 200px;
-            display: flex;
-            justify-content: center;
-        }
-        .gauge-text {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <title>DataLaw · Explorador de Inteligência Processual</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/explorer.css}" href="/css/explorer.css">
+    <script defer th:src="@{/js/explorer.js}" src="/js/explorer.js"></script>
 </head>
 <body>
-
-<div class="container">
-
-    <div class="brand-header">
+<a href="#analysis-detail" class="skip-link">Ir para a análise</a>
+<main class="app" id="datalaw-explorer">
+    <header class="brand-header">
         <svg class="brand-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -331,317 +30,168 @@
             <line x1="50" y1="16" x2="50" y2="28" stroke="url(#logoGrad)" stroke-width="2"/>
             <path d="M42 28 L58 28 L54 36 A8 8 0 0 1 46 36 Z" fill="none" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linejoin="round"/>
         </svg>
-        <div class="brand-text">
-            <h1>DataLaw</h1>
-            <span class="tag">Inteligência Processual</span>
+        <div class="brand-text"><h1>DataLaw</h1><span class="tag">Inteligência Processual</span></div>
+        <a class="secondary-action brand-context" href="/processos/orgaos-julgadores">Voltar ao acervo</a>
+    </header>
+    <section class="intro">
+        <div>
+            <h2 th:text="${!temaSelecionado.isEmpty() ? 'Tema: ' + temaSelecionado + (classeNome != null and !classeNome.isEmpty() ? ' · Classe: ' + classeNome : '') : (classeNome != null and !classeNome.isEmpty() ? 'Classe: ' + classeNome : 'Visão Geral dos Processos')}">Visão Geral dos Processos</h2>
+            <p>Explore o acervo. Compare resultados. Examine as decisões.</p>
         </div>
-    </div>
-
-    <div class="header">
-        <h2 th:text="${(assuntoNome != null and !assuntoNome.isEmpty()) ? 'Tema: ' + assuntoNome + (classeNome != null and !classeNome.isEmpty() ? ' · Classe: ' + classeNome : '') : (classeNome != null and !classeNome.isEmpty() ? 'Classe: ' + classeNome : 'Visão Geral dos Processos')}">Processos</h2>
-        <p>Distribuição coordenada por Classe, Tema e Órgão Julgador</p>
-    </div>
-
-    <div class="search-container">
-        <form class="search-form" method="get" action="/processos/orgaos-julgadores">
-            <input type="text" name="assuntoNome" class="search-input" th:value="${assuntoNome}" placeholder="Pesquisar Tema / Assunto (ex: Dano Moral, IPTU)">
-            <div class="search-divider"></div>
-            <input type="text" name="classeNome" class="search-input search-input-secondary" th:value="${classeNome}" placeholder="Classe (ex: Comum Cível)">
-            <button type="submit" class="search-button">Buscar</button>
-            <a th:if="${(assuntoNome != null and !assuntoNome.isEmpty()) or (classeNome != null and !classeNome.isEmpty())}" href="/processos/orgaos-julgadores" class="clear-button" title="Limpar filtros">✕</a>
+        <form method="get" action="/processos/orgaos-julgadores" class="search-form">
+            <label for="theme-search">Pesquisar tema / assunto
+                <input id="theme-search" name="assuntoNome" type="search" th:value="${assuntoNome}" placeholder="Ex.: Dano moral, Penhora">
+            </label>
+            <input type="hidden" name="classeNome" th:value="${classeNome}">
+            <button class="primary-action" type="submit">Pesquisar</button>
         </form>
-    </div>
-
-    <div class="charts-grid">
-        <div class="chart-card">
-            <h3>Processos por Classe</h3>
-            <div class="chart-wrap" th:if="${processosPorClasse != null and not #lists.isEmpty(processosPorClasse)}">
-                <div class="chart-inner" id="inner-chartClasse">
-                    <canvas id="chartClasse"></canvas>
+    </section>
+    <div class="workspace">
+        <section class="collection" aria-label="Explorar o acervo">
+            <div class="collection-tabs" role="tablist" aria-label="Agrupar processos">
+                <button class="tab" id="tab-topics" role="tab" aria-selected="true" aria-controls="list-topics" data-list-tab="topics" type="button">Temas</button>
+                <button class="tab" id="tab-classes" role="tab" aria-selected="false" aria-controls="list-classes" data-list-tab="classes" type="button" tabindex="-1">Classes</button>
+                <button class="tab" id="tab-bodies" role="tab" aria-selected="false" aria-controls="list-bodies" data-list-tab="bodies" type="button" tabindex="-1">Órgãos</button>
+            </div>
+            <div class="collection-navigation"><a class="secondary-action" th:href="@{/processos/orgaos-julgadores(temaSelecionado=${temaSelecionado})}">Ver todos os temas</a></div>
+            <div class="list-toolbar"><label for="list-filter">Filtrar os nomes já carregados<input id="list-filter" class="list-filter" type="search" placeholder="Digite parte do nome"></label></div>
+            <section id="list-topics" role="tabpanel" aria-labelledby="tab-topics" data-list-panel="topics">
+                <div class="list-heading"><span>Tema / assunto</span><span>Processos</span></div>
+                <a class="collection-row" th:each="item : ${processosPorAssunto}" th:href="@{/processos/orgaos-julgadores(assuntoNome=${assuntoNome}, classeNome=${classeNome}, temaSelecionado=${item[0]})}" th:attr="data-name=${item[0]},aria-current=${temaSelecionado == item[0]}"><span><span th:text="${item[0]}"></span><small class="row-action">Ver análise</small></span><strong th:text="${#numbers.formatInteger(item[1], 1, 'POINT')}"></strong></a>
+                <p class="list-empty" th:if="${#lists.isEmpty(processosPorAssunto)}">Nenhum tema com pelo menos 30 processos públicos neste recorte. Pesquise um assunto acima para consultar seus indicadores.</p>
+            </section>
+            <section id="list-classes" role="tabpanel" aria-labelledby="tab-classes" data-list-panel="classes" hidden>
+                <div class="list-heading"><span>Classe processual</span><span>Processos</span></div>
+                <button class="collection-row" type="button" th:each="item : ${processosPorClasse}" data-kind="classe" th:attr="data-name=${item[0]},data-count=${item[1]}" aria-pressed="false"><span><span th:text="${item[0]}"></span><small class="row-action">Consultar taxa</small></span><strong th:text="${#numbers.formatInteger(item[1], 1, 'POINT')}"></strong></button>
+                <p class="list-empty" th:if="${#lists.isEmpty(processosPorClasse)}">Sem dados de classe para o filtro selecionado.</p>
+            </section>
+            <section id="list-bodies" role="tabpanel" aria-labelledby="tab-bodies" data-list-panel="bodies" hidden>
+                <div class="list-heading"><span>Órgão julgador</span><span>Processos</span></div>
+                <button class="collection-row" type="button" th:each="item : ${processos}" data-kind="orgao" th:attr="data-name=${item[0]},data-count=${item[1]}" aria-pressed="false"><span><span th:text="${item[0]}"></span><small class="row-action">Ver participação</small></span><strong th:text="${#numbers.formatInteger(item[1], 1, 'POINT')}"></strong></button>
+                <p class="list-empty" th:if="${#lists.isEmpty(processos)}">Sem dados de órgão julgador para o filtro selecionado.</p>
+            </section>
+            <p class="list-empty" id="list-no-match" hidden>Nenhum nome corresponde ao filtro.</p>
+            <nav class="pagination" aria-label="Páginas da lista"><button id="page-previous" type="button">Anterior</button><span id="page-range" aria-live="polite"></span><button id="page-next" type="button">Próxima</button></nav>
+            <p class="collection-note">Contagem distinta por grupo. Um processo pode estar em mais de um assunto.</p>
+            <details class="volume-scope">
+                <summary>Recorte dos volumes</summary>
+                <form method="get" action="/processos/orgaos-julgadores">
+                    <input type="hidden" name="assuntoNome" th:value="${assuntoNome}"><input type="hidden" name="temaSelecionado" th:value="${temaSelecionado}">
+                    <label for="class-filter">Classe (opcional)<input id="class-filter" name="classeNome" th:value="${classeNome}" placeholder="Ex.: Procedimento comum cível"></label>
+                    <button class="primary-action" type="submit">Aplicar classe</button>
+                </form>
+                <p>A classe filtra os volumes por órgão e assunto. O índice e os volumes por classe usam apenas o tema.</p>
+                <a class="text-action" href="/processos/orgaos-julgadores">Limpar filtros</a>
+            </details>
+        </section>
+        <section class="detail" id="analysis-detail" aria-label="Detalhe da seleção" th:attr="data-selected-topic=${temaSelecionado},data-initial-section=${teseId != null ? 'evidence' : 'bodies'}">
+            <div id="topic-detail">
+                <div class="detail-placeholder" th:if="${indicadores == null}"><span class="eyebrow">Seu ponto de partida</span><h2>Selecione um tema para analisar.</h2><p>Escolha um assunto na lista ou pesquise acima. O índice, a direção da tese e suas evidências ficam reunidos neste painel.</p></div>
+                <section th:if="${indicadores != null}" aria-label="Indicadores do tema">
+                    <div class="detail-heading"><span>Tema selecionado</span><h2 th:text="${temaSelecionado}"></h2></div>
+                    <div class="thesis-line"><strong th:text="${indicadores.adesao.possuiTeseCurada() ? indicadores.adesao.tese : 'Tese principal'}"></strong><span th:class="${'badge badge-' + indicadores.adesao.confiabilidade.name()}" th:text="${indicadores.adesao.confiabilidade.rotulo}"></span></div>
+                    <section class="index-card" id="card-adesao" aria-labelledby="adherence-heading">
+                        <div><h3 id="adherence-heading">Índice de Adesão à Tese</h3><div class="indicator-value" th:if="${indicadores.adesao.indice != null}" th:text="${#numbers.formatDecimal(indicadores.adesao.indice, 1, 1, 'COMMA') + '%'}"></div><div class="indicator-value empty" th:if="${indicadores.adesao.indice == null}">Dados insuficientes</div></div>
+                        <div class="index-context">
+                            <p class="indicator-caption" th:if="${indicadores.adesao.possuiTeseCurada()}">Tese principal (maior amostra): <strong th:text="${indicadores.adesao.tese}"></strong><span th:text="${(indicadores.adesao.tribunalTese != null ? ' (' + indicadores.adesao.tribunalTese + ') ' : '') + '· favorece o ' + (indicadores.adesao.direcao == 'autor' ? 'autor' : 'réu')}"></span></p>
+                            <p class="indicator-caption" th:if="${!indicadores.adesao.possuiTeseCurada()}">Nenhuma tese com direção registrada para este tema.</p>
+                            <p class="indicator-caption" th:if="${indicadores.adesao.possuiTeseCurada() and indicadores.adesao.indice == null}">Nenhuma decisão com resultado de mérito para as teses do tema.</p>
+                            <button class="primary-action" type="button" data-show-section="evidence" th:if="${indicadores.evidencias != null}">Examinar decisões</button>
+                        </div>
+                    </section>
+                    <div class="indicator-meta"><div>Amostra<strong th:text="${indicadores.adesao.decisoesComResultado + ' decisões'}"></strong></div><div>Cobertura<strong th:text="${indicadores.adesao.cobertura != null ? #numbers.formatDecimal(indicadores.adesao.cobertura, 1, 1, 'COMMA') + '%' : '—'}"></strong></div><div>Encerrados<strong th:text="${indicadores.adesao.possuiTeseCurada() ? indicadores.adesao.processosEncerrados : '—'}"></strong></div></div>
+                    <div class="detail-tabs" role="tablist" aria-label="Explorar os indicadores">
+                        <button class="tab" id="detail-tab-bodies" role="tab" aria-selected="true" aria-controls="detail-bodies" data-detail-tab="bodies" type="button">Órgãos</button>
+                        <button class="tab" id="detail-tab-theses" role="tab" aria-selected="false" aria-controls="detail-theses" data-detail-tab="theses" type="button" tabindex="-1">Teses</button>
+                        <button class="tab" id="detail-tab-parties" role="tab" aria-selected="false" aria-controls="detail-parties" data-detail-tab="parties" type="button" tabindex="-1">Autor / réu</button>
+                        <button class="tab" id="detail-tab-evidence" role="tab" aria-selected="false" aria-controls="evidencias" data-detail-tab="evidence" type="button" tabindex="-1">Evidências</button>
+                    </div>
+                    <div id="detail-bodies" role="tabpanel" aria-labelledby="detail-tab-bodies" data-detail-panel="bodies">
+<div class="indicator-card" id="card-orgaos">
+                <h3>Adesão à Tese Principal por Órgão Julgador</h3>
+                <div th:if="${#lists.isEmpty(indicadores.adesaoPorOrgao)}" class="indicator-empty">Sem decisões com resultado para comparar os órgãos julgadores.</div>
+                <div class="comparison-row" th:each="orgao : ${indicadores.adesaoPorOrgao}">
+                    <span class="name" th:title="${orgao.nome}">
+                        <span th:text="${orgao.nome}">1ª Vara Cível</span>
+                        <span class="rank-sub" th:text="${orgao.decisoesComResultado + ' decisões · confiabilidade ' + #strings.toLowerCase(orgao.confiabilidade.rotulo)}">10 decisões</span>
+                    </span>
+                    <span class="pct" th:text="${orgao.indice != null ? #numbers.formatDecimal(orgao.indice, 1, 1, 'COMMA') + '%' : '—'}">70,0%</span>
                 </div>
             </div>
-            <div class="chart-empty" th:if="${processosPorClasse == null or #lists.isEmpty(processosPorClasse)}">
-                Sem dados de classe para o filtro selecionado.
-            </div>
-        </div>
-
-        <div class="chart-card">
-            <h3>Processos por Tema / Assunto (TPU)</h3>
-            <div class="chart-wrap" th:if="${processosPorAssunto != null and not #lists.isEmpty(processosPorAssunto)}">
-                <div class="chart-inner" id="inner-chartAssunto">
-                    <canvas id="chartAssunto"></canvas>
+                    </div>
+                    <div id="detail-theses" role="tabpanel" aria-labelledby="detail-tab-theses" data-detail-panel="theses" hidden>
+<div class="indicator-card" id="card-teses">
+                <h3>Teses Consideradas</h3>
+                <div th:if="${#lists.isEmpty(indicadores.adesaoPorTese)}" class="indicator-empty">Nenhuma tese com direção registrada para este tema.</div>
+                <div class="comparison-row" th:each="tese : ${indicadores.adesaoPorTese}">
+                    <span class="name" th:title="${tese.nome}">
+                        <span th:text="${tese.nome}">Tema 1234</span>
+                        <span class="rank-sub" th:text="${(tese.detalhe != null ? tese.detalhe + ' · ' : '') + 'favorece o ' + (tese.direcao == 'autor' ? 'autor' : 'réu') + ' · ' + tese.decisoesComResultado + ' decisões'}">STJ · favorece o autor</span>
+                        <a class="evidence-link" th:href="@{/processos/orgaos-julgadores(assuntoNome=${assuntoNome}, classeNome=${classeNome}, temaSelecionado=${temaSelecionado}, teseId=${tese.id})} + '#evidencias'">Ver evidências</a>
+                    </span>
+                    <span class="pct" th:text="${tese.indice != null ? #numbers.formatDecimal(tese.indice, 1, 1, 'COMMA') + '%' : '—'}">70,0%</span>
                 </div>
             </div>
-            <div class="chart-empty" th:if="${processosPorAssunto == null or #lists.isEmpty(processosPorAssunto)}">
-                Sem dados de tema/assunto para o filtro selecionado.
-            </div>
-        </div>
-
-        <div class="chart-card">
-            <h3>Processos por Órgão Julgador</h3>
-            <div class="chart-wrap" th:if="${((classeNome != null and !classeNome.isEmpty()) or (assuntoNome != null and !assuntoNome.isEmpty())) and not #lists.isEmpty(processos)}">
-                <div class="chart-inner" id="inner-chartOrgao">
-                    <canvas id="chartOrgao"></canvas>
+                    </div>
+                    <div id="detail-parties" role="tabpanel" aria-labelledby="detail-tab-parties" data-detail-panel="parties" hidden>
+<div class="indicator-card" id="card-polo">
+                <h3>Resultados por Polo</h3>
+                <div th:if="${indicadores.polo.autorPct != null}">
+                    <div class="party-values">
+                        <div><span class="rank-sub">Autor</span><span class="value autor" th:text="${#numbers.formatDecimal(indicadores.polo.autorPct, 1, 1, 'COMMA') + '%'}">70,0%</span></div>
+                        <div class="reu"><span class="rank-sub">Réu</span><span class="value reu" th:text="${#numbers.formatDecimal(indicadores.polo.reuPct, 1, 1, 'COMMA') + '%'}">30,0%</span></div>
+                    </div>
+                    <p class="indicator-caption">Procedência conta para o autor, improcedência para o réu e procedência em parte vale metade para cada lado.</p>
+                </div>
+                <div th:if="${indicadores.polo.autorPct == null}">
+                    <div class="indicator-value empty">Dados insuficientes</div>
+                    <p class="indicator-caption">Nenhuma decisão com resultado de mérito para este tema.</p>
+                </div>
+                <div class="indicator-meta">
+                    <div>Procedentes<strong th:text="${indicadores.polo.procedentes}">0</strong></div>
+                    <div>Parciais<strong th:text="${indicadores.polo.parciais}">0</strong></div>
+                    <div>Improcedentes<strong th:text="${indicadores.polo.improcedentes}">0</strong></div>
+                    <div>Confiabilidade<strong><span th:class="${'badge badge-' + indicadores.polo.confiabilidade.name()}" th:text="${indicadores.polo.confiabilidade.rotulo}">Baixa</span></strong></div>
                 </div>
             </div>
-            <div class="chart-empty" th:if="${(classeNome == null or classeNome.isEmpty()) and (assuntoNome == null or assuntoNome.isEmpty())}">
-                Pesquise por um Tema ou Classe acima para visualizar a distribuição por órgão julgador.
+                    </div>
+
+                    <section id="evidencias" role="tabpanel" aria-labelledby="detail-tab-evidence" data-detail-panel="evidence" hidden>
+                        <h3>Evidências do Índice</h3>
+                        <p class="indicator-empty" th:if="${indicadores.evidencias == null}">Nenhuma tese com direção registrada para este tema, portanto não há decisões avaliadas.</p>
+                        <div th:if="${indicadores.evidencias != null}" th:with="ev=${indicadores.evidencias}">
+                            <p class="indicator-caption">Tese: <strong th:text="${ev.tese}"></strong><span th:text="${(ev.tribunalTese != null ? ' (' + ev.tribunalTese + ') ' : '') + '· favorece o ' + (ev.direcao == 'autor' ? 'autor' : 'réu')}"></span></p>
+                            <div class="evidence-summary"><span><strong th:text="${ev.total}"></strong> decisões com resultado</span><span><strong th:text="${ev.aderentes}"></strong> aderentes</span><span><strong th:text="${ev.parciais}"></strong> parciais</span><span><strong th:text="${ev.naoAderentes}"></strong> não aderentes</span><span th:if="${ev.conferemComIndice}" class="evidence-check-ok">Totais conferem com o índice</span><span th:if="${!ev.conferemComIndice}" class="evidence-check-fail">Totais divergem do índice: atualize os dados antes de interpretar o resultado.</span></div>
+                            <p class="indicator-empty" th:if="${#lists.isEmpty(ev.decisoes)}">Nenhuma decisão com resultado de mérito para esta tese.</p>
+                            <article class="evidence-record" th:each="decisao : ${ev.decisoes}">
+                                <span class="mono" th:text="${decisao.numeroProcesso}"></span>
+                                <h4 th:text="${decisao.movimento}"></h4>
+                                <p><span th:text="${decisao.orgaoJulgador}"></span> · <span th:text="${decisao.dataJulgamento != null ? #temporals.format(decisao.dataJulgamento, 'dd/MM/yyyy') : '—'}"></span></p>
+                                <span th:class="${'badge badge-' + decisao.classificacao.name()}" th:text="${decisao.classificacao.rotulo}"></span>
+                            </article>
+                            <p class="indicator-caption" th:if="${ev.listaParcial()}" th:text="${'Mostrando as ' + ev.decisoes.size() + ' decisões mais recentes de ' + ev.total + '. Os totais acima consideram todas.'}"></p>
+                            <p class="indicator-caption">A seleção das evidências não altera a tese principal nem a comparação por órgão. Processos sigilosos não são exibidos nem contados.</p>
+                        </div>
+                    </section>
+                    <p class="indicator-caption">Alinhamento inferido pelo resultado do pedido e pela direção curada. Não confirma a aplicação do precedente no texto da decisão.</p>
+                    <details class="related-rates"><summary>Taxa de resultado do tema e precedentes relacionados</summary><p class="indicator-caption">Esta consulta usa o nome exato do assunto e mede o resultado dos pedidos, independentemente da direção da tese.</p><button type="button" class="text-action" data-kind="assunto" th:attr="data-name=${temaSelecionado}">Consultar taxa e precedentes</button></details>
+                    <div class="source-note">Fonte: DataJud (CNJ) e Banco Nacional de Precedentes.<br>Atualizado em <span th:text="${indicadores.adesao.atualizadoEm != null ? #temporals.format(indicadores.adesao.atualizadoEm, 'dd/MM/yyyy HH:mm') : '—'}"></span></div>
+                </section>
             </div>
-            <div class="chart-empty" th:if="${((classeNome != null and !classeNome.isEmpty()) or (assuntoNome != null and !assuntoNome.isEmpty())) and #lists.isEmpty(processos)}">
-                Sem dados de órgão julgador para o filtro selecionado.
-            </div>
-        </div>
+            <section id="selection-placeholder" class="detail-placeholder" hidden><span class="eyebrow">Explorar o acervo</span><h2 id="selection-instruction">Selecione um item na lista.</h2><p>O detalhe será exibido aqui, sem sair da análise.</p></section>
+            <section id="rate-detail" aria-live="polite" hidden>
+                <button class="secondary-action" id="return-topic" type="button">Voltar à análise do tema</button>
+                <div class="detail-heading"><span id="rate-kind"></span><h2 id="rate-name"></h2></div>
+                <p id="rate-count" class="indicator-caption"></p>
+                <p id="rate-status" class="rate-status"></p>
+                <div id="rate-value" class="rate-number"></div>
+                <p id="rate-explanation" class="indicator-caption"></p>
+                <a class="primary-action" id="apply-class" hidden>Usar esta classe no recorte dos volumes</a>
+                <section id="precedents" hidden><h3>Jurisprudência e Precedentes Vinculantes</h3><div id="precedents-list"></div></section>
+            </section>
+        </section>
     </div>
-
-</div>
-
-<div class="modal-overlay" id="successModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-        <h3 class="modal-title" id="modalTitle">Decisão Favorável (Ouro)</h3>
-        <p style="text-align: center; color: var(--text-muted); margin-top: -10px; margin-bottom: 20px;" id="modalSubtitle"></p>
-        <div class="gauge-container">
-            <canvas id="gaugeChart"></canvas>
-            <div class="gauge-text" id="gaugeText">0%</div>
-        </div>
-        <div id="precedentesContainer" style="margin-top: 20px; display: none; text-align: left; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; border: 1px solid var(--border);">
-            <h4 style="font-size: 0.85rem; text-transform: uppercase; color: #34D399; margin: 0 0 8px 0; letter-spacing: 0.05em;">Jurisprudência e Precedentes Vinculantes</h4>
-            <div id="precedentesList"></div>
-        </div>
-    </div>
-</div>
-
-<script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function () {
-        /*<![CDATA[*/
-        const rawOrgaoData = /*[[${processos}]]*/ null;
-        const rawClasseData = /*[[${processosPorClasse}]]*/ null;
-        const rawAssuntoData = /*[[${processosPorAssunto}]]*/ null;
-        const currentClasseNome = /*[[${classeNome}]]*/ '';
-        const currentAssuntoNome = /*[[${assuntoNome}]]*/ '';
-        /*]]>*/
-
-        const orgaoData = Array.isArray(rawOrgaoData) ? rawOrgaoData : [];
-        let classeData = Array.isArray(rawClasseData) ? rawClasseData : [];
-        let assuntoData = Array.isArray(rawAssuntoData) ? rawAssuntoData : [];
-
-        // Só filtra corte de 30 na visão global sem filtros para evitar poluição visual
-        const hasFilter = (currentClasseNome && currentClasseNome.trim() !== '') || (currentAssuntoNome && currentAssuntoNome.trim() !== '');
-        if (!hasFilter) {
-            classeData = classeData.filter(p => Number(p[1] ?? 0) >= 30);
-            assuntoData = assuntoData.filter(p => Number(p[1] ?? 0) >= 30);
-        }
-        assuntoData = assuntoData.filter(p => p[0] && String(p[0]).trim() !== '');
-
-        const orgaoLabels = orgaoData.map(p => String(p[0] ?? 'N/A'));
-        const orgaoValues = orgaoData.map(p => Number(p[1] ?? 0));
-        const classeLabels = classeData.map(p => String(p[0] ?? 'N/A'));
-        const classeValues = classeData.map(p => Number(p[1] ?? 0));
-        const assuntoLabels = assuntoData.map(p => String(p[0] ?? 'N/A'));
-        const assuntoValues = assuntoData.map(p => Number(p[1] ?? 0));
-
-        const chartTheme = {
-            grid: 'rgba(148, 163, 184, 0.1)',
-            ticks: '#94A3B8',
-            bar: 'rgba(129, 140, 248, 0.75)',
-            barHover: 'rgba(192, 132, 252, 0.9)',
-            barBorder: '#818CF8'
-        };
-
-        function buildBarChart(canvasId, labels, values, barColor, clickType = null) {
-            try {
-                const el = document.getElementById(canvasId);
-                if (!el) return;
-                if (!labels || labels.length === 0) return;
-                if (typeof Chart === 'undefined') return;
-
-                const innerWrap = document.getElementById('inner-' + canvasId);
-                if (innerWrap) {
-                    const dynamicHeight = Math.max(260, labels.length * 22);
-                    innerWrap.style.height = dynamicHeight + 'px';
-                }
-
-                const total = values.reduce((acc, v) => acc + v, 0);
-
-                new Chart(el, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: barColor,
-                            borderColor: chartTheme.barBorder,
-                            borderWidth: 1,
-                            borderRadius: 6,
-                            maxBarThickness: 36,
-                            hoverBackgroundColor: chartTheme.barHover
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        onClick: (event, elements, chart) => {
-                            if (!clickType || elements.length === 0) return;
-                            const index = elements[0].index;
-                            const label = chart.data.labels[index];
-                            const value = chart.data.datasets[0].data[index];
-
-                            if (clickType === 'classe') {
-                                openTaxaSucessoModal(label);
-                            } else if (clickType === 'assunto') {
-                                openTaxaSucessoTemaModal(label);
-                            } else if (clickType === 'orgao') {
-                                openParticipacaoModal(label, value, total);
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#1E293B',
-                                borderColor: '#334155',
-                                borderWidth: 1,
-                                titleColor: '#F8FAFC',
-                                bodyColor: '#F8FAFC',
-                                padding: 10
-                            }
-                        },
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                ticks: { color: chartTheme.ticks, precision: 0 },
-                                grid: { color: chartTheme.grid }
-                            },
-                            y: {
-                                ticks: { color: chartTheme.ticks, autoSkip: false },
-                                grid: { color: 'transparent' }
-                            }
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error('[DataLaw] erro ao montar o gráfico', canvasId, err);
-            }
-        }
-
-        buildBarChart('chartClasse', classeLabels, classeValues, 'rgba(192, 132, 252, 0.75)', 'classe');
-        buildBarChart('chartAssunto', assuntoLabels, assuntoValues, 'rgba(52, 211, 153, 0.75)', 'assunto');
-        buildBarChart('chartOrgao', orgaoLabels, orgaoValues, chartTheme.bar, 'orgao');
-
-        let gaugeChartInstance = null;
-
-        function renderGauge(percentual, cor) {
-            if (gaugeChartInstance) {
-                gaugeChartInstance.destroy();
-            }
-            const ctx = document.getElementById('gaugeChart');
-            gaugeChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [percentual, 100 - percentual],
-                        backgroundColor: [cor, '#334155'],
-                        borderWidth: 0,
-                        circumference: 180,
-                        rotation: 270
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '80%',
-                    plugins: {
-                        tooltip: { enabled: false },
-                        legend: { display: false }
-                    }
-                }
-            });
-        }
-
-        window.openTaxaSucessoModal = function(classeNome) {
-            document.getElementById('precedentesContainer').style.display = 'none';
-            document.getElementById('successModal').classList.add('active');
-            document.getElementById('modalTitle').innerText = 'Decisão Favorável por Classe (Ouro)';
-            document.getElementById('modalSubtitle').innerText = classeNome;
-            document.getElementById('gaugeText').innerText = '...';
-
-            fetch(`/processos/taxa-sucesso?classeNome=${encodeURIComponent(classeNome)}`)
-                .then(r => r.json())
-                .then(data => {
-                    const taxa = data.taxa || 0;
-                    document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
-                    renderGauge(taxa, '#FBBF24');
-                })
-                .catch(err => {
-                    console.error('Erro ao buscar taxa de sucesso', err);
-                    document.getElementById('gaugeText').innerText = 'Erro';
-                });
-        };
-
-        window.openTaxaSucessoTemaModal = function(assuntoNome) {
-            document.getElementById('successModal').classList.add('active');
-            document.getElementById('modalTitle').innerText = 'Decisão Favorável por Tema (Ouro)';
-            document.getElementById('modalSubtitle').innerText = assuntoNome;
-            document.getElementById('gaugeText').innerText = '...';
-            const precContainer = document.getElementById('precedentesContainer');
-            const precList = document.getElementById('precedentesList');
-            precContainer.style.display = 'none';
-            precList.innerHTML = '';
-
-            fetch(`/processos/taxa-sucesso-tema?assuntoNome=${encodeURIComponent(assuntoNome)}`)
-                .then(r => r.json())
-                .then(data => {
-                    const taxa = data.taxa || 0;
-                    document.getElementById('gaugeText').innerText = taxa.toFixed(1) + '%';
-                    renderGauge(taxa, '#34D399');
-
-                    if (data.precedentes && data.precedentes.length > 0) {
-                        precContainer.style.display = 'block';
-                        data.precedentes.forEach(p => {
-                            const trib = p[0] || '';
-                            const ident = p[1] || '';
-                            const tit = p[2] || '';
-                            const tese = p[3] || '';
-                            const em = p[4] || '';
-
-                            const itemDiv = document.createElement('div');
-                            itemDiv.style.marginBottom = '12px';
-                            itemDiv.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
-                            itemDiv.style.paddingBottom = '8px';
-                            itemDiv.innerHTML = `
-                                <div style="font-weight: 600; color: #F8FAFC; font-size: 0.88rem;">
-                                    <span style="background: rgba(52, 211, 153, 0.2); color: #34D399; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">${trib}</span>
-                                    ${ident}: ${tit}
-                                </div>
-                                ${tese ? `<div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 4px;"><strong>Tese:</strong> ${tese}</div>` : ''}
-                                <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px; line-height: 1.4;">${em}</div>
-                            `;
-                            precList.appendChild(itemDiv);
-                        });
-                    }
-                })
-                .catch(err => {
-                    console.error('Erro ao buscar taxa de sucesso do tema', err);
-                    document.getElementById('gaugeText').innerText = 'Erro';
-                });
-        };
-
-        window.openParticipacaoModal = function(orgaoNome, quantidade, total) {
-            document.getElementById('precedentesContainer').style.display = 'none';
-            document.getElementById('successModal').classList.add('active');
-            document.getElementById('modalTitle').innerText = 'Participação no Total de Processos';
-            document.getElementById('modalSubtitle').innerText = orgaoNome;
-
-            const pct = total > 0 ? (quantidade / total) * 100 : 0;
-            document.getElementById('gaugeText').innerText = pct.toFixed(1) + '%';
-            renderGauge(pct, '#818CF8');
-        };
-
-        window.closeModal = function() {
-            document.getElementById('successModal').classList.remove('active');
-        };
-    });
-</script>
-
+</main>
+<noscript><p>As listas de temas e a pesquisa funcionam sem JavaScript. Ative-o para alternar agrupamentos, comparar detalhes e consultar taxas.</p></noscript>
 </body>
 </html>

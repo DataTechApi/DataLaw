@@ -7,7 +7,6 @@ This folder holds the **Req Track** block of the DevOps map: from the client's p
 | [requirements.md](requirements.md) | Functional and non-functional requirements with origin, priority, acceptance criteria and status |
 | [use-cases.md](use-cases.md) | Sprint 3 use cases: requester, code, tests, happy path and alternative paths |
 | [traceability.md](traceability.md) | Requirement → story → use case → code → test matrix |
-| [open-items.md](open-items.md) | Decisions to validate with the client and product gaps |
 
 ## Process
 

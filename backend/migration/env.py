@@ -17,6 +17,9 @@ from data_law.infra.database.model.bronze.ingestion_state import (  # noqa: F401
 from data_law.infra.database.model.silver.movement import (  # noqa: F401
     SilverDataJudMovement,
 )
+from data_law.infra.database.model.silver.precedent_direction import (  # noqa: F401
+    SilverPrecedentDirection,
+)
 from data_law.infra.database.model.silver.process import (  # noqa: F401
     SilverDataJudProcess,
 )

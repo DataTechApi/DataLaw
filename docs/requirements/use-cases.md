@@ -10,9 +10,9 @@
 | Story | US3.1 |
 | Preconditions | Silver is up to date and the thesis direction is recorded |
 | Postcondition | Each decision with a result has an adherence classification |
-| Existing code | `backend/src/data_law/infra/database/model/gold/topic_results.py`, `topic_precedents.py`, `backend/src/data_law/ingestion/jurisprudencia.py` |
-| Planned code | Thesis direction column or table, with an Alembic migration, and a Gold classification recipe |
-| Existing tests | TC-GLD-007, TC-GLD-008, TC-JUR-012 |
+| Existing code | `backend/src/data_law/infra/database/model/silver/precedent_direction.py`, migration `20261113_08`, `backend/src/data_law/infra/database/model/gold/topic_adherence.py` |
+| Planned code | A curation screen or command; today directions are recorded with SQL |
+| Existing tests | TC-INF-005, TC-INF-006, TC-GLD-010, TC-GLD-013 |
 
 **Happy path**
 1. The curator records that the thesis favors the plaintiff.
@@ -37,9 +37,9 @@
 | Story | US3.2 |
 | Preconditions | UC-01 is complete |
 | Postcondition | Index materialized by court, topic and precedent |
-| Existing code | `backend/src/data_law/transformation/gold.py` (materialization) |
-| Planned code | `topic_adherence` recipe in `backend/src/data_law/infra/database/model/gold/` |
-| Existing tests | TC-GMT-005, TC-GMT-015 |
+| Existing code | `backend/src/data_law/infra/database/model/gold/topic_adherence.py`, `backend/src/data_law/transformation/gold.py` (materialization) |
+| Planned code | None |
+| Existing tests | TC-GLD-010, TC-GLD-013, TC-GLD-014, TC-GMT-005, TC-GMT-015 |
 
 **Happy path**
 1. The operator runs `uv run task gold-load`.
@@ -48,7 +48,7 @@
 4. The Gold table is replaced atomically.
 
 **Alternative paths**
-- **Fewer than 30 decisions with a result:** the index is marked low reliability.
+- **Fewer than 30 decisions with a result:** the dashboard marks the index as low reliability.
 - **No decisions with a result:** the index is null.
 - **Recipe failure:** the previous table is kept.
 
@@ -56,15 +56,15 @@
 
 | Field | Description |
 |---|---|
-| Requested by | Client (highest-priority view), rule pending validation (P6) |
+| Requested by | Client (highest-priority view); the movement rule is pending client validation |
 | Primary actor | Strategic Lawyer |
 | Requirements | RF08 |
 | Story | US3.6 |
-| Preconditions | Gold is up to date, a topic is selected and the client has validated the rule (P6) |
+| Preconditions | Gold is up to date and a topic is selected |
 | Postcondition | The user knows how results split between plaintiff and defendant in the topic |
-| Existing code | `gold/topic_results.py`, `ProcessoRepository.java`, `orgaos-julgadores.html` |
-| Planned code | Party query, endpoint field and dashboard display |
-| Existing tests | TC-GLD-007 |
+| Existing code | `gold/topic_party_results.py`, `ProcessoRepository.java`, `ProcessoService.java`, `orgaos-julgadores.html` |
+| Planned code | None |
+| Existing tests | TC-GLD-009, TC-GLD-012, TC-FE-SVC-010, TC-FE-SVC-011, TC-FE-CTL-009, TC-FE-CTL-010 |
 
 **Happy path**
 1. The lawyer selects a topic.
@@ -86,16 +86,16 @@
 | Story | US3.3 |
 | Preconditions | Gold is up to date and the user is on the dashboard |
 | Postcondition | The user knows the index, sample and reliability |
-| Existing code | `ProcessoController.java`, `ProcessoService.java`, `ProcessoRepository.java`, `orgaos-julgadores.html` |
-| Planned code | Adherence endpoint and a new `ProcessoRepository` query |
-| Existing tests | TC-FE-CTL-007, TC-FE-CTL-008, TC-FE-SVC-005 |
+| Existing code | `ProcessoController.java`, `ProcessoService.java`, `ProcessoRepository.java`, `entity/dto/`, `orgaos-julgadores.html` |
+| Planned code | None |
+| Existing tests | TC-FE-CTL-009 to TC-FE-CTL-014, TC-FE-SVC-007 to TC-FE-SVC-009, TC-FE-SVC-012 to TC-FE-SVC-017 |
 
 **Happy path**
 1. The lawyer opens the dashboard.
 2. The lawyer selects a topic.
-3. The system highlights the Adherence Index.
-4. The system shows sample, coverage, source and update date.
-5. The system shows the comparison by judging body.
+3. The system highlights the Adherence Index of the main thesis, the one with the largest sample.
+4. The system shows sample, coverage, reliability, source and update date.
+5. The system shows the comparison by judging body for that thesis and the list of theses considered.
 
 **Alternative paths**
 - **Topic without decisions with a result:** shows "Insufficient data".
@@ -112,19 +112,22 @@
 | Story | US3.4 |
 | Preconditions | Index displayed (UC-04) |
 | Postcondition | The user understands how the number was formed |
-| Existing code | `findPrecedentesPorAssunto` in `ProcessoRepository.java` |
-| Planned code | Query and evidence section in the template |
-| Existing tests | TC-FE-SVC-006 |
+| Existing code | `gold/topic_adherence_evidence.py`, `ProcessoRepository.java`, `ProcessoService.java`, `EvidenciasTese.java`, `EvidenciaDecisao.java`, `orgaos-julgadores.html` |
+| Planned code | None |
+| Existing tests | TC-GLD-015, TC-GLD-016, TC-FE-CTL-009, TC-FE-CTL-015, TC-FE-SVC-018 to TC-FE-SVC-023 |
 
 **Happy path**
-1. The manager clicks "View evidence".
-2. The system shows the thesis and its direction.
-3. The system lists the decisions considered.
-4. The manager confirms the totals match the index.
+1. The manager selects a topic; the evidence section shows the main thesis.
+2. The manager clicks "Ver evidências" on another thesis to inspect it.
+3. The system shows the thesis and its direction.
+4. The system lists the decisions considered: case number, judging body, movement, date and classification.
+5. The system shows the totals and confirms they match the index.
 
 **Alternative paths**
 - **Confidential case:** it is neither shown nor counted.
-- **No evidence:** shows a message and keeps the index unavailable.
+- **Topic without a curated thesis:** states that there are no evaluated decisions.
+- **More than 50 decisions:** the table shows the 50 most recent; the totals still cover all.
+- **Totals differ from the index:** shows a warning to rebuild the Gold layer.
 
 ## UC-06 — Consult the indicator documentation
 
@@ -134,16 +137,20 @@
 | Primary actor | Legal Manager |
 | Requirements | RNF10, RNF12 |
 | Story | US3.5 |
-| Preconditions | Formulas validated by the client |
+| Preconditions | Documentation is available; client formula validation remains a prerequisite for business acceptance and is still pending |
 | Postcondition | Each indicator has a formula, assumptions and an example |
-| Existing code | `docs/architecture/gold.md`, `docs/requirements/` |
-| Planned code | `docs/architecture/indicators.md` |
-| Existing tests | Not applicable |
+| Existing documentation | [Indicator guide](../architecture/indicators.md), [traceability matrix](traceability.md), `docs/architecture/gold.md` |
+| Verification | Existing implementation tests are mapped in the matrix; no dedicated document acceptance test |
+| Acceptance | Product Owner review pending; synthetic examples do not establish client approval |
 
 **Happy path**
 1. The manager opens the documentation.
 2. The manager finds the Adherence Index formula.
 3. The manager reproduces the example and reaches the same result.
+4. The manager follows the requirement, implementation and verification links,
+   distinguishing illustrative calculations from existing test scenarios.
 
 **Alternative path**
 - **Formula changed:** the documentation changes in the same pull request.
+- **Validation pending:** the manager can inspect the implemented rule and its
+  limitations, but the documentation does not present it as client-approved.

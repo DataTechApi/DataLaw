@@ -33,6 +33,35 @@ The systemd units `datalaw.service` and `datalaw-backend.service` are created by
 
 Prerequisites: Git, Docker, uv and JDK 21.
 
+### Guided script (Windows)
+
+`scripts/datalaw-local.ps1` walks through every local step. Without parameters it opens a menu:
+
+```powershell
+.\scripts\datalaw-local.ps1
+```
+
+| Option | `-Acao` | What it does |
+|---|---|---|
+| 1 | `preparar` | Starts PostgreSQL, installs backend dependencies and applies migrations |
+| 2 | `status` | Shows processes, courts, decisions with a result, precedents, curated theses, last DataJud loads and Gold tables |
+| 3 | `ingerir` | Downloads more data from DataJud for a court (`-Tribunal tjsp`, `stj` or `tst`; `-Modo incremental`, `completa` or `retomar` with `-RunId`), then updates Silver and Gold |
+| 4 | `brutos` | Reprocesses the raw files already in `backend/data/raw`, without calling the API, then rebuilds Gold |
+| 5 | `gold` | Rebuilds every Gold table |
+| 6 | `app` | Starts the web application (`-Porta`, default 8080) |
+| 7 | `testes` | Runs backend lint and tests, including integration tests, and frontend tests |
+
+Notes:
+
+- The script always sets `DATABASE_URL` to the local Docker database for its session, so it never writes to a shared database.
+- Ingestion needs a DataJud public API key. The script uses `DATAJUD_API_KEY` from the session or from `backend/.env`, or asks for it without echoing.
+- An incremental load requires a completed historical load for that court; the script switches to a full load when there is none.
+- A full load searches closed cases since March 2026 and can take a long time. If it stops, run it again with `-Modo retomar -RunId <id from the log>`.
+- TST is labor justice and is outside the project's civil law scope.
+- If PowerShell blocks the script, run it with `powershell -ExecutionPolicy Bypass -File .\scripts\datalaw-local.ps1`.
+
+### Manual steps
+
 ```bash
 docker compose up -d
 ```

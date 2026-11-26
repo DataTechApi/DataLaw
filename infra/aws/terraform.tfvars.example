@@ -1,0 +1,30 @@
+# ============================================================
+#  DataLaw — Terraform · AWS · terraform.tfvars.example
+#  Copie este arquivo para terraform.tfvars e preencha os valores.
+#  ATENÇÃO: NÃO versione o terraform.tfvars — ele já está no .gitignore.
+# ============================================================
+
+region      = "sa-east-1"
+project     = "datalaw"
+environment = "prod"
+
+# ─── EC2 ───────────────────────────────────────────────────
+# Mínimo:    t3.small  (2 vCPU / 2 GB) → ~$21/mês cada
+# Recomendado: t3.medium (2 vCPU / 4 GB) → ~$42/mês cada
+vm_frontend_type = "t3.medium"
+vm_backend_type  = "t3.medium"
+
+# Gere com: ssh-keygen -t ed25519 -C "datalaw-deploy"
+# Depois: cat ~/.ssh/id_ed25519.pub
+ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... datalaw-deploy"
+
+# ─── RDS PostgreSQL ────────────────────────────────────────
+# Mínimo:    db.t3.micro (1 GB)  → ~$20/mês
+# Recomendado: db.t3.small (2 GB) → ~$41/mês
+db_instance_class = "db.t3.small"
+db_name           = "datalaw_db"
+db_admin_user     = "datalaw"
+db_admin_password = "TROQUE_ESTA_SENHA_FORTE_123!"
+
+# ─── Aplicação ─────────────────────────────────────────────
+datajud_api_key = "cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw=="
